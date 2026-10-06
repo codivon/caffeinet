@@ -72,19 +72,19 @@
     transform: translateX(-3px);
     background: rgba(255, 255, 255, 0.055);
     color: #bfdbfe;
-}}
+}
 #panel-sidebar nav a.op-nav-link:not(.op-nav-active):hover > svg {
     color: #60a5fa;
     transform: scale(1.07);
-}}
+}
 
 /* آیتم فعال: پس‌زمینهٔ گرادیانی کهربایی + نوار نورانی لبهٔ شروع (RTL) */
 #panel-sidebar nav a.op-nav-active {
     background: linear-gradient(90deg, rgba(96, 165, 250, 0.06), rgba(59, 130, 246, 0.22));
     color: #dbeafe;
     box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.16), 0 6px 18px -10px rgba(59, 130, 246, 0.5);
-}}
-#panel-sidebar nav a.op-nav-active > svg { color: #60a5fa; }}
+}
+#panel-sidebar nav a.op-nav-active > svg { color: #60a5fa; }
 #panel-sidebar nav a.op-nav-active::before {
     content: '';
     position: absolute;
@@ -93,9 +93,9 @@
     height: 52%;
     width: 3px;
     border-radius: 9999px;
-    background: linear-gradient(180deg, #fde68a, #3b82f6);
+    background: linear-gradient(180deg, #93c5fd, #3b82f6);
     box-shadow: 0 0 12px 2px rgba(59, 130, 246, 0.55);
-}}
+}
 
 /* ============ ۲) هدر — pill وضعیت «آنلاین» ============ */
 .op-status-pill {
@@ -263,7 +263,7 @@ html.dark .cnchat-composer .ta-wrap {
 }
 html.dark .cnchat-composer .ta-wrap:focus-within {
     border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(232, 163, 78, 0.14);
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14);
 }
 html.dark .cnchat-composer textarea { color: #dbeafe; }
 html.dark .cnchat-composer textarea::placeholder { color: #3b82f6; }

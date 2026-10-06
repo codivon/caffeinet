@@ -41,11 +41,23 @@ html:not(.dark) body {
     background-color: var(--th-bg);
     background-image:
         radial-gradient(circle at 12% -10%, rgba(59, 130, 246, 0.07), transparent 42%),
-        radial-gradient(circle at 88% 0%, rgba(217, 149, 11, 0.05), transparent 38%),
+        radial-gradient(circle at 88% 0%, rgba(37, 99, 235, 0.045), transparent 38%),
         radial-gradient(rgba(51, 65, 85, 0.055) 1px, transparent 1.4px);
     background-size: auto, auto, 26px 26px;
     background-attachment: fixed;
-}}
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ۱-ب) سایدبار پنل‌ها — سرمه‌ای برند آبی (همیشه تیره در هر دو تم)
+   استفاده در ۴ لایه: back/layouts/panel، org، coffeenet، operator
+   متن‌های داخل سایدبار باید از خانوادهٔ sky/white باشند (خوانایی).
+   ═══════════════════════════════════════════════════════════════ */
+.panel-sidebar {
+    background-image:
+        radial-gradient(ellipse 90% 34% at 50% -10%, rgba(96, 165, 250, 0.18), transparent 62%),
+        linear-gradient(185deg, #172f6d 0%, #1d3e8d 40%, #14295f 72%, #0d1d4a 100%);
+    color: #dbeafe;
+}
 
 /* ============ ۲) دکمهٔ سوییچ تم ============ */
 .theme-toggle {
@@ -67,7 +79,7 @@ html:not(.dark) body {
 .theme-toggle:hover {
     color: var(--ui-brand-600, #2563eb);
     border-color: color-mix(in oklab, var(--ui-brand, #3b82f6) 45%, transparent);
-    box-shadow: 0 10px 24px -10px rgba(69, 26, 3, 0.25);
+    box-shadow: 0 10px 24px -10px rgba(30, 58, 138, 0.25);
     transform: translateY(-1px);
 }
 .theme-toggle:active { transform: scale(0.94); }
@@ -86,8 +98,8 @@ html:not(.dark) body {
     transition: transform 0.45s var(--ui-ease-spring, ease), opacity 0.3s ease;
 }
 /* در حالت روشن: ماه نمایان (کلیک → تاریک) */
-html:not(.dark) .theme-toggle .tt-sun  { transform: rotate(90deg) scale(0.4); opacity: 0; }}
-html:not(.dark) .theme-toggle .tt-moon { transform: rotate(0deg) scale(1); opacity: 1; }}
+html:not(.dark) .theme-toggle .tt-sun  { transform: rotate(90deg) scale(0.4); opacity: 0; }
+html:not(.dark) .theme-toggle .tt-moon { transform: rotate(0deg) scale(1); opacity: 1; }
 /* در حالت تاریک: خورشید نمایان (کلیک → روشن) */
 html.dark .theme-toggle .tt-sun  { transform: rotate(0deg) scale(1); opacity: 1; }
 html.dark .theme-toggle .tt-moon { transform: rotate(-90deg) scale(0.4); opacity: 0; }
@@ -142,7 +154,7 @@ html.dark {
 html.dark body {
     background-color: var(--th-bg);
     background-image:
-        radial-gradient(circle at 15% -12%, rgba(232, 163, 78, 0.09), transparent 44%),
+        radial-gradient(circle at 15% -12%, rgba(96, 165, 250, 0.09), transparent 44%),
         radial-gradient(circle at 85% -8%, rgba(59, 130, 246, 0.06), transparent 40%);
     background-attachment: fixed;
 }
@@ -152,8 +164,8 @@ html.dark .bg-white          { background-color: var(--th-surface) !important; }
 html.dark .card              { background-color: var(--th-surface) !important; }
 html.dark .field             { background-color: #2d2d4a; }
 html.dark .btn-ghost         { background-color: #2d2d4a; border-color: #2d2d4a; }
-html.dark .table-panel tbody tr:hover { background-color: rgba(242, 181, 102, 0.07); }
-html.dark .table-panel thead th { background-color: rgba(43, 39, 36, 0.88); }
+html.dark .table-panel tbody tr:hover { background-color: rgba(96, 165, 250, 0.08); }
+html.dark .table-panel thead th { background-color: rgba(17, 24, 51, 0.88); }
 
 /* اسکلتون‌ها (قاب موبایل فرم‌ساز) باید تیره بمانند */
 html.dark .bg-stone-800\/90  { background-color: #1a1a2e !important; }
@@ -162,9 +174,9 @@ html.dark .bg-stone-600      { background-color: #1d4ed8 !important; }
 /* ---------- tintهای کهربایی (bg/border) — متن‌های amber-50/200 روی سایدبار دست‌نخورده ---------- */
 html.dark .bg-amber-50      { background-color: #1a1a2e !important; }
 html.dark .bg-amber-100     { background-color: #1e3a5f !important; }
-html.dark .bg-amber-50\/60  { background-color: rgba(58, 44, 18, 0.6) !important; }
-html.dark .bg-amber-50\/70  { background-color: rgba(58, 44, 18, 0.7) !important; }
-html.dark .bg-amber-50\/80  { background-color: rgba(58, 44, 18, 0.8) !important; }
+html.dark .bg-amber-50\/60  { background-color: rgba(23, 33, 71, 0.6) !important; }
+html.dark .bg-amber-50\/70  { background-color: rgba(23, 33, 71, 0.7) !important; }
+html.dark .bg-amber-50\/80  { background-color: rgba(23, 33, 71, 0.8) !important; }
 html.dark .border-amber-100 { border-color: #1e3a5f !important; }
 html.dark .border-amber-200 { border-color: #1e3a8a !important; }
 html.dark .border-amber-300 { border-color: #1d4ed8 !important; }
@@ -176,7 +188,7 @@ html.dark .hover\:text-amber-500:hover { color: #3b82f6 !important; }
 html.dark .hover\:text-amber-600:hover { color: #60a5fa !important; }
 html.dark .hover\:text-amber-700:hover { color: #60a5fa !important; }
 html.dark .hover\:bg-amber-50:hover    { background-color: #1a1a2e !important; }
-html.dark .hover\:bg-amber-50\/60:hover { background-color: rgba(58, 44, 18, 0.6) !important; }
+html.dark .hover\:bg-amber-50\/60:hover { background-color: rgba(23, 33, 71, 0.6) !important; }
 
 /* ---------- سبز (emerald) ---------- */
 html.dark .bg-emerald-50    { background-color: #0f2a20 !important; }
@@ -226,12 +238,12 @@ html.dark .ui-modal {
     background: #2d2d4a;
     box-shadow: 0 30px 70px -18px rgba(0, 0, 0, 0.8);
 }
-html.dark .ui-modal-backdrop { background: rgba(12, 9, 6, 0.62); }
+html.dark .ui-modal-backdrop { background: rgba(8, 12, 30, 0.62); }
 html.dark .ui-modal .ui-modal-title { color: var(--th-ink); }
 html.dark .ui-modal .ui-modal-text  { color: var(--th-ink-soft); }
 
 html.dark .ui-toast {
-    background: rgba(42, 38, 35, 0.97);
+    background: rgba(22, 27, 47, 0.97);
     border-color: #2d2d4a;
     box-shadow: 0 16px 44px -14px rgba(0, 0, 0, 0.7);
 }

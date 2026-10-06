@@ -20,14 +20,14 @@
 
     {{-- استایل و اسکریپت — کاملاً بدون Node / بدون بیلد --}}
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v=14">
-    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=15">
-    <link rel="stylesheet" href="{{ asset('assets/css/pages/operator.css') }}?v=10">
+    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=16">
+    <link rel="stylesheet" href="{{ asset('assets/css/pages/operator.css') }}?v=21">
     {{-- زنگ اعلان (فاز ۱۰) — قبل از theme --}}
     <link rel="stylesheet" href="{{ asset('assets/css/notifications.css') }}?v=14">
     {{-- مودال اطلاعیه‌های سامانه (فاز ۱۵) --}}
     <link rel="stylesheet" href="{{ asset('assets/css/panel-announcements.css') }}?v=15">
     {{-- سیستم تم روشن/تاریک (فاز ۱۰) — باید آخرین CSS باشد تا برنده بماند --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}?v=10">
+    <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}?v=11">
     {{-- تقویم/دیت‌پیکر شمسی (CNJdp) --}}
     <link rel="stylesheet" href="{{ asset('assets/css/jalali-datepicker.css') }}?v=3">
     {{-- استایل‌های اختصاصی صفحات (push با @push('styles')) --}}
@@ -58,7 +58,7 @@
     {{-- ================== سایدبار ==================
          [Task 2-a] @persist — بین ناوبری‌های wire:navigate دوباره رندر نمی‌شود --}}
     @persist('sidebar')
-    <aside id="panel-sidebar" class="fixed lg:sticky top-0 h-screen w-72 shrink-0 z-40 translate-x-full lg:translate-x-0 transition-transform duration-300 bg-gradient-to-b from-[#2b1a0e] via-[#241509] to-[#170d05] text-stone-200 flex flex-col">
+    <aside id="panel-sidebar" class="panel-sidebar fixed lg:sticky top-0 h-screen w-72 shrink-0 z-40 translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col">
 
         <div class="px-5 py-5 border-b border-white/10 flex items-center gap-3">
             <span class="grid place-items-center size-10 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-700 shadow-lg shadow-black/40 shrink-0">
@@ -129,9 +129,9 @@
                 </span>
                 <div class="min-w-0 flex-1">
                     <strong class="block text-xs font-bold text-blue-50 truncate">{{ auth()->user()->full_name }}</strong>
-                    <span class="block text-[10px] text-stone-400 truncate" dir="ltr">{{ auth()->user()->email }}</span>
+                    <span class="block text-[10px] text-sky-200/80 truncate" dir="ltr">{{ auth()->user()->email }}</span>
                 </div>
-                <button type="button" class="logout-btn grid place-items-center size-9 rounded-xl text-stone-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors" title="خروج" aria-label="خروج از حساب">
+                <button type="button" class="logout-btn grid place-items-center size-9 rounded-xl text-sky-200/80 hover:text-rose-300 hover:bg-rose-500/10 transition-colors" title="خروج" aria-label="خروج از حساب">
                     <svg class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
                 </button>
             </div>
