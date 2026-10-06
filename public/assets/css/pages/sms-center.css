@@ -26,10 +26,10 @@
     width: 2.9rem;
     height: 2.9rem;
     border-radius: 1rem;
-    background: linear-gradient(135deg, #d97706, #b45309);
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
     color: #fffbeb;
     flex-shrink: 0;
-    box-shadow: 0 10px 22px -10px rgba(180, 83, 9, 0.6);
+    box-shadow: 0 10px 22px -10px rgba(29, 78, 216, 0.6);
 }
 
 .sc-hero-icon svg { width: 1.4rem; height: 1.4rem; }
@@ -77,7 +77,7 @@
 
 .sc-cat {
     border: 1px solid var(--th-line);
-    background: var(--th-surface, #fafaf9);
+    background: var(--th-surface, #f8fafc);
     color: var(--th-ink-soft);
     border-radius: 0.85rem;
     padding: 0.42rem 0.85rem;
@@ -90,22 +90,22 @@
     transition: all 0.18s ease;
 }
 
-.sc-cat:hover { border-color: #d97706; color: #b45309; }
+.sc-cat:hover { border-color: #2563eb; color: #1d4ed8; }
 
 .sc-cat.is-active {
-    background: linear-gradient(135deg, #d97706, #b45309);
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
     border-color: transparent;
     color: #fffbeb;
 }
 
 html.dark .sc-cat.is-active {
-    background: linear-gradient(135deg, #f5b453, #d97706);
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
     color: #431407;
 }
 
 .sc-cat-count {
     font-size: 0.6rem;
-    background: rgba(120, 113, 108, 0.12);
+    background: rgba(100, 116, 139, 0.12);
     padding: 0.05rem 0.42rem;
     border-radius: 0.5rem;
     font-variant-numeric: tabular-nums;
@@ -143,7 +143,7 @@ html.dark .sc-cat.is-active {
     width: 1.1rem;
     height: 1.1rem;
     border: 2.5px solid var(--th-line);
-    border-top-color: #d97706;
+    border-top-color: #2563eb;
     border-radius: 50%;
     animation: sc-spin 0.8s linear infinite;
 }
@@ -152,7 +152,7 @@ html.dark .sc-cat.is-active {
 
 /* ---------- کارت قالب ---------- */
 .sc-card {
-    background: var(--th-surface, #fafaf9);
+    background: var(--th-surface, #f8fafc);
     border: 1px solid var(--th-line);
     border-radius: 1.25rem;
     padding: 1rem 1.05rem;
@@ -166,13 +166,13 @@ html.dark .sc-cat.is-active {
 
 .sc-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 14px 30px -18px rgba(68, 64, 60, 0.35);
-    border-color: rgba(217, 119, 6, 0.35);
+    box-shadow: 0 14px 30px -18px rgba(51, 65, 85, 0.35);
+    border-color: rgba(37, 99, 235, 0.35);
 }
 
 .sc-card.is-off {
     opacity: 0.62;
-    background: repeating-linear-gradient(-45deg, transparent 0 12px, rgba(120, 113, 108, 0.04) 12px 24px);
+    background: repeating-linear-gradient(-45deg, transparent 0 12px, rgba(100, 116, 139, 0.04) 12px 24px);
 }
 
 .sc-card.is-hidden { display: none; }
@@ -276,7 +276,7 @@ html.dark .sc-card-body { background: rgba(255, 255, 255, 0.03); }
     inset-inline: 0;
     bottom: 0;
     height: 1.4rem;
-    background: linear-gradient(to top, var(--th-surface, #fafaf9), transparent);
+    background: linear-gradient(to top, var(--th-surface, #f8fafc), transparent);
 }
 
 /* متغیرها */
@@ -291,17 +291,17 @@ html.dark .sc-card-body { background: rgba(255, 255, 255, 0.03); }
     font-size: 0.58rem;
     font-weight: 600;
     direction: ltr;
-    background: rgba(217, 119, 6, 0.08);
-    color: #b45309;
-    border: 1px solid rgba(217, 119, 6, 0.22);
+    background: rgba(37, 99, 235, 0.08);
+    color: #1d4ed8;
+    border: 1px solid rgba(37, 99, 235, 0.22);
     padding: 0.1rem 0.45rem;
     border-radius: 0.45rem;
 }
 
 html.dark .sc-var-chip {
-    background: rgba(245, 180, 83, 0.1);
-    color: #f5b453;
-    border-color: rgba(245, 180, 83, 0.25);
+    background: rgba(96, 165, 250, 0.1);
+    color: #60a5fa;
+    border-color: rgba(96, 165, 250, 0.25);
 }
 
 /* پترن بج */
@@ -365,17 +365,17 @@ html.dark .sc-pattern-tag {
 
 .sc-act-btn svg { width: 0.8rem; height: 0.8rem; }
 
-.sc-act-btn:hover { border-color: #d97706; color: #b45309; }
+.sc-act-btn:hover { border-color: #2563eb; color: #1d4ed8; }
 
 .sc-act-btn--primary {
-    background: linear-gradient(135deg, #d97706, #b45309);
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
     border-color: transparent;
     color: #fffbeb;
 }
 
 .sc-act-btn--primary:hover {
     color: #fff;
-    box-shadow: 0 6px 16px -8px rgba(180, 83, 9, 0.7);
+    box-shadow: 0 6px 16px -8px rgba(29, 78, 216, 0.7);
 }
 
 html.dark .sc-act-btn { background: rgba(255, 255, 255, 0.04); }
@@ -402,7 +402,7 @@ html.dark .sc-act-btn { background: rgba(255, 255, 255, 0.04); }
     padding: 0.7rem 0.85rem;
     border: 1px solid var(--th-line);
     border-radius: 1rem;
-    background: var(--th-surface, #fafaf9);
+    background: var(--th-surface, #f8fafc);
 }
 
 .sc-switch {
@@ -440,10 +440,10 @@ html.dark .sc-act-btn { background: rgba(255, 255, 255, 0.04); }
 .sc-switch input:checked + .sc-switch-track::after { transform: translateX(-1.23rem); }
 
 .sc-pattern-box {
-    border: 1.5px dashed rgba(217, 119, 6, 0.35);
+    border: 1.5px dashed rgba(37, 99, 235, 0.35);
     border-radius: 1rem;
     padding: 0.8rem 0.9rem;
-    background: rgba(217, 119, 6, 0.03);
+    background: rgba(37, 99, 235, 0.03);
 }
 
 .sc-vars {
@@ -455,7 +455,7 @@ html.dark .sc-act-btn { background: rgba(255, 255, 255, 0.04); }
 .sc-vars .sc-var-chip { cursor: pointer; transition: all 0.15s ease; }
 
 .sc-vars .sc-var-chip:hover {
-    background: #d97706;
+    background: #2563eb;
     color: #fffbeb;
     border-color: transparent;
     transform: translateY(-1px);

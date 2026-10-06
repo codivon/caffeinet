@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap">
 
     {{-- استایل و اسکریپت — کاملاً بدون Node / بدون بیلد --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v=12">
+    <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v=14">
     <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=15">
     <link rel="stylesheet" href="{{ asset('assets/css/pages/operator.css') }}?v=10">
     {{-- زنگ اعلان (فاز ۱۰) — قبل از theme --}}
@@ -31,6 +31,8 @@
     {{-- تقویم/دیت‌پیکر شمسی (CNJdp) --}}
     <link rel="stylesheet" href="{{ asset('assets/css/jalali-datepicker.css') }}?v=3">
     {{-- استایل‌های اختصاصی صفحات (push با @push('styles')) --}}
+    {{-- Livewire [Task 2-a] — SPA (wire:navigate) --}}
+    @livewireStyles
     @stack('styles')
 
     @php
@@ -43,7 +45,7 @@
         $ticketsAllowed = auth()->user()->can('tickets.view');
     @endphp
 </head>
-<body class="font-sans antialiased bg-stone-100 text-stone-800 selection:bg-amber-200 selection:text-amber-950"
+<body class="font-sans antialiased bg-stone-100 text-stone-800 selection:bg-blue-200 selection:text-blue-950"
       data-logout-url="/operator/logout" data-login-url="/operator/login"
       data-chat-badge-url="{{ route('operator.chat.badge') }}"
       data-nb-badge="{{ route('operator.notifications.badge') }}"
@@ -53,18 +55,20 @@
 
 <div class="min-h-screen flex">
 
-    {{-- ================== سایدبار ================== --}}
+    {{-- ================== سایدبار ==================
+         [Task 2-a] @persist — بین ناوبری‌های wire:navigate دوباره رندر نمی‌شود --}}
+    @persist('sidebar')
     <aside id="panel-sidebar" class="fixed lg:sticky top-0 h-screen w-72 shrink-0 z-40 translate-x-full lg:translate-x-0 transition-transform duration-300 bg-gradient-to-b from-[#2b1a0e] via-[#241509] to-[#170d05] text-stone-200 flex flex-col">
 
         <div class="px-5 py-5 border-b border-white/10 flex items-center gap-3">
-            <span class="grid place-items-center size-10 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-700 shadow-lg shadow-black/40 shrink-0">
-                <svg class="size-5 text-amber-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <span class="grid place-items-center size-10 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-700 shadow-lg shadow-black/40 shrink-0">
+                <svg class="size-5 text-blue-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>
                 </svg>
             </span>
             <div class="leading-tight min-w-0">
-                <strong class="block text-sm font-extrabold tracking-tight text-amber-50 truncate">{{ $coffeenet->name }}</strong>
-                <span class="block text-[11px] text-amber-200/60 font-medium">پنل اپراتور</span>
+                <strong class="block text-sm font-extrabold tracking-tight text-blue-50 truncate">{{ $coffeenet->name }}</strong>
+                <span class="block text-[11px] text-blue-200/60 font-medium">پنل اپراتور</span>
             </div>
         </div>
 
@@ -84,14 +88,14 @@
         <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1" aria-label="ناوبری پنل اپراتور">
             @foreach ($operatorNav as $item)
                 @if ($item['show'])
-                    <a href="{{ route($item['route']) }}"
+                    <a href="{{ route($item['route']) }}" wire:navigate
                        class="op-nav-link {{ request()->routeIs($item['match']) ? 'op-nav-active' : '' }} flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold">
                         @if ($item['icon'] === 'orders')
                             <svg class="size-4.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5Z"/><circle cx="12" cy="12" r="1"/></svg>
                         @elseif ($item['icon'] === 'inbox')
                             <span class="relative flex size-4.5 shrink-0 items-center justify-center">
                                 <svg class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-                                <span class="hidden absolute -top-1 -left-1 flex size-2.5 rounded-full bg-amber-400 animate-pulse" id="requestsPulseDot" aria-hidden="true"></span>
+                                <span class="hidden absolute -top-1 -left-1 flex size-2.5 rounded-full bg-blue-400 animate-pulse" id="requestsPulseDot" aria-hidden="true"></span>
                             </span>
                         @elseif ($item['icon'] === 'chat')
                             <svg class="size-4.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
@@ -120,11 +124,11 @@
 
         <div class="p-3 border-t border-white/10">
             <div class="rounded-2xl bg-white/5 p-3.5 flex items-center gap-3">
-                <span class="grid place-items-center size-10 rounded-xl bg-gradient-to-br from-amber-400/80 to-amber-700/80 text-amber-50 font-bold text-sm shrink-0">
+                <span class="grid place-items-center size-10 rounded-xl bg-gradient-to-br from-blue-400/80 to-blue-700/80 text-blue-50 font-bold text-sm shrink-0">
                     {{ mb_substr(auth()->user()->name ?? 'ک', 0, 1) }}
                 </span>
                 <div class="min-w-0 flex-1">
-                    <strong class="block text-xs font-bold text-amber-50 truncate">{{ auth()->user()->full_name }}</strong>
+                    <strong class="block text-xs font-bold text-blue-50 truncate">{{ auth()->user()->full_name }}</strong>
                     <span class="block text-[10px] text-stone-400 truncate" dir="ltr">{{ auth()->user()->email }}</span>
                 </div>
                 <button type="button" class="logout-btn grid place-items-center size-9 rounded-xl text-stone-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors" title="خروج" aria-label="خروج از حساب">
@@ -133,6 +137,7 @@
             </div>
         </div>
     </aside>
+    @endpersist
 
     {{-- پوشش موبایل --}}
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-30 hidden lg:hidden" aria-hidden="true"></div>
@@ -153,7 +158,8 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                    {{-- زنگ اعلان (فاز ۱۰) --}}
+                    @persist('header-actions')
+                    {{-- زنگ اعلان (فاز ۱۰) — persist تا bind اسکریپت اعلان زنده بماند --}}
                     @include('back.partials.notif-bell')
                     {{-- سوییچ تم روشن/تاریک --}}
                     <button type="button" class="theme-toggle" data-theme-toggle aria-label="تغییر تم روشن/تاریک" title="حالت روشن/تاریک">
@@ -164,13 +170,14 @@
                         <span class="relative flex size-2"><span class="absolute inline-flex size-full rounded-full bg-emerald-400 opacity-60 animate-ping"></span><span class="relative inline-flex size-2 rounded-full bg-emerald-400"></span></span>
                         {{ $operatorAssignment->position->label() }} آنلاین
                     </span>
+                    @endpersist
                 </div>
             </div>
         </header>
 
         @if (! $canDashboard)
             <div class="px-4 sm:px-6 pt-4">
-                <div class="rounded-2xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-xs leading-6 text-amber-800">
+                <div class="rounded-2xl border border-blue-200 bg-blue-50/70 px-4 py-3 text-xs leading-6 text-blue-800">
                     <strong>توجه:</strong> دسترسی «داشبورد» برای شما فعال نیست؛ نمای زیر محدود است.
                 </div>
             </div>
@@ -178,6 +185,9 @@
 
         <main class="flex-1 px-4 sm:px-6 py-6">
             @yield('content')
+
+            {{-- [Task 2-a] سازگاری Livewire full-page ($slot) --}}
+            {{ $slot ?? '' }}
         </main>
 
         <footer class="mt-auto border-t border-stone-200/80 bg-white/60">
@@ -193,20 +203,24 @@
 <link rel="stylesheet" href="{{ asset('assets/css/chat.css') }}?v=20">
 
 {{-- اسکریپت‌های پایه پنل (فایل‌های جدا — بدون Node) --}}
-<script src="{{ asset('assets/js/vendor/jquery.min.js') }}?v=10"></script>
-<script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1"></script>
-<script src="{{ asset('assets/js/realtime.js') }}?v=2" data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(auth()->user()))'></script>
-<script src="{{ asset('back/assets/js/core.js') }}?v=12"></script>
-<script src="{{ asset('back/assets/js/ui.js') }}?v=10"></script>
-<script src="{{ asset('back/assets/js/pages/layout.js') }}?v=12"></script>
-{{-- اطلاعیه‌های پنل (فاز ۱۵) --}}
+{{-- [Task 2-a] data-navigate-once: اسکریپت‌های مشترک در هر ناوبری دوباره اجرا نشوند --}}
+<script src="{{ asset('assets/js/vendor/jquery.min.js') }}?v=10" data-navigate-once></script>
+<script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1" data-navigate-once></script>
+<script src="{{ asset('assets/js/realtime.js') }}?v=2" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(auth()->user()))'></script>
+<script src="{{ asset('back/assets/js/core.js') }}?v=13" data-navigate-once></script>
+<script src="{{ asset('back/assets/js/ui.js') }}?v=10" data-navigate-once></script>
+<script src="{{ asset('back/assets/js/pages/layout.js') }}?v=13" data-navigate-once></script>
+{{-- اطلاعیه‌های پنل (فاز ۱۵) — بدون once (ری‌ران امن؛ بدون interval) --}}
 <script src="{{ asset('back/assets/js/pages/panel-announcements.js') }}?v=15"></script>
 {{-- نوتیف دستگاه (v25) — قبل از notifications.js تا CNPush آماده باشد --}}
 @include('partials.push-client', ['pushRegisterUrl' => route('operator.push.token')])
-<script src="{{ asset('back/assets/js/pages/notifications.js') }}?v=16"></script>
+<script src="{{ asset('back/assets/js/pages/notifications.js') }}?v=16" data-navigate-once></script>
 
 {{-- دیت‌پیکر شمسی — بدون وابستگی (vanilla) --}}
 <script src="{{ asset('assets/js/jalali-datepicker.js') }}?v=2"></script>
+
+{{-- Livewire [Task 2-a] --}}
+@livewireScripts
 
 {{-- اسکریپت‌های اختصاصی هر صفحه --}}
 @stack('scripts')

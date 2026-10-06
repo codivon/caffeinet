@@ -11,7 +11,9 @@ use Illuminate\Http\Request;
 
 Route::prefix('admin')->name('admin.')->group(function () {
 
-    Route::get('login', [App\Http\Controllers\Back\Admin\AuthController::class, 'showLogin'])
+    /* [Task 2-a] فرم ورود → کامپوننت Livewire (الگوی مرجع SPA)؛ نام روت admin.login حفظ شده.
+       POST fallback (admin.login.attempt) و خروج همچنان در AuthController می‌مانند. */
+    Route::get('login', App\Livewire\Admin\Auth\Login::class)
         ->name('login');
     Route::post('login', [App\Http\Controllers\Back\Admin\AuthController::class, 'login'])
         ->name('login.attempt');

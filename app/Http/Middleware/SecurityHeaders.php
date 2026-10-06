@@ -44,7 +44,10 @@ class SecurityHeaders
 
             $csp = implode('; ', [
                 "default-src 'self'",
-                "script-src 'self'",
+                // [Livewire 4 SPA] مجوز unsafe-eval برای Livewire/Alpine الزامی است
+                // (ارزیابی عبارات wire:*/x-* با new Function انجام می‌شود).
+                // 'self' همچنان جلوی منابع خارجی را می‌گیرد؛ هش‌های قدیمی هم حفظ شدند.
+                "script-src 'self' 'unsafe-eval'",
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
                 "font-src 'self' data: https://fonts.gstatic.com",
                 "img-src 'self' data: blob:",

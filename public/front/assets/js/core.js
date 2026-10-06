@@ -482,10 +482,67 @@ window.CN = (function ($) {
         });
     }
 
-    /* ---------- عمومی ---------- */
-    $(function () {
+    /* ---------- [Task 2-a] پل init برای ناوبری SPA (wire:navigate) ----------
+       مثل App.onNavigate در پنل‌ها: هم بار اول، هم بعد از هر ناوبری؛
+       با گارد «حداکثر یک اجرا در هر نسل صفحه». */
+    var navQueue = [];
+    var navEpoch = 0;
+    var firstNavigatedSeen = false;
+    var fnEpoch = [];
+
+    function runOnNavigate(fn) {
+        var idx = navQueue.indexOf(fn);
+        if (idx !== -1 && fnEpoch[idx] === navEpoch) { return; }
+        if (idx === -1) { idx = navQueue.push(fn) - 1; }
+        fnEpoch[idx] = navEpoch;
+        try { fn(); } catch (e) {
+            if (window.console && console.error) { console.error('[CN.onNavigate]', e); }
+        }
+    }
+
+    function onNavigate(fn) {
+        if (typeof fn !== 'function') { return; }
+        navQueue.push(fn);
+        runOnNavigate(fn);
+    }
+
+    window.addEventListener('livewire:navigated', function () {
+        if (firstNavigatedSeen) { navEpoch++; }
+        firstNavigatedSeen = true;
+        navQueue.forEach(function (fn) { runOnNavigate(fn); });
+    });
+
+    /* [Task 2-a] آیتم فعال ناوبری پایین بعد از هر ناوبری تازه شود
+       (bottom-nav با @persist حفظ می‌شود و کلاس active سروری کهنه می‌ماند) */
+    function refreshBottomNavActive() {
+        var nav = document.querySelector('.bottom-nav');
+        if (!nav) { return; }
+        var path = window.location.pathname.replace(/\/+$/, '') || '/';
+        var best = null, bestLen = -1;
+        var links = nav.querySelectorAll('a[href]');
+        Array.prototype.forEach.call(links, function (a) {
+            a.classList.remove('active');
+            a.removeAttribute('aria-current');
+        });
+        Array.prototype.forEach.call(links, function (a) {
+            var href;
+            try { href = new URL(a.href, window.location.origin).pathname.replace(/\/+$/, '') || '/'; } catch (e) { return; }
+            if (href !== path && path.indexOf(href + '/') !== 0) { return; }
+            if (href.length > bestLen) { best = a; bestLen = href.length; }
+        });
+        if (best) {
+            best.classList.add('active');
+            best.setAttribute('aria-current', 'page');
+        }
+    }
+
+    /* ---------- عمومی ----------
+       [Task 2-a] با wire:navigate هدر اپ در هر ناوبری DOM تازه دارد؛
+       refreshChrome/syncThemeButtons باید بعد از هر ناوبری هم اجرا شوند. */
+    onNavigate(function () {
         refreshChrome();
         syncThemeButtons();
+        refreshBottomNavActive();
     });
 
     return {
@@ -509,6 +566,8 @@ window.CN = (function ($) {
         countdown: countdown,
         debounce: debounce,
         statusBadge: statusBadge,
+        onNavigate: onNavigate,
+        refreshBottomNavActive: refreshBottomNavActive,
         theme: {
             get: currentTheme,
             set: setTheme,

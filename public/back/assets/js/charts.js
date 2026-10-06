@@ -18,14 +18,14 @@ window.PanelCharts = (function () {
 
     /* ---------- پالت برند (بدون آبی/نیلی — هماهنگ با تم قهوه‌ای-کهربایی) ---------- */
     var PALETTE = {
-        amber:   { light: '#d97706', dark: '#f5b453' },
-        copper:  { light: '#c47f3d', dark: '#e0a165' },
+        amber:   { light: '#2563eb', dark: '#60a5fa' },
+        copper:  { light: '#3b82f6', dark: '#60a5fa' },
         teal:    { light: '#0d9488', dark: '#2dd4bf' },
         emerald: { light: '#059669', dark: '#34d399' },
-        orange:  { light: '#ea580c', dark: '#fb923c' },
+        orange:  { light: '#2563eb', dark: '#3b82f6' },
         rose:    { light: '#e11d48', dark: '#fb7185' },
         sky:     { light: '#0e7490', dark: '#38bdf8' },
-        stone:   { light: '#78716c', dark: '#b5aba0' }
+        stone:   { light: '#2563eb', dark: '#60a5fa' }
     };
 
     var SERIES_KEYS = ['amber', 'copper', 'teal', 'emerald', 'orange', 'rose', 'sky', 'stone'];
@@ -42,11 +42,11 @@ window.PanelCharts = (function () {
     /* رنگ‌های تم: متن/خط/شبکه — از توکن‌های theme.css */
     function themeColors() {
         return {
-            ink: token('--th-ink', '#44403c'),
-            soft: token('--th-ink-soft', '#78716c'),
-            faint: token('--th-ink-faint', '#a8a29e'),
-            line: token('--th-line', '#e7e5e4'),
-            grid: isDark() ? 'rgba(181, 171, 160, 0.14)' : 'rgba(120, 113, 108, 0.13)'
+            ink: token('--th-ink', '#1e3a8a'),
+            soft: token('--th-ink-soft', '#2563eb'),
+            faint: token('--th-ink-faint', '#60a5fa'),
+            line: token('--th-line', '#f1f5f9'),
+            grid: isDark() ? 'rgba(181, 171, 160, 0.14)' : 'rgba(100, 116, 139, 0.13)'
         };
     }
 
@@ -88,9 +88,9 @@ window.PanelCharts = (function () {
         d.plugins.legend.textDirection = 'rtl';
         d.plugins.tooltip.rtl = true;
         d.plugins.tooltip.textDirection = 'rtl';
-        d.plugins.tooltip.backgroundColor = isDark() ? 'rgba(42, 38, 35, 0.96)' : 'rgba(68, 64, 60, 0.94)';
-        d.plugins.tooltip.titleColor = '#faf8f3';
-        d.plugins.tooltip.bodyColor = '#e9e2d9';
+        d.plugins.tooltip.backgroundColor = isDark() ? 'rgba(42, 38, 35, 0.96)' : 'rgba(51, 65, 85, 0.94)';
+        d.plugins.tooltip.titleColor = '#eff6ff';
+        d.plugins.tooltip.bodyColor = '#dbeafe';
         d.plugins.tooltip.padding = 10;
         d.plugins.tooltip.cornerRadius = 10;
         d.plugins.tooltip.boxPadding = 5;
@@ -373,7 +373,7 @@ window.PanelCharts = (function () {
                     __keys: (cfg.keys || SERIES_KEYS.slice()),
                     backgroundColor: colors,
                     hoverBackgroundColor: colors,
-                    borderColor: isDark() ? '#2a2623' : '#ffffff',
+                    borderColor: isDark() ? '#2d2d4a' : '#ffffff',
                     borderWidth: 3,
                     hoverOffset: 8
                 }]
@@ -445,7 +445,7 @@ window.PanelCharts = (function () {
                             return color(key);
                         });
                         ds.hoverBackgroundColor = ds.backgroundColor;
-                        ds.borderColor = isDark() ? '#2a2623' : '#ffffff';
+                        ds.borderColor = isDark() ? '#2d2d4a' : '#ffffff';
                     }
                 });
 

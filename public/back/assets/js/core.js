@@ -7,6 +7,7 @@
  * App.toast    : نمایش اعلان موفقیت/خطا
  * App.money    : قالب‌بندی مبلغ تومانی
  * App.pageData : داده‌های سرور صفحه (از data-payload عنصر #page-data)
+ * App.onNavigate : ثبت init برای بار اول + هر ناوبری SPA (wire:navigate) — [Task 2-a]
  */
 
 window.App = {
@@ -144,9 +145,54 @@ window.App = {
             setTimeout(() => el.remove(), 400);
         }, 4200);
     },
+
+    /**
+     * [Task 2-a] پل init برای ناوبری SPA (wire:navigate)
+     *
+     * با wire:navigate رویداد DOMContentLoaded در ناوبری‌های بعدی شلیک نمی‌شود؛
+     * لایووایر به‌جای آن «livewire:navigated» می‌فرستد (در بار اول هم شلیک می‌شود).
+     *
+     * این متد تابع init را هم برای بار اول و هم برای هر ناوبری بعدی اجرا می‌کند،
+     * با گارد «حداکثر یک اجرا در هر نسل صفحه» تا اجرای دوباره (DOMContentLoaded +
+     * livewire:navigated اولیه) باعث double-init (اینتروال تکراری و…) نشود.
+     *
+     * نکته: اسکریپت‌های مشترک لایه باید در Blade با data-navigate-once لینک شوند
+     * تا خود فایل در هر ناوبری دوباره اجرا نشود؛ فقط این متد کروم تازه را bind می‌کند.
+     *
+     * @param {Function} fn تابع init صفحه/کروم (با DOM تازه صدا زده می‌شود)
+     */
+    onNavigate(fn) {
+        if (typeof fn !== 'function') { return; }
+        _navQueue.add(fn);
+        _runOnNavigate(fn);
+    },
 };
 
-window.addEventListener('DOMContentLoaded', () => {
+/* ---------- موتور App.onNavigate (Task 2-a) ---------- */
+const _navQueue = new Set();   // همهٔ initهای ثبت‌شده — در هر ناوبری اجرا می‌شوند
+let _navEpoch = 0;             // نسل صفحه: ۰ = بار اول، ۱+ = بعد از هر ناوبری SPA
+let _firstNavigatedSeen = false; // livewire:navigated بار اول هم شلیک می‌شود (بدون تعویض DOM)
+const _fnEpoch = new WeakMap(); // آخرین نسلی که هر fn در آن اجرا شده (گارد اجرای واحد)
+
+function _runOnNavigate(fn) {
+    if (_fnEpoch.get(fn) === _navEpoch) { return; } // در همین نسل قبلاً اجرا شده
+    _fnEpoch.set(fn, _navEpoch);
+    try {
+        fn();
+    } catch (e) {
+        if (window.console && console.error) { console.error('[App.onNavigate]', e); }
+    }
+}
+
+window.addEventListener('livewire:navigated', () => {
+    // اولین شلیک پس از بار اول صفحه = همان نسل ۰؛ از ناوبری بعدی نسل جدید است
+    if (_firstNavigatedSeen) { _navEpoch++; }
+    _firstNavigatedSeen = true;
+    _navQueue.forEach(_runOnNavigate);
+});
+
+// افزودن پارامتر گیت‌وی به لینک‌های خام data-gateway — با onNavigate تا در SPA هم اعمال شود
+window.App.onNavigate(() => {
     // افزودن پارامتر گیت‌وی به لینک‌های خام data-gateway
     document.querySelectorAll('a[data-gateway]').forEach((a) => {
         a.setAttribute('href', window.App.url(a.getAttribute('href')));

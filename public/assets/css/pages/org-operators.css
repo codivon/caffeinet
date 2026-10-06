@@ -55,11 +55,11 @@
 .dt-action[data-tone='ok']:hover { border-color: color-mix(in oklab, #2f9e63 60%, transparent); }
 
 .dt-action[data-tone='warn'] {
-    color: #c47f3d;
-    border-color: color-mix(in oklab, #c47f3d 38%, transparent);
-    background: color-mix(in oklab, #c47f3d 9%, var(--th-surface));
+    color: #3b82f6;
+    border-color: color-mix(in oklab, #3b82f6 38%, transparent);
+    background: color-mix(in oklab, #3b82f6 9%, var(--th-surface));
 }
-.dt-action[data-tone='warn']:hover { border-color: color-mix(in oklab, #c47f3d 60%, transparent); }
+.dt-action[data-tone='warn']:hover { border-color: color-mix(in oklab, #3b82f6 60%, transparent); }
 
 .dt-action[data-tone='err'] {
     color: #d24545;
@@ -69,7 +69,7 @@
 .dt-action[data-tone='err']:hover { border-color: color-mix(in oklab, #d24545 60%, transparent); }
 
 html.dark .dt-action[data-tone='ok']   { color: #52d595; }
-html.dark .dt-action[data-tone='warn'] { color: #f2b566; }
+html.dark .dt-action[data-tone='warn'] { color: #60a5fa; }
 html.dark .dt-action[data-tone='err']  { color: #ff8391; }
 
 /* ============ لینک نام کافی‌نت در جدول جزئیات سازمان ============ */
@@ -85,7 +85,7 @@ html.dark .dt-action[data-tone='err']  { color: #ff8391; }
     color: var(--th-ink);
     transition: color 0.2s ease;
 }
-.dt-net-link:hover .font-bold { color: var(--ui-brand-600, #a8652e); text-decoration: underline; }
+.dt-net-link:hover .font-bold { color: var(--ui-brand-600, #2563eb); text-decoration: underline; }
 
 /* ============ بخش مالی سازمان ============ */
 .fin-grid {
@@ -112,9 +112,9 @@ html.dark .dt-action[data-tone='err']  { color: #ff8391; }
     font-weight: 800;
     color: var(--th-ink);
     padding-inline-start: 0.5rem;
-    border-inline-start: 3px solid var(--ui-brand, #c47f3d);
+    border-inline-start: 3px solid var(--ui-brand, #3b82f6);
 }
-.fin-col-title svg { width: 1rem; height: 1rem; color: var(--ui-brand-600, #a8652e); }
+.fin-col-title svg { width: 1rem; height: 1rem; color: var(--ui-brand-600, #2563eb); }
 
 /* بنر موجودی کیف پول */
 .fin-balance {
@@ -123,9 +123,9 @@ html.dark .dt-action[data-tone='err']  { color: #ff8391; }
     gap: 1rem;
     padding: 1.15rem 1.35rem;
     border-radius: 1.15rem;
-    border: 1px solid color-mix(in oklab, var(--ui-brand, #c47f3d) 30%, transparent);
+    border: 1px solid color-mix(in oklab, var(--ui-brand, #3b82f6) 30%, transparent);
     background:
-        radial-gradient(circle at 92% -30%, color-mix(in oklab, var(--ui-brand, #c47f3d) 18%, transparent), transparent 55%),
+        radial-gradient(circle at 92% -30%, color-mix(in oklab, var(--ui-brand, #3b82f6) 18%, transparent), transparent 55%),
         var(--th-surface-2);
 }
 .fin-balance-icon {
@@ -135,11 +135,11 @@ html.dark .dt-action[data-tone='err']  { color: #ff8391; }
     height: 2.6rem;
     border-radius: 0.9rem;
     color: #fff;
-    background: linear-gradient(135deg, var(--ui-brand, #c47f3d), var(--ui-brand-700, #864e27));
-    box-shadow: 0 10px 22px -8px color-mix(in oklab, var(--ui-brand, #c47f3d) 55%, transparent);
+    background: linear-gradient(135deg, var(--ui-brand, #3b82f6), var(--ui-brand-700, #1d4ed8));
+    box-shadow: 0 10px 22px -8px color-mix(in oklab, var(--ui-brand, #3b82f6) 55%, transparent);
     flex-shrink: 0;
 }
-html.dark .fin-balance-icon { color: #2e1c0a; background: linear-gradient(135deg, #f2b566, #e8a34e); }
+html.dark .fin-balance-icon { color: #1a1a2e; background: linear-gradient(135deg, #60a5fa, #3b82f6); }
 .fin-balance-icon svg { width: 1.25rem; height: 1.25rem; }
 
 .fin-balance-value {
@@ -162,12 +162,12 @@ html.dark .fin-balance-icon { color: #2e1c0a; background: linear-gradient(135deg
     font-weight: 700;
     color: var(--th-ink);
     text-decoration: none;
-    border-bottom: 1px dashed color-mix(in oklab, var(--ui-brand, #c47f3d) 45%, transparent);
+    border-bottom: 1px dashed color-mix(in oklab, var(--ui-brand, #3b82f6) 45%, transparent);
     padding-bottom: 1px;
     transition: color 0.2s ease;
 }
 .ops-net-link:hover {
-    color: var(--ui-brand-600, #a8652e);
+    color: var(--ui-brand-600, #2563eb);
     border-bottom-style: solid;
 }
 
@@ -187,13 +187,13 @@ html.dark .fin-balance-icon { color: #2e1c0a; background: linear-gradient(135deg
 
 /* ============ ردیف‌های قابل‌کلیک → پروفایل (درخواست بازخوردی ۶-۱) ============ */
 tr.ops-row { cursor: pointer; transition: background 0.15s ease; }
-tr.ops-row:hover { background: rgba(217, 119, 6, 0.05); }
-html.dark tr.ops-row:hover { background: rgba(245, 180, 83, 0.06); }
+tr.ops-row:hover { background: rgba(37, 99, 235, 0.05); }
+html.dark tr.ops-row:hover { background: rgba(96, 165, 250, 0.06); }
 
 .ops-open-hint {
     display: inline-block;
     font-size: 0.65rem;
-    color: #d97706;
+    color: #2563eb;
     opacity: 0;
     transform: translateX(2px);
     transition: all 0.15s ease;

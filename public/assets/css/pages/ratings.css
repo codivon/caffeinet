@@ -15,8 +15,8 @@
 .rt-stars svg {
     width: 13px;
     height: 13px;
-    color: #e3ddd3;
-    fill: #e3ddd3;
+    color: #bfdbfe;
+    fill: #bfdbfe;
     flex-shrink: 0;
 }
 
@@ -30,7 +30,7 @@
     font-size: 11px;
     font-weight: 800;
     margin-left: 6px;
-    color: var(--ink-soft, #57534e);
+    color: var(--ink-soft, #1d4ed8);
 }
 
 /* ---------- چیپ‌های دلیل ---------- */
@@ -57,7 +57,7 @@
 /* ---------- متن دیدگاه ---------- */
 .rt-comment {
     font-size: 11.5px;
-    color: #57534e;
+    color: #1d4ed8;
     line-height: 1.8;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -79,18 +79,18 @@
     text-align: start;
     font-size: 11px;
     font-weight: 700;
-    color: #78716c;
+    color: #2563eb;
     padding: 3px 6px;
     border-radius: 8px;
     transition: background .15s, color .15s;
 }
 
-.rt-dist-label:hover { background: #fef6ea; color: #b45309; }
+.rt-dist-label:hover { background: #eff6ff; color: #1d4ed8; }
 
 .rt-dist-bar {
     height: 10px;
     border-radius: 999px;
-    background: #f5f5f4;
+    background: #f8fafc;
     overflow: hidden;
 }
 
@@ -98,7 +98,7 @@
     display: block;
     height: 100%;
     border-radius: 999px;
-    background: linear-gradient(90deg, #fbbf24, #d97706);
+    background: linear-gradient(90deg, #fbbf24, #2563eb);
     min-width: 2px;
     transition: width .6s cubic-bezier(.22, 1, .36, 1);
 }
@@ -110,7 +110,7 @@
 .rt-dist-count {
     font-size: 11px;
     font-weight: 800;
-    color: #78716c;
+    color: #2563eb;
     text-align: end;
 }
 
@@ -123,21 +123,21 @@
     width: 100%;
     padding: 8px 12px;
     border-radius: 12px;
-    background: #fafaf9;
-    border: 1px solid #e7e5e4;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
     transition: border-color .15s, background .15s, transform .15s;
 }
 
 .rt-reason-chip:hover {
-    border-color: #e0b48a;
-    background: #fffaf0;
+    border-color: #60a5fa;
+    background: #eff6ff;
     transform: translateY(-1px);
 }
 
 .rt-reason-title {
     font-size: 11.5px;
     font-weight: 700;
-    color: #44403c;
+    color: #1e3a8a;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -146,7 +146,7 @@
 .rt-reason-count {
     font-size: 11px;
     font-weight: 800;
-    color: #b45309;
+    color: #1d4ed8;
     background: #fef3c7;
     border-radius: 999px;
     padding: 1px 8px;
@@ -161,12 +161,12 @@
     gap: 10px;
     padding: 10px 12px;
     border-radius: 14px;
-    background: #fafaf9;
-    border: 1px solid #e7e5e4;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
     transition: opacity .2s, border-color .15s;
 }
 
-.rt-option-row:hover { border-color: #e0b48a; }
+.rt-option-row:hover { border-color: #60a5fa; }
 
 .rt-option-row.is-off { opacity: .55; }
 
@@ -176,9 +176,9 @@
     width: 22px;
     height: 22px;
     border-radius: 7px;
-    background: #fef6ea;
-    color: #d97706;
-    border: 1.5px solid #f5d9b0;
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1.5px solid #bfdbfe;
     flex-shrink: 0;
 }
 
@@ -189,13 +189,13 @@
     font-weight: 800;
     padding: 4px 10px;
     border-radius: 8px;
-    background: #fafaf9;
-    border: 1px solid #e7e5e4;
-    color: #78716c;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    color: #2563eb;
     transition: all .15s;
 }
 
-.rt-option-toggle:hover { background: #fffaf0; border-color: #e0b48a; color: #b45309; }
+.rt-option-toggle:hover { background: #eff6ff; border-color: #60a5fa; color: #1d4ed8; }
 
 .rt-option-delete {
     display: grid;
@@ -203,7 +203,7 @@
     width: 28px;
     height: 28px;
     border-radius: 8px;
-    color: #a8a29e;
+    color: #60a5fa;
     transition: all .15s;
 }
 
@@ -216,29 +216,29 @@
 html.dark .rt-chip { background: #14282326; color: #6ee7b7; border-color: #065f4622; }
 html.dark .rt-chip--neg { background: #3b0a1236; color: #fda4af; border-color: #9f123922; }
 
-html.dark .rt-stars svg { color: #4a4340; fill: #4a4340; }
+html.dark .rt-stars svg { color: #1e3a8a; fill: #1e3a8a; }
 html.dark .rt-stars--good svg.on { color: #34d399; fill: #34d399; }
 html.dark .rt-stars--mid svg.on { color: #fbbf24; fill: #fbbf24; }
 html.dark .rt-stars--bad svg.on { color: #fb7185; fill: #fb7185; }
-html.dark .rt-stars-num { color: #d6d3d1; }
+html.dark .rt-stars-num { color: #e2e8f0; }
 
-html.dark .rt-comment { color: #d6d3d1; }
+html.dark .rt-comment { color: #e2e8f0; }
 
-html.dark .rt-dist-bar { background: #2c2621; }
-html.dark .rt-dist-label { color: #a8a29e; }
-html.dark .rt-dist-label:hover { background: #3a2f20; color: #ecbc7e; }
-html.dark .rt-dist-count { color: #a8a29e; }
+html.dark .rt-dist-bar { background: #2d2d4a; }
+html.dark .rt-dist-label { color: #60a5fa; }
+html.dark .rt-dist-label:hover { background: #2d2d4a; color: #60a5fa; }
+html.dark .rt-dist-count { color: #60a5fa; }
 
-html.dark .rt-reason-chip { background: #211d19; border-color: #3a3128; }
-html.dark .rt-reason-chip:hover { background: #2a2318; border-color: #a1703f; }
-html.dark .rt-reason-title { color: #e7e5e4; }
-html.dark .rt-reason-count { background: #3a2f20; color: #ecbc7e; }
+html.dark .rt-reason-chip { background: #1a1a2e; border-color: #2d2d4a; }
+html.dark .rt-reason-chip:hover { background: #1a1a2e; border-color: #2563eb; }
+html.dark .rt-reason-title { color: #f1f5f9; }
+html.dark .rt-reason-count { background: #2d2d4a; color: #60a5fa; }
 
-html.dark .rt-option-row { background: #211d19; border-color: #3a3128; }
-html.dark .rt-option-row:hover { border-color: #a1703f; }
-html.dark .rt-option-check { background: #3a2f20; color: #ecbc7e; border-color: #5a4628; }
-html.dark .rt-option-toggle { background: #211d19; border-color: #3a3128; color: #a8a29e; }
-html.dark .rt-option-toggle:hover { background: #3a2f20; border-color: #a1703f; color: #ecbc7e; }
+html.dark .rt-option-row { background: #1a1a2e; border-color: #2d2d4a; }
+html.dark .rt-option-row:hover { border-color: #2563eb; }
+html.dark .rt-option-check { background: #2d2d4a; color: #60a5fa; border-color: #1e3a8a; }
+html.dark .rt-option-toggle { background: #1a1a2e; border-color: #2d2d4a; color: #60a5fa; }
+html.dark .rt-option-toggle:hover { background: #2d2d4a; border-color: #2563eb; color: #60a5fa; }
 
 /* ---------- سلول امتیاز در جدول سفارش‌ها (v33) ---------- */
 .rt-row-rating {
@@ -247,21 +247,21 @@ html.dark .rt-option-toggle:hover { background: #3a2f20; border-color: #a1703f; 
     gap: 4px;
     font-size: 12px;
     font-weight: 800;
-    color: #a8a29e;
+    color: #60a5fa;
     white-space: nowrap;
 }
 
 .rt-row-rating svg {
     width: 14px;
     height: 14px;
-    fill: #e3ddd3;
-    color: #e3ddd3;
+    fill: #bfdbfe;
+    color: #bfdbfe;
 }
 
 .rt-row-rating--good { color: #047857; }
 .rt-row-rating--good svg { fill: #059669; color: #059669; }
 
-.rt-row-rating--mid { color: #b45309; }
+.rt-row-rating--mid { color: #1d4ed8; }
 .rt-row-rating--mid svg { fill: #f5a623; color: #f5a623; }
 
 .rt-row-rating--bad { color: #be123c; }
@@ -270,22 +270,22 @@ html.dark .rt-option-toggle:hover { background: #3a2f20; border-color: #a1703f; 
 .rt-row-rating-op {
     font-size: 9.5px;
     font-weight: 700;
-    color: #78716c;
-    background: #f5f5f4;
+    color: #2563eb;
+    background: #f8fafc;
     border-radius: 999px;
     padding: 1px 7px;
     margin-inline-start: 2px;
 }
 
-html.dark .rt-row-rating { color: #a8a29e; }
-html.dark .rt-row-rating svg { fill: #4a4340; color: #4a4340; }
+html.dark .rt-row-rating { color: #60a5fa; }
+html.dark .rt-row-rating svg { fill: #1e3a8a; color: #1e3a8a; }
 html.dark .rt-row-rating--good { color: #34d399; }
 html.dark .rt-row-rating--good svg { fill: #34d399; color: #34d399; }
 html.dark .rt-row-rating--mid { color: #fbbf24; }
 html.dark .rt-row-rating--mid svg { fill: #fbbf24; color: #fbbf24; }
 html.dark .rt-row-rating--bad { color: #fb7185; }
 html.dark .rt-row-rating--bad svg { fill: #fb7185; color: #fb7185; }
-html.dark .rt-row-rating-op { background: #2c2621; color: #a8a29e; }
+html.dark .rt-row-rating-op { background: #2d2d4a; color: #60a5fa; }
 
 /* ============================================================
    v34 — نوار جستجوی تمام‌عرض صفحۀ نظرسنجی‌ها
@@ -314,7 +314,7 @@ html.dark .rt-row-rating-op { background: #2c2621; color: #a8a29e; }
     inset-inline-start: 0.9rem;
     width: 1.05rem;
     height: 1.05rem;
-    color: #a8a29e;
+    color: #60a5fa;
     pointer-events: none;
     z-index: 1;
 }
@@ -330,25 +330,25 @@ html.dark .rt-row-rating-op { background: #2c2621; color: #a8a29e; }
     font-weight: 500;
     color: #292524;
     background: var(--th-surface, #ffffff);
-    border: 1.5px solid #e7e5e4;
+    border: 1.5px solid #f1f5f9;
     border-radius: 0.9rem;
     outline: none;
     transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
-}
+}}
 
 .rt-search-input::placeholder {
-    color: #a8a29e;
+    color: #60a5fa;
     font-weight: 400;
     font-size: 0.8rem;
-}
+}}
 
-.rt-search-input:hover { border-color: #d6d3d1; }
+.rt-search-input:hover { border-color: #e2e8f0; }}
 
 .rt-search-input:focus {
-    border-color: #d97706;
-    background: #fffdf9;
-    box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.12);
-}
+    border-color: #2563eb;
+    background: #eff6ff;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}}
 
 /* ردیف فیلترها: در موبایل سلکت‌ها تمام‌عرض نرم می‌شوند */
 .rt-filter-row { margin-inline-start: 0 !important; }
@@ -365,15 +365,15 @@ html.dark .rt-row-rating-op { background: #2c2621; color: #a8a29e; }
 
 /* ---------- دارک ---------- */
 html.dark .rt-search-input {
-    background: var(--th-surface, #221c17);
-    border-color: #3a332d;
-    color: #f5f0e8;
-}
-html.dark .rt-search-input::placeholder { color: #78716c; }
-html.dark .rt-search-input:hover { border-color: #4a4340; }
+    background: var(--th-surface, #1a1a2e);
+    border-color: #2d2d4a;
+    color: #dbeafe;
+}}
+html.dark .rt-search-input::placeholder { color: #2563eb; }}
+html.dark .rt-search-input:hover { border-color: #1e3a8a; }}
 html.dark .rt-search-input:focus {
-    border-color: #f59e0b;
-    background: #26201a;
-    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.14);
-}
-html.dark .rt-search-icon { color: #78716c; }
+    border-color: #3b82f6;
+    background: #1a1a2e;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14);
+}}
+html.dark .rt-search-icon { color: #2563eb; }

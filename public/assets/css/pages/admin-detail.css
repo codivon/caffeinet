@@ -21,8 +21,8 @@
     padding: 1.75rem 1.9rem;
     border: 1px solid var(--th-line);
     background:
-        radial-gradient(circle at 88% -40%, color-mix(in oklab, var(--ui-brand, #c47f3d) 22%, transparent), transparent 55%),
-        radial-gradient(circle at 0% 140%, color-mix(in oklab, var(--ui-brand, #c47f3d) 12%, transparent), transparent 50%),
+        radial-gradient(circle at 88% -40%, color-mix(in oklab, var(--ui-brand, #3b82f6) 22%, transparent), transparent 55%),
+        radial-gradient(circle at 0% 140%, color-mix(in oklab, var(--ui-brand, #3b82f6) 12%, transparent), transparent 50%),
         var(--th-surface);
     box-shadow: var(--ui-shadow-soft, 0 8px 30px -12px rgba(69, 26, 3, 0.18));
     animation: dt-rise 0.5s var(--ui-ease-out, cubic-bezier(0.21, 1.02, 0.73, 1)) both;
@@ -33,7 +33,7 @@
     position: absolute;
     top: 0; right: 0; left: 0;
     height: 3px;
-    background: linear-gradient(90deg, transparent, var(--ui-brand, #c47f3d), var(--ui-brand-600, #a8652e), transparent);
+    background: linear-gradient(90deg, transparent, var(--ui-brand, #3b82f6), var(--ui-brand-600, #2563eb), transparent);
     opacity: 0.85;
 }
 
@@ -67,8 +67,8 @@
     transition: all 0.2s ease;
 }
 .dt-back:hover {
-    color: var(--ui-brand-600, #a8652e);
-    border-color: color-mix(in oklab, var(--ui-brand, #c47f3d) 45%, transparent);
+    color: var(--ui-brand-600, #2563eb);
+    border-color: color-mix(in oklab, var(--ui-brand, #3b82f6) 45%, transparent);
     transform: translateX(-2px);
 }
 
@@ -81,11 +81,11 @@
     font-weight: 700;
     padding: 0.35rem 0.8rem;
     border-radius: 999px;
-    border: 1px solid color-mix(in oklab, var(--ui-brand, #c47f3d) 35%, transparent);
-    background: color-mix(in oklab, var(--ui-brand, #c47f3d) 12%, transparent);
-    color: var(--ui-brand-700, #864e27);
+    border: 1px solid color-mix(in oklab, var(--ui-brand, #3b82f6) 35%, transparent);
+    background: color-mix(in oklab, var(--ui-brand, #3b82f6) 12%, transparent);
+    color: var(--ui-brand-700, #1d4ed8);
 }
-html.dark .dt-chip { color: var(--ui-brand-600, #f2b566); }
+html.dark .dt-chip { color: var(--ui-brand-600, #60a5fa); }
 
 /* ============ شبکه آمار ============ */
 .dt-stats {
@@ -111,7 +111,7 @@ html.dark .dt-chip { color: var(--ui-brand-600, #f2b566); }
 .dt-tile:hover {
     transform: translateY(-3px);
     box-shadow: var(--ui-shadow-lift, 0 18px 44px -16px rgba(69, 26, 3, 0.28));
-    border-color: color-mix(in oklab, var(--ui-brand, #c47f3d) 40%, transparent);
+    border-color: color-mix(in oklab, var(--ui-brand, #3b82f6) 40%, transparent);
 }
 
 .dt-tile-icon {
@@ -121,12 +121,12 @@ html.dark .dt-chip { color: var(--ui-brand-600, #f2b566); }
     height: 2.4rem;
     border-radius: 0.8rem;
     color: #fff;
-    background: linear-gradient(135deg, var(--ui-brand, #c47f3d), var(--ui-brand-700, #864e27));
-    box-shadow: 0 10px 22px -8px color-mix(in oklab, var(--ui-brand, #c47f3d) 55%, transparent);
+    background: linear-gradient(135deg, var(--ui-brand, #3b82f6), var(--ui-brand-700, #1d4ed8));
+    box-shadow: 0 10px 22px -8px color-mix(in oklab, var(--ui-brand, #3b82f6) 55%, transparent);
 }
 html.dark .dt-tile-icon {
-    color: #2e1c0a;
-    background: linear-gradient(135deg, #f2b566, #e8a34e);
+    color: #1a1a2e;
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
 }
 .dt-tile-icon svg { width: 1.15rem; height: 1.15rem; }
 
@@ -177,18 +177,18 @@ html.dark .dt-tile[data-tone='info'] .dt-tile-icon { background: linear-gradient
     align-items: center;
     gap: 0.5rem;
 }
-.dt-section-title svg { width: 1.05rem; height: 1.05rem; color: var(--ui-brand-600, #a8652e); }
+.dt-section-title svg { width: 1.05rem; height: 1.05rem; color: var(--ui-brand-600, #2563eb); }
 .dt-section-more {
     margin-inline-start: auto;
     font-size: 0.75rem;
     font-weight: 700;
-    color: var(--ui-brand-600, #a8652e);
+    color: var(--ui-brand-600, #2563eb);
     text-decoration: none;
     padding: 0.35rem 0.7rem;
     border-radius: 0.6rem;
     transition: background 0.2s ease;
 }
-.dt-section-more:hover { background: color-mix(in oklab, var(--ui-brand, #c47f3d) 12%, transparent); }
+.dt-section-more:hover { background: color-mix(in oklab, var(--ui-brand, #3b82f6) 12%, transparent); }
 
 /* ============ شبکهٔ اطلاعات کلیدی-مقداری ============ */
 .dt-info-grid {
@@ -217,7 +217,7 @@ html.dark .dt-tile[data-tone='info'] .dt-tile-icon { background: linear-gradient
     color: var(--th-ink);
     word-break: break-word;
 }
-.dt-kv-value a { color: var(--ui-brand-600, #a8652e); text-decoration: none; }
+.dt-kv-value a { color: var(--ui-brand-600, #2563eb); text-decoration: none; }
 .dt-kv-value a:hover { text-decoration: underline; }
 
 /* ============ انیمیشن ورود پلکانی ============ */
