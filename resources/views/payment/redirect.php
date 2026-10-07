@@ -53,7 +53,7 @@ $relative = function (string $url): string {
             text-align: center;
         }
         .rd-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 18px; }
-        .rd-dots span { width: 12px; height: 12px; border-radius: 999px; background: #a8652e; opacity: .25; }
+        .rd-dots span { width: 12px; height: 12px; border-radius: 999px; background: #2563eb; opacity: .25; }
         .rd-dots span:nth-child(1) { opacity: 1; }
         .rd-dots span:nth-child(2) { opacity: .55; }
         .rd-title { font-size: 16.5px; font-weight: 800; }
@@ -71,7 +71,7 @@ $relative = function (string $url): string {
             transition: transform .15s, box-shadow .15s;
         }
         .rd-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(168, 101, 46, .38); }
-        .rd-btn:focus-visible { outline: 3px solid rgba(168,101,46,.3); outline-offset: 2px; }
+        .rd-btn:focus-visible { outline: 3px solid rgba(37,99,235,.3); outline-offset: 2px; }
     </style>
 </head>
 <body>

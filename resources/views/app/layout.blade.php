@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-    <title>@yield('title', 'کافی‌نت آنلاین') | کافی‌نت آنلاین</title>
+    {{-- [Task 7] htmlTitle: از layoutData کامپوننت‌های Livewire؛ @yield برای مسیر قدیم @extends --}}
+    <title>@yield('title', $htmlTitle ?? 'کافی‌نت آنلاین') | کافی‌نت آنلاین</title>
 
     {{-- PWA: مانیفست + آیکون‌ها + ثبت Service Worker (فاز ۱۴) --}}
     @include('partials.pwa', ['panel' => 'app'])
@@ -27,10 +28,11 @@
     @stack('styles')
 </head>
 <body>
-<div class="app-shell @yield('shell-class')">
+<div class="app-shell @yield('shell-class', $shellClass ?? '')">
 
     @php
-    $chrome = trim($__env->yieldContent('no-chrome')) !== '1';
+    // [Task 7] chrome: از layoutData کامپوننت‌های Livewire؛ @yield('no-chrome') برای مسیر قدیم
+    $chrome = $chrome ?? (trim($__env->yieldContent('no-chrome')) !== '1');
 @endphp
 
     @if ($chrome)
@@ -82,7 +84,8 @@
         <nav class="bottom-nav" aria-label="ناوبری اصلی">
             <div class="nav-inner">
                 @php
-                    $active = trim($__env->yieldContent('active-nav'));
+                    // [Task 7] activeNav: از layoutData کامپوننت‌های Livewire
+                    $active = $activeNav ?? trim($__env->yieldContent('active-nav'));
                     $nav = [
                         'home' => [route('app.home'), 'خانه', '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>'],
                         'services' => [route('app.services'), 'خدمات', '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'],

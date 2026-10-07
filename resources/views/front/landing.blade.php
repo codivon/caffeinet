@@ -13,7 +13,7 @@
 
     {{-- آیکون و رنگ تم سایت — بدون مانیفست PWA و بدون Service Worker
      | (صفحه فرود عمداً «غیرقابل نصب» است؛ نصب اپ فقط از داخل پنل‌ها انجام می‌شود) --}}
-    <meta name="theme-color" content="#a8652e">
+    <meta name="theme-color" content="#2563eb">
     <link rel="icon" type="image/png" sizes="48x48" href="{{ asset('icons/icon-48.png') }}">
     <link rel="icon" type="image/png" sizes="96x96" href="{{ asset('icons/icon-96.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/apple-touch-icon.png') }}">
@@ -453,7 +453,7 @@
             <div class="pwa-visual">
                 <div class="shot">
                     <div class="notch"></div>
-                    <img src="{{ asset('icons/icon-512.png') }}" alt="آیکون وب‌اپلیکیشن کافی‌نت آنلاین" width="512" height="512" style="padding:56px 74px;background:radial-gradient(ellipse 70% 55% at 50% 40%, rgba(196,127,61,.28), transparent 70%), var(--bg-2)">
+                    <img src="{{ asset('icons/icon-512.png') }}" alt="آیکون وب‌اپلیکیشن کافی‌نت آنلاین" width="512" height="512" style="padding:56px 74px;background:radial-gradient(ellipse 70% 55% at 50% 40%, rgba(37,99,235,.28), transparent 70%), var(--bg-2)">
                 </div>
                 <div class="browsers">
                     <span class="browser-chip">

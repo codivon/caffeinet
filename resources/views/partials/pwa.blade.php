@@ -24,7 +24,7 @@
     };
 @endphp
 <link rel="manifest" href="{{ url($pwaPanel.'/manifest.webmanifest') }}">
-<meta name="theme-color" content="#a8652e">
+<meta name="theme-color" content="#2563eb">
 
 {{-- آیکون‌ها (اختصاصی پنل؛ در نبود فایل → آیکون برند + fallback به favicon.ico) --}}
 <link rel="icon" type="image/png" sizes="48x48" href="{{ $pwaIcon(48) }}">

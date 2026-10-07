@@ -594,7 +594,7 @@
             </div>
 
             {{-- ===== رویدادهای اطلاع‌رسانی پیامکی (v25) ===== --}}
-            <div class="st-sub-card" style="background:linear-gradient(135deg,rgba(196,127,61,.05),transparent)">
+            <div class="st-sub-card" style="background:linear-gradient(135deg,rgba(37,99,235,.05),transparent)">
                 <div class="st-sub-head">
                     <b>رویدادهای اطلاع‌رسانی پیامکی</b>
                     <span class="badge {{ $settings->get('sms.notify.transfer_offline') || $settings->get('sms.notify.salary') || $settings->get('sms.notify.unaccepted') ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-stone-100 text-stone-500 border border-stone-200' }}">
@@ -1443,7 +1443,7 @@
         {{-- ================== اعلان‌ها و پوش دستگاه (v25) ================== --}}
         <form data-group="notifications" class="st-section card ui-lift animate-fade-up hidden" id="sec-notifications">
             <div class="st-section-head">
-                <span class="st-section-icon" aria-hidden="true" style="background:rgba(196,127,61,.12);color:#a8652e">
+                <span class="st-section-icon" aria-hidden="true" style="background:rgba(37,99,235,.12);color:#2563eb">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
                 </span>
                 <div class="flex-1">
@@ -1456,7 +1456,7 @@
             </div>
 
             {{-- ===== ۱) صدای اعلان پنل‌ها ===== --}}
-            <div class="st-sub-card" style="background:linear-gradient(135deg,rgba(196,127,61,.06),transparent)">
+            <div class="st-sub-card" style="background:linear-gradient(135deg,rgba(37,99,235,.06),transparent)">
                 <div class="st-sub-head"><b>۱) صدای اعلان پنل‌ها</b></div>
                 <p class="st-hint leading-6">
                     با رسیدن هر اعلان جدید در پنل‌ها، این صدا یک‌بار پخش می‌شود. صدای پیش‌فرض سامانه همیشه موجود است؛

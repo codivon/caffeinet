@@ -35,7 +35,7 @@
 <main class="no-theme-net relative min-h-screen grid place-items-center overflow-hidden bg-[#171009] px-4 py-10">
 
     <div class="pointer-events-none fixed inset-0" aria-hidden="true">
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_50%_-10%,rgba(196,127,61,0.25),transparent)]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_50%_-10%,rgba(37,99,235,0.25),transparent)]"></div>
         <span class="ui-blob" data-tone="amber" data-pos="1"></span>
         <span class="ui-blob" data-tone="deep" data-pos="2"></span>
     </div>

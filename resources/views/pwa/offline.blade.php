@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#a8652e">
+    <meta name="theme-color" content="#2563eb">
     <meta name="robots" content="noindex">
     <title>آفلاین هستید — {{ config('app.name') }}</title>
     {{-- همه استایل‌ها inline تا این صفحه با یک URL (precache) کامل کار کند --}}
@@ -13,8 +13,8 @@
         body {
             font-family: Vazirmatn, Tahoma, -apple-system, sans-serif;
             background:
-                radial-gradient(ellipse 70% 45% at 50% -10%, rgba(196,127,61,.28), transparent),
-                radial-gradient(ellipse 45% 32% at 85% 25%, rgba(211,156,92,.10), transparent),
+                radial-gradient(ellipse 70% 45% at 50% -10%, rgba(37,99,235,.28), transparent),
+                radial-gradient(ellipse 45% 32% at 85% 25%, rgba(96,165,250,.10), transparent),
                 #31190e;
             color: #f7ead9;
             display: flex;
@@ -29,10 +29,10 @@
             width: 100%;
             max-width: 420px;
             background: linear-gradient(160deg, rgba(49,25,14,.92), rgba(29,18,6,.96));
-            border: 1px solid rgba(226,186,133,.22);
+            border: 1px solid rgba(147,197,253,.22);
             border-radius: 28px;
             padding: 42px 28px 34px;
-            box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(226,186,133,.10);
+            box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(147,197,253,.10);
             position: relative;
             overflow: hidden;
         }
@@ -40,7 +40,7 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: repeating-linear-gradient(135deg, transparent 0 9px, rgba(226,186,133,.045) 9px 10px);
+            background: repeating-linear-gradient(135deg, transparent 0 9px, rgba(147,197,253,.045) 9px 10px);
             pointer-events: none;
         }
         .cup { position: relative; width: 108px; margin: 0 auto 8px; }
@@ -119,14 +119,14 @@
             font-size: 14px;
             font-weight: 700;
             color: #fff;
-            background: linear-gradient(90deg, #c47f3d, #a8652e);
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
             border: 0;
             border-radius: 16px;
             cursor: pointer;
-            box-shadow: 0 14px 34px rgba(168,101,46,.42);
+            box-shadow: 0 14px 34px rgba(37,99,235,.42);
             transition: transform .25s ease, box-shadow .25s ease, opacity .25s ease;
         }
-        button:hover { transform: translateY(-2px); box-shadow: 0 18px 44px rgba(168,101,46,.55); }
+        button:hover { transform: translateY(-2px); box-shadow: 0 18px 44px rgba(37,99,235,.55); }
         button:active { transform: translateY(0); }
         button:disabled { opacity: .55; cursor: wait; transform: none; }
         button svg { width: 16px; height: 16px; }
@@ -135,7 +135,7 @@
         .foot {
             margin-top: 20px;
             font-size: 11px;
-            color: rgba(226,186,133,.5);
+            color: rgba(147,197,253,.5);
             font-weight: 500;
         }
         @media (max-height: 640px) {

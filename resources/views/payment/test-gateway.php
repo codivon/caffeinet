@@ -47,7 +47,7 @@ $relative = function (string $url): string {
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --brand-600: #a8652e;
+            --brand-600: #2563eb;
             --brand-700: #8f5424;
             --brand-900: #4a2c12;
             --ink: #2d2317;
@@ -62,8 +62,8 @@ $relative = function (string $url): string {
             min-height: 100%;
             font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Arial, sans-serif;
             background:
-                radial-gradient(1000px 500px at 100% -10%, rgba(168,101,46,.10), transparent 60%),
-                radial-gradient(800px 400px at 0% 110%, rgba(168,101,46,.07), transparent 55%),
+                radial-gradient(1000px 500px at 100% -10%, rgba(37,99,235,.10), transparent 60%),
+                radial-gradient(800px 400px at 0% 110%, rgba(37,99,235,.07), transparent 55%),
                 #faf7f2;
             color: var(--ink);
             display: flex;
@@ -96,7 +96,7 @@ $relative = function (string $url): string {
             width: 110px;
             height: 110px;
             border-radius: 999px;
-            background: radial-gradient(circle, rgba(226,186,133,.35), transparent 70%);
+            background: radial-gradient(circle, rgba(147,197,253,.35), transparent 70%);
         }
         .gw-logo {
             width: 54px;
@@ -147,7 +147,7 @@ $relative = function (string $url): string {
             width: 100%;
         }
         .gw-btn svg { width: 17px; height: 17px; stroke: currentColor; }
-        .gw-btn:focus-visible { outline: 3px solid rgba(168,101,46,.3); outline-offset: 2px; }
+        .gw-btn:focus-visible { outline: 3px solid rgba(37,99,235,.3); outline-offset: 2px; }
         .gw-btn-success {
             background: linear-gradient(100deg, #2e9e63, var(--ok-600));
             color: #fff;

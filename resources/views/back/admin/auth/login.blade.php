@@ -36,9 +36,9 @@
 
     {{-- پس‌زمینه --}}
     <div class="pointer-events-none fixed inset-0" aria-hidden="true">
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_50%_-10%,rgba(196,127,61,0.25),transparent)]"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_35%_28%_at_10%_85%,rgba(211,156,92,0.08),transparent)]"></div>
-        <div class="absolute inset-0 opacity-[0.04] bg-[repeating-linear-gradient(135deg,transparent_0_9px,rgba(226,186,133,0.5)_9px_10px)]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_50%_-10%,rgba(37,99,235,0.25),transparent)]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_35%_28%_at_10%_85%,rgba(96,165,250,0.08),transparent)]"></div>
+        <div class="absolute inset-0 opacity-[0.04] bg-[repeating-linear-gradient(135deg,transparent_0_9px,rgba(147,197,253,0.5)_9px_10px)]"></div>
         {{-- حباب‌های شناور کیت UI --}}
         <span class="ui-blob" data-tone="amber" data-pos="1"></span>
         <span class="ui-blob" data-tone="gold" data-pos="2"></span>
