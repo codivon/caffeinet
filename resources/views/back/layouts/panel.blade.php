@@ -53,9 +53,7 @@
 
         <div class="px-5 py-5 border-b border-white/10 flex items-center gap-3">
             <span class="grid place-items-center size-10 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-700 shadow-lg shadow-black/30 shrink-0">
-                <svg class="size-5 text-blue-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
-                </svg>
+                <svg class="size-5 text-blue-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
             </span>
             <div class="leading-tight min-w-0">
                 <strong class="block text-sm font-extrabold tracking-tight text-blue-50 truncate">کافی‌نت آنلاین</strong>
@@ -229,15 +227,15 @@
 {{-- [Task 2-a] data-navigate-once: اسکریپت‌های مشترک لایه در هر ناوبری wire:navigate
      دوباره اجرا نشوند (intervals/listener تکراری ممنوع)؛ re-bind کروم با App.onNavigate --}}
 <script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1" data-navigate-once></script>
-<script src="{{ asset('assets/js/realtime.js') }}?v=2" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(auth()->user()))'></script>
+<script src="{{ asset('assets/js/realtime.js') }}?v=3" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(auth()->user()))'></script>
 <script src="{{ asset('back/assets/js/core.js') }}?v=15" data-navigate-once></script>
 <script src="{{ asset('back/assets/js/ui.js') }}?v=12" data-navigate-once></script>
-<script src="{{ asset('back/assets/js/pages/layout.js') }}?v=13" data-navigate-once></script>
+<script src="{{ asset('back/assets/js/pages/layout.js') }}?v=14" data-navigate-once></script>
 {{-- اطلاعیه‌های پنل (فاز ۱۵) — بدون once (ری‌ران امن؛ بدون interval) --}}
 <script src="{{ asset('back/assets/js/pages/panel-announcements.js') }}?v=16"></script>
 {{-- نوتیف دستگاه (v25) — قبل از notifications.js تا CNPush آماده باشد --}}
 @include('partials.push-client', ['pushRegisterUrl' => route('admin.push.token')])
-<script src="{{ asset('back/assets/js/pages/notifications.js') }}?v=16" data-navigate-once></script>
+<script src="{{ asset('back/assets/js/pages/notifications.js') }}?v=17" data-navigate-once></script>
 
 {{-- دیت‌پیکر شمسی — بدون وابستگی (vanilla) --}}
 <script src="{{ asset('assets/js/jalali-datepicker.js') }}?v=2"></script>

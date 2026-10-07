@@ -61,19 +61,40 @@ class Conversation extends Component
         $permissions = OperatorPermissions::filter($this->operatorAssignment->permissions ?? []);
         $canUpdateStatus = in_array('orders.update_status', $permissions, true);
 
+        $customerName = trim(($order->customer?->name ?? '').' '.($order->customer?->family ?? '')) ?: 'مشتری';
+
+        $chatUrls = [
+            'data' => "/operator/orders/{$order->id}/chat/data",
+            'send' => "/operator/orders/{$order->id}/chat/send",
+            'status' => "/operator/orders/{$order->id}/status",
+            'list' => route('operator.chat.index'),
+        ];
+
+        // payload صفحهٔ چت برای JS — ساخت در PHP (سازگار با کامپایلر Livewire — @json چندخطی ممنوع)
+        $pagePayload = [
+            'orderId' => $order->id,
+            'orderNumber' => $order->order_number,
+            'customerName' => $customerName,
+            'status' => ['value' => $order->status->value, 'label' => $order->status->label()],
+            'canSend' => $chatMeta['can_send'],
+            'readonly' => $chatMeta['readonly'],
+            'isCancelled' => (bool) ($chatMeta['cancelled'] ?? false),
+            'cancelReason' => $order->cancel_reason,
+            'canUpdateStatus' => $canUpdateStatus,
+            'staffActions' => false,
+            'isPaid' => (bool) $order->paid_at,
+            'urls' => $chatUrls,
+        ];
+
         return view('livewire.operator.chat.conversation', [
             'order' => $order,
-            'customerName' => trim(($order->customer?->name ?? '').' '.($order->customer?->family ?? '')) ?: 'مشتری',
+            'customerName' => $customerName,
             'initial' => mb_substr($order->customer?->name ?: 'م', 0, 1),
             'canUpdateStatus' => $canUpdateStatus,
             'chatMeta' => $chatMeta,
             'statusActions' => $this->operatorStatusActions($order, $canUpdateStatus),
-            'chatUrls' => [
-                'data' => "/operator/orders/{$order->id}/chat/data",
-                'send' => "/operator/orders/{$order->id}/chat/send",
-                'status' => "/operator/orders/{$order->id}/status",
-                'list' => route('operator.chat.index'),
-            ],
+            'chatUrls' => $chatUrls,
+            'pagePayload' => $pagePayload,
         ])->layoutData($this->operatorLayoutData(
             'گفتگوی سفارش',
             'پنل اپراتور ← گفتگوها ← '.$order->order_number,

@@ -23,7 +23,7 @@
  *       دستگاه‌ها SW جدید را بگیرند.
  * ============================================================= */
 
-const VERSION       = 'v1.2.0';
+const VERSION       = 'v1.3.0';
 const STATIC_CACHE  = `cn-static-${VERSION}`;
 const RUNTIME_CACHE = `cn-runtime-${VERSION}`;
 const NAV_LIMIT     = 24;   // حداکثر HTML کش‌شده (LRU ساده)

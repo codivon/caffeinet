@@ -3,7 +3,7 @@
      همان AJAX قبلی به PUT/POST settings (کنترلر) می‌رود؛ اسکریپت صفحه
      back/assets/js/pages/admin/settings/index.js بدون تغییر bind می‌شود. --}}
 @push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/pages/settings.css') }}?v=21">
+<link rel="stylesheet" href="{{ asset('assets/css/pages/settings.css') }}?v=22">
 @endpush
 
 <div>
@@ -1384,9 +1384,11 @@
                     <b>چگونه کار می‌کند؟</b>
                 </div>
                 <p class="st-hint leading-6">
-                    پوشر فقط «زنگ خبر» است؛ داده‌ها همیشه از سرور خود شما خوانده می‌شوند. با فعال بودن پوشر:
-                    زنگ اعلان‌ها و پیام‌های گفتگو <b>لحظه‌ای</b> می‌رسند و بازهٔ پولینگ خودکار از ۳ ثانیه به ۱۲ ثانیه افزایش می‌یابد.
-                    اگر پوشر خاموش یا قطع باشد، سیستم کاملاً مثل قبل با پولینگ سریع کار می‌کند — هیچ داده‌ای از دست نمی‌رود.
+                    پوشر فقط «زنگ خبر» است؛ داده‌ها همیشه از سرور خود شما خوانده می‌شوند. با فعال بودن و اتصال پوشر،
+                    <b>پولینگ کاملاً خاموش می‌شود</b> و همهٔ صفحات رویدادمحور می‌شوند: پیام‌های گفتگو، زنگ اعلان‌ها،
+                    صندوق پخش کافی‌نت، درخواست‌های اپراتور، بج‌های سایدبار و آمار سفارش‌ها با رویداد پوشر «همان لحظه» تازه می‌شوند —
+                    بدون هیچ درخواست دوره‌ای (سرور با ورود مشتری زیاد کند نمی‌شود).
+                    اگر پوشر خاموش یا قطع باشد، سیستم خودکار به پولینگ قبلی برمی‌گردد — هیچ داده‌ای از دست نمی‌رود.
                 </p>
             </div>
 
@@ -1838,6 +1840,23 @@
                 @endforeach
             </div>
 
+            {{-- دمای سرد/گرم — برای «همهٔ» پالت‌های انتخابی (در شخصی‌سازی، دمای اختصاصی ویرایشگر استفاده می‌شود) --}}
+            <div class="ap-warmth hidden" data-ap-warmth>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <b class="text-sm font-extrabold text-stone-800">دمای رنگ پالت</b>
+                        <p class="st-hint mt-0.5">میزان سردی یا گرمی رنگ‌های همین پالت را جداگانه تنظیم کنید — پیش‌نمایش همان لحظه اعمال می‌شود.</p>
+                    </div>
+                    <span class="badge bg-stone-100 text-stone-600 border border-stone-200" data-ap-warmth-label>خنثی</span>
+                </div>
+                <div class="ap-temp-row mt-3">
+                    <span class="text-[10px] font-bold text-sky-600">سرد</span>
+                    <input type="range" id="ap-palette-warmth" min="-40" max="40" step="1" value="0" class="ap-temp flex-1" aria-label="میزان سردی و گرمی رنگ">
+                    <span class="text-[10px] font-bold text-amber-600">گرم</span>
+                    <button type="button" class="btn-ghost !py-1.5 !px-2.5 text-[11px]" data-ap-warmth-reset>خنثی‌سازی</button>
+                </div>
+            </div>
+
             {{-- ویرایشگر شخصی‌سازی (فقط برای پالت custom) --}}
             <div class="ap-custom hidden" data-ap-custom>
                 <div class="ap-custom-head">
@@ -1952,6 +1971,6 @@
 </div>
 </div>
 @push('scripts')
-<script src="{{ asset('back/assets/js/pages/admin/settings/index.js') }}?v=26"></script>
+<script src="{{ asset('back/assets/js/pages/admin/settings/index.js') }}?v=27"></script>
 @endpush
 

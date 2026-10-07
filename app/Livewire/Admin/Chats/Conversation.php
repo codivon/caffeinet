@@ -51,19 +51,42 @@ class Conversation extends Component
         // عملیات‌های سریع وضعیت برای مدیر کل (عیناً staffStatusActions کنترلر)
         $statusActions = $this->staffStatusActions($order);
 
+        $canUpdateStatus = $order->status !== OrderStatus::Cancelled; // لغوشده: فقط خواندن
+
+        $customerName = trim(($order->customer?->name ?? '').' '.($order->customer?->family ?? '')) ?: 'مشتری';
+
+        $chatUrls = [
+            'data' => "/admin/orders/{$order->id}/chat/data",
+            'send' => "/admin/orders/{$order->id}/chat/send",
+            'status' => "/admin/orders/{$order->id}/status",
+            'list' => '/admin/chats',
+        ];
+
+        // payload صفحهٔ چت برای JS — ساخت در PHP (سازگار با کامپایلر Livewire — @json چندخطی ممنوع)
+        $pagePayload = [
+            'orderId' => $order->id,
+            'orderNumber' => $order->order_number,
+            'customerName' => $customerName,
+            'status' => ['value' => $order->status->value, 'label' => $order->status->label()],
+            'canSend' => $chatMeta['can_send'],
+            'readonly' => $chatMeta['readonly'],
+            'isCancelled' => (bool) ($chatMeta['cancelled'] ?? false),
+            'cancelReason' => $order->cancel_reason,
+            'canUpdateStatus' => $canUpdateStatus,
+            'staffActions' => true,
+            'isPaid' => (bool) $order->paid_at,
+            'urls' => $chatUrls,
+        ];
+
         return view('livewire.admin.chats.conversation', [
             'order' => $order,
-            'customerName' => trim(($order->customer?->name ?? '').' '.($order->customer?->family ?? '')) ?: 'مشتری',
+            'customerName' => $customerName,
             'initial' => mb_substr($order->customer?->name ?: 'م', 0, 1),
             'chatMeta' => $chatMeta,
             'canUpdateStatus' => $canUpdateStatus,
             'statusActions' => $statusActions,
-            'chatUrls' => [
-                'data' => "/admin/orders/{$order->id}/chat/data",
-                'send' => "/admin/orders/{$order->id}/chat/send",
-                'status' => "/admin/orders/{$order->id}/status",
-                'list' => '/admin/chats',
-            ],
+            'chatUrls' => $chatUrls,
+            'pagePayload' => $pagePayload,
         ])->layoutData([
             'user' => auth()->user(),
             'pageTitle' => 'گفتگوی سفارش',

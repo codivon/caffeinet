@@ -20,21 +20,8 @@
         $statusBadge = $statusColors[$order->status->color()] ?? $statusColors['amber'];
     @endphp
 
-    {{-- داده‌های سرور برای JS (بدون کد درون‌خطی) — عیناً همان کلیدهای نسخهٔ Blade --}}
-    <div id="page-data" hidden data-payload="{{ json_encode([
-        'orderId' => $order->id,
-        'orderNumber' => $order->order_number,
-        'customerName' => $customerName,
-        'status' => ['value' => $order->status->value, 'label' => $order->status->label()],
-        'canSend' => $chatMeta['can_send'],
-        'readonly' => $chatMeta['readonly'],
-        'isCancelled' => (bool) ($chatMeta['cancelled'] ?? false),
-        'cancelReason' => $order->cancel_reason,
-        'canUpdateStatus' => $canUpdateStatus,
-        'staffActions' => false,
-        'isPaid' => (bool) $order->paid_at,
-        'urls' => $chatUrls,
-    ], JSON_UNESCAPED_UNICODE) }}"></div>
+    {{-- داده‌های سرور برای JS — payload در کامپوننت PHP ساخته می‌شود (سازگار با کامپایلر Livewire) --}}
+    <div id="page-data" hidden data-payload="{{ json_encode($pagePayload, JSON_UNESCAPED_UNICODE) }}"></div>
 
     {{-- سربرگ صفحه --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 animate-fade-up">
@@ -219,5 +206,5 @@
 @endpush
 
 @push('scripts')
-<script src="{{ asset('back/assets/js/pages/operator/chat/show.js') }}?v=18"></script>
+<script src="{{ asset('back/assets/js/pages/operator/chat/show.js') }}?v=19"></script>
 @endpush

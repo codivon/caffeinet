@@ -169,11 +169,32 @@
         // رویداد سراسری: صفحهٔ چت بعد از هر پولینگ بج را هم تازه می‌کند
         window.addEventListener('chat:unseen', (e) => renderBadge(e.detail || 0));
 
+        /* v38 «پوشر کامل»: پوشر فعال و متصل → بدون setInterval؛
+           رویداد notif.new (پیام جدید هم اعلان می‌سازد) بج را لحظه‌ای تازه می‌کند.
+           قطع اتصال → پولینگ اضطراری؛ وصل شدن → توقف پولینگ. */
         refreshBadge();
-        setInterval(refreshBadge, 20000);
+        let badgeTimer = setInterval(refreshBadge, 20000);
+
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) refreshBadge();
         });
+
+        if (window.RT && RT.active() && RT.cfg.channel) {
+            RT.bindUser('notif.new', () => {
+                if (!document.hidden) refreshBadge();
+            });
+
+            if (RT.connected()) { clearInterval(badgeTimer); badgeTimer = null; }
+
+            RT.onConnection((up) => {
+                if (up) {
+                    if (badgeTimer) { clearInterval(badgeTimer); badgeTimer = null; }
+                    refreshBadge();
+                } else if (!badgeTimer) {
+                    badgeTimer = setInterval(refreshBadge, 20000);
+                }
+            });
+        }
     }
 
     /* ---------- بج درخواست‌های در انتظار پذیرش (فاز ۱۱ — پنل اپراتور) ----------
@@ -213,10 +234,31 @@
             return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
         }
 
+        /* v38 «پوشر کامل»: پوشر فعال و متصل → بدون setInterval؛
+           رویداد orders.changed روی کانال سراسری پنل‌ها (سفارش جدید/پخش/پذیرش)
+           بج درخواست‌ها را لحظه‌ای تازه می‌کند. قطع اتصال → پولینگ اضطراری. */
         refreshRequestsBadge();
-        setInterval(refreshRequestsBadge, 15000);
+        let reqTimer = setInterval(refreshRequestsBadge, 15000);
+
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) refreshRequestsBadge();
         });
+
+        if (window.RT && RT.active() && RT.cfg.panel_channel) {
+            RT.on(RT.cfg.panel_channel, 'orders.changed', () => {
+                if (!document.hidden) refreshRequestsBadge();
+            });
+
+            if (RT.connected()) { clearInterval(reqTimer); reqTimer = null; }
+
+            RT.onConnection((up) => {
+                if (up) {
+                    if (reqTimer) { clearInterval(reqTimer); reqTimer = null; }
+                    refreshRequestsBadge();
+                } else if (!reqTimer) {
+                    reqTimer = setInterval(refreshRequestsBadge, 15000);
+                }
+            });
+        }
     }
 })();

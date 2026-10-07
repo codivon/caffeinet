@@ -103,12 +103,22 @@
         });
     }
 
+    /* v38 «پوشر کامل»: وقتی پوشر متصل است interval وضعیت خاموش می‌شود —
+       رویداد order.changed (کانال شخصی کاربر) و notif.new صفحه را لحظه‌ای
+       تازه می‌کنند. قطع اتصال → interval خودکار برمی‌گردد.
+       tick شمارش معکوس محلی است و در هر حالت کار می‌کند. */
     function startPolling() {
         stopPolling();
-        pollTimer = window.setInterval(loadSilent, 4000);
+        if (!rtLive()) {
+            pollTimer = window.setInterval(loadSilent, 4000);
+        }
         if (!tickTimer) {
             tickTimer = window.setInterval(tickBroadcast, 1000);
         }
+    }
+
+    function rtLive() {
+        return !!(window.RT && RT.active() && RT.connected() && RT.cfg.channel);
     }
 
     function stopPolling() {
@@ -1187,5 +1197,55 @@
         else if (chatinfoSheetEsc && chatinfoSheetEsc.classList.contains('open')) { closeInfoSheet(); }
     });
 
+    /* ---------- v38 Realtime پوشر — پیگیری سفارش بدون پولینگ ----------
+       تغییر وضعیت سفارش (سمت سرور) → رویداد order.changed روی کانال شخصی
+       کاربر → یک loadSilent همان لحظه (اگر مال همین سفارش بود). قطع اتصال →
+       interval خودکار برمی‌گردد؛ وصل شدن → دوباره خاموش می‌شود. */
+    var unConn = null;
+
+    function bindRealtime() {
+        if (!window.RT || !RT.active()) { return; }
+
+        /* کانال شخصی کاربر — در اپ مشتری از API خوانده می‌شود (یک درخواست سبک) */
+        if (RT.cfg.channel) {
+            subscribeOrderEvents();
+            return;
+        }
+
+        CN.api('/realtime/config', {
+            success: function (resp) {
+                if (!resp || !resp.enabled || !resp.channel) { return; }
+                RT.cfg.channel = resp.channel;
+                subscribeOrderEvents();
+            },
+            error: function () { /* interval معمولی کافی است */ }
+        });
+    }
+
+    function subscribeOrderEvents() {
+        var wake = function (data) {
+            var oid = data && data.order ? Number(data.order) : 0;
+            if (oid && orderId && oid !== orderId) { return; }
+            loadSilent();
+        };
+
+        RT.bindUser('order.changed', wake);
+        RT.bindUser('notif.new', function () {
+            if (!document.hidden) { loadSilent(); }
+        });
+
+        /* پاک‌سازی هنگام خروج از صفحه (ناوبری SPA) — ضد زامبی */
+        document.addEventListener('livewire:navigate', function () {
+            stopPolling();
+            if (unConn) { unConn(); unConn = null; }
+        }, { once: true });
+
+        unConn = RT.onConnection(function (up) {
+            if (up) { stopPolling(); loadSilent(); }
+            else if (!pollTimer) { pollTimer = window.setInterval(loadSilent, 4000); }
+        });
+    }
+
     load();
+    bindRealtime();
 })();

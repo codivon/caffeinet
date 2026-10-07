@@ -12,11 +12,11 @@
 
     var POLL_MS = 3000;
 
-    /* Realtime پوشر (فاز ۱۳): وقتی فعال است پولینگ «آرام» می‌شود (۱۲ ثانیه)
-       چون بیدارباش لحظه‌ای را پوشر انجام می‌دهد — کاهش فشار MySQL. */
-    var POLL_MS_REALTIME = 12000;
-    var currentPollMs = POLL_MS;
+    /* Realtime پوشر (فاز ۱۳ → v38 «پوشر کامل»):
+       وقتی پوشر فعال و متصل است، پولینگ «کاملاً متوقف» می‌شود — فقط رویدادمحور.
+       با قطع اتصال، پولینگ اضطراری برمی‌گردد و با وصل شدن دوباره خاموش می‌شود. */
     var rtBound = false;
+    var unConn = null;
 
     var lastId = 0;
     var pollTimer = null;
@@ -778,39 +778,33 @@
     }
 
     function startPolling() {
+        if (pollTimer) { return; }
         pollTimer = window.setInterval(function () {
             if (!document.hidden) { load(false); }
-        }, currentPollMs);
-
-        document.addEventListener('visibilitychange', function () {
-            if (!document.hidden) { load(false); }
-        });
-
-        /* v35: پیام پوش تحویلِ همین صفحه (برنامه باز → به‌جای نوتیف سیستمی)
-         * اگر پیام مال همین گفتگو بود (oid)، پیام‌ها همان لحظه تازه شوند */
-        document.addEventListener('cn:push', function (e) {
-            var d = (e && e.detail) || {};
-            var isChat = d.event === 'order.chat_message_customer' || d.event === 'order.chat_message_staff';
-            if (isChat && (!d.oid || Number(d.oid) === orderId)) { load(false); }
-        });
+        }, POLL_MS);
     }
 
-    /* پولینگ تطبیقی: با فعال شدن پوشر بازهٔ پول بزرگ می‌شود (ترفند منابع) */
-    function relaxPolling() {
-        if (currentPollMs === POLL_MS_REALTIME) { return; }
-        currentPollMs = POLL_MS_REALTIME;
-        if (pollTimer) {
-            window.clearInterval(pollTimer);
-            pollTimer = window.setInterval(function () {
-                if (!document.hidden) { load(false); }
-            }, currentPollMs);
-        }
+    function stopPolling() {
+        if (pollTimer) { window.clearInterval(pollTimer); pollTimer = null; }
     }
 
-    /* ---------- Realtime پوشر (فاز ۱۳) — بیدارباش چت ----------
+    /* شنونده‌های ثابت (یک‌بار برای همیشه): visibility + پیام پوش */
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) { load(false); }
+    });
+
+    /* v35: پیام پوش تحویلِ همین صفحه (برنامه باز → به‌جای نوتیف سیستمی)
+     * اگر پیام مال همین گفتگو بود (oid)، پیام‌ها همان لحظه تازه شوند */
+    document.addEventListener('cn:push', function (e) {
+        var d = (e && e.detail) || {};
+        var isChat = d.event === 'order.chat_message_customer' || d.event === 'order.chat_message_staff';
+        if (isChat && (!d.oid || Number(d.oid) === orderId)) { load(false); }
+    });
+
+    /* ---------- Realtime پوشر — حالت «پوشر کامل» (بدون پولینگ) ----------
        کانال/کلید از payload خود چت (data.rt) می‌آید؛ با رویداد message.new
-       پول همان لحظه اجرا می‌شود → پیام طرف مقابل آنی می‌رسد و MySQL
-       فقط با فاصلهٔ طولانی چک می‌شود. */
+       پیام‌ها همان لحظه از API خوانده می‌شوند — بدون هیچ setInterval.
+       قطع اتصال → پولینگ اضطراری؛ وصل شدن → توقف پولینگ. */
     function bindRealtime(rt) {
         if (rtBound) { return; }
         if (!rt || !rt.enabled || !rt.key || !rt.channel || !window.RT) { return; }
@@ -822,7 +816,22 @@
 
         if (ok) {
             rtBound = true;
-            relaxPolling();
+
+            /* پاک‌سازی هنگام خروج از صفحه (ناوبری SPA) — ضد زامبی */
+            document.addEventListener('livewire:navigate', function () {
+                stopPolling();
+                if (unConn) { unConn(); unConn = null; }
+            }, { once: true });
+
+            /* fallback اتصال: قطع → پولینگ اضطراری، وصل → توقف پولینگ */
+            unConn = RT.onConnection(function (up) {
+                if (up) { stopPolling(); if (!document.hidden) { load(false); } }
+                else { startPolling(); }
+            });
+
+            if (RT.connected()) {
+                stopPolling(); // پوشر متصل — بدون پولینگ
+            }
         }
     }
 

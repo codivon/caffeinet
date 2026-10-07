@@ -17,10 +17,13 @@
 
     {{-- آیکون و رنگ تم سایت — بدون مانیفست PWA و بدون Service Worker
      | (صفحه فرود عمداً «غیرقابل نصب» است؛ نصب اپ فقط از داخل پنل‌ها انجام می‌شود) --}}
-    <meta name="theme-color" content="#2563eb">
+    <meta name="theme-color" content="#f3f6fc">
     <link rel="icon" type="image/png" sizes="48x48" href="{{ asset('icons/icon-48.png') }}">
     <link rel="icon" type="image/png" sizes="96x96" href="{{ asset('icons/icon-96.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/apple-touch-icon.png') }}">
+
+    {{-- بوت تم روز/شب — قبل از استایل‌ها (ضد-FLUC)؛ پیش‌فرض: روز --}}
+    <script src="{{ asset('assets/js/landing-theme-boot.js') }}?v=1"></script>
 
     {{-- فونت وزیرمتن --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,7 +31,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap">
 
     {{-- استایل مستقل صفحه فرود --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/landing.css') }}?v=6">
+    <link rel="stylesheet" href="{{ asset('assets/css/landing.css') }}?v=7">
     {{-- پوستهٔ پویا: پالت اختصاصی لندینگ --}}
     @include('partials.appearance', ['panel' => 'front'])
 
@@ -61,9 +64,7 @@
     <div class="container header-inner">
         <a class="brand" href="{{ url('/') }}" aria-label="کافی‌نت آنلاین — صفحه اصلی">
             <span class="brand-mark">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
-                </svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
                 <span class="dot"></span>
             </span>
             <span class="brand-text">
@@ -81,6 +82,11 @@
         </nav>
 
         <div class="header-actions">
+            {{-- کلید روز/شب — پیش‌فرض: روز --}}
+            <button class="theme-toggle" id="themeToggle" type="button" aria-label="تغییر حالت روز و شب" title="حالت روز / شب">
+                <svg class="ic-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                <svg class="ic-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            </button>
             <a href="{{ route('app.auth') }}" wire:navigate class="btn btn-gold btn-sm">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/></svg>
                 ورود / ثبت‌نام
@@ -113,9 +119,7 @@
             <div>
                 <a class="brand" href="{{ url('/') }}" aria-label="کافی‌نت آنلاین">
                     <span class="brand-mark">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
-                        </svg>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
                         <span class="dot"></span>
                     </span>
                     <span class="brand-text">
@@ -200,7 +204,7 @@
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>
 </button>
 
-<script src="{{ asset('assets/js/landing.js') }}?v=4" defer></script>
+<script src="{{ asset('assets/js/landing.js') }}?v=5" defer></script>
 @stack('scripts')
 
 {{-- [Task 8] Livewire SPA --}}

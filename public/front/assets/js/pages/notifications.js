@@ -184,11 +184,28 @@
         });
     });
 
+    /* ---------- راه‌اندازی ----------
+       v38 «پوشر کامل»: پوشر فعال و متصل → بدون setInterval (رویدادمحور)؛
+       پوشر خاموش/قطع → پولینگ دوره‌ای مثل قبل. */
+    var badgeTimer = setInterval(poll, POLL_MS);
+
+    function stopBadgeTimer() {
+        if (badgeTimer) { clearInterval(badgeTimer); badgeTimer = null; }
+    }
+
+    function startBadgeTimer() {
+        if (!badgeTimer) { badgeTimer = setInterval(poll, POLL_MS); }
+    }
+
     poll();
-    setInterval(poll, POLL_MS);
 
     /* v35: پیام پوش تحویلِ صفحهٔ باز (به‌جای نوتیف سیستمی) → بج همان لحظه تازه شود */
     document.addEventListener('cn:push', function () { poll(); });
+
+    /* تب که دوباره دیده شد → یک تازه‌سازی (on-demand، نه پولینگ) */
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) { poll(); }
+    });
 
     /* ---------- v25: دکمهٔ «نوتیف دستگاه» (Web Push) ----------
        CNPush از push-client.js (defer) می‌آید — [Task 8-fix] اتصال تنبل:
@@ -202,11 +219,11 @@
         CNPush.bindButton(btn);
     }
 
-    /* ---------- Realtime پوشر (فاز ۱۳) — بیدارباش زنگ ----------
+    /* ---------- Realtime پوشر — حالت «پوشر کامل» ----------
        پیکربندی عمومی (enabled/key/cluster) از data-rt-config لود شده؛
        فقط کانال شخصی کاربر از API خوانده می‌شود؛ سپس با رویداد notif.new
-       بج بلافاصله تازه می‌شود. اگر پوشر خاموش/در دسترس نباشد، همان
-       پولینگ قبلی کار می‌کند. */
+       بج همان لحظه تازه می‌شود و پولینگ دوره‌ای «کاملاً خاموش» می‌شود.
+       با قطع اتصال، پولینگ اضطراری برمی‌گردد؛ با وصل شدن دوباره خاموش می‌شود. */
     (function initRealtime() {
         if (!window.RT) { return; }
 
@@ -230,6 +247,13 @@
         RT.bindUser('notif.new', function () {
             if (document.hidden) { return; } // تب مخفی — با visible شدن تازه می‌شود
             poll();
+        });
+
+        if (RT.connected()) { stopBadgeTimer(); }
+
+        RT.onConnection(function (up) {
+            if (up) { stopBadgeTimer(); poll(); }
+            else { startBadgeTimer(); } // قطع اتصال → پولینگ اضطراری
         });
     }
 })();

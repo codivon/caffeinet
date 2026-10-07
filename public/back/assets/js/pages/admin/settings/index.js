@@ -846,8 +846,12 @@
     let panel = 'admin';
     let selections = Object.assign({}, data.selected);   // کلید پالت هر پنل (ممکن است ذخیره‌نشده باشد)
     let customs = {};                                     // توکن‌های شخصی هر پنل (در حال ویرایش)
+    let warmths = {};                                     // دمای سرد/گرم هر پنل (پالت‌های آماده)
+    const initialWarmths = {};
     Object.keys(data.panels).forEach(k => {
         customs[k] = data.customs[k] ? JSON.parse(JSON.stringify(data.customs[k])) : null;
+        warmths[k] = Number((data.warmths && data.warmths[k]) || 0);
+        initialWarmths[k] = warmths[k];
     });
 
     /* ---------- ابزارهای DOM ---------- */
@@ -879,7 +883,9 @@
         if (pal === 'custom' && customs[panel]) {
             previewCss({ panel, custom: JSON.stringify(customs[panel]) });
         } else {
-            previewCss({ panel, palette: pal });
+            const params = { panel, palette: pal };
+            if ((warmths[panel] || 0) !== 0) { params.warmth = String(warmths[panel] || 0); }
+            previewCss(params);
         }
     }
 
@@ -909,7 +915,8 @@
     function syncStatus() {
         const st = q('[data-ap-status]');
         if (st) {
-            const isDirty = (selections[panel] !== (initial[panel] || 'default'));
+            const isDirty = (selections[panel] !== (initial[panel] || 'default'))
+                || (Number(warmths[panel] || 0) !== Number(initialWarmths[panel] || 0));
             st.innerHTML = 'پالت فعال این پنل: <b>' + palName(selections[panel] || 'default') + '</b>'
                 + (isDirty ? ' — <span class="text-amber-600 font-bold">ذخیره نشده (پیش‌نمایش فعال است)</span>' : '');
         }
@@ -1077,6 +1084,25 @@
         }
     }
 
+    /* ---------- دمای سرد/گرم مشترک (برای همهٔ پالت‌های آماده) ---------- */
+    const warmthBox = () => q('[data-ap-warmth]');
+
+    function syncTempLabelFor(value, label) {
+        if (!label) return;
+        const v = Number(value) || 0;
+        label.textContent = v === 0 ? 'خنثی' : (v > 0 ? 'گرم +' + v : 'سرد ' + v);
+    }
+
+    function syncWarmthBox() {
+        const box = warmthBox();
+        if (!box) return;
+        const isCustom = (selections[panel] || 'default') === 'custom';
+        box.classList.toggle('hidden', isCustom); // شخصی‌سازی دمای اختصاصی خودش را دارد
+        const slider = q('#ap-palette-warmth');
+        if (slider) slider.value = String(warmths[panel] || 0);
+        syncTempLabelFor(warmths[panel] || 0, q('[data-ap-warmth-label]'));
+    }
+
     /* ---------- رویدادها ---------- */
     panelChips().forEach(chip => {
         chip.addEventListener('click', () => {
@@ -1086,10 +1112,11 @@
             syncStatus();
             const isCustom = (selections[panel] || 'default') === 'custom';
             customBox().classList.toggle('hidden', !isCustom);
+            syncWarmthBox();
             if (isCustom) {
                 fillEditor(customs[panel] || tokensOfPalette(selections[panel]));
-                previewCurrent();
             }
+            previewCurrent();
         });
     });
 
@@ -1107,10 +1134,12 @@
     qa('.ap-palette').forEach(card => {
         card.addEventListener('click', () => {
             selections[panel] = card.dataset.apPalette;
+            // دما مال «پنل» است نه پالت — هنگام تعویض پالت حفظ می‌شود
             syncPaletteGrid();
             syncStatus();
             const isCustom = selections[panel] === 'custom';
             customBox().classList.toggle('hidden', !isCustom);
+            syncWarmthBox();
             if (isCustom && !customs[panel]) {
                 // اولین ورود به شخصی‌سازی: از پالت قبلی پنل شروع کن
                 const seed = tokensOfPalette(initial[panel] || 'default');
@@ -1120,6 +1149,29 @@
             previewCurrent();
             App.toast('پیش‌نمایش «' + palName(selections[panel]) + '» اعمال شد — برای ماندگاری ذخیره کنید.', 'info');
         });
+    });
+
+    /* اسلایدر دما → پیش‌نمایش زندهٔ پالت + دما */
+    q('#ap-palette-warmth')?.addEventListener('input', () => {
+        const slider = q('#ap-palette-warmth');
+        if (!slider) return;
+        warmths[panel] = Number(slider.value) || 0;
+        syncTempLabelFor(warmths[panel], q('[data-ap-warmth-label]'));
+        syncStatus();
+        if ((selections[panel] || 'default') !== 'custom') {
+            previewCss({ panel, palette: selections[panel] || 'default', warmth: String(warmths[panel]) });
+        }
+    });
+
+    q('[data-ap-warmth-reset]')?.addEventListener('click', () => {
+        warmths[panel] = 0;
+        const slider = q('#ap-palette-warmth');
+        if (slider) slider.value = '0';
+        syncTempLabelFor(0, q('[data-ap-warmth-label]'));
+        syncStatus();
+        if ((selections[panel] || 'default') !== 'custom') {
+            previewCss({ panel, palette: selections[panel] || 'default' });
+        }
     });
 
     /* رنگ پایه + دما → بازتولید طیف */
@@ -1185,6 +1237,8 @@
         const body = { panel, palette: selections[panel] || 'default' };
         if (body.palette === 'custom') {
             body.custom = customs[panel] || readEditor();
+        } else {
+            body.warmth = Number(warmths[panel] || 0);
         }
 
         btn.disabled = true;
@@ -1194,6 +1248,7 @@
                 const out = await res.json().catch(() => ({}));
                 App.toast(out.message || 'پوسته ذخیره شد.', 'success');
                 initial[panel] = body.palette;
+                initialWarmths[panel] = Number(warmths[panel] || 0);
                 syncStatus();
             } else {
                 const out = await res.json().catch(() => ({}));
@@ -1210,9 +1265,11 @@
     q('[data-ap-revert]')?.addEventListener('click', () => {
         selections[panel] = initial[panel] || 'default';
         customs[panel] = data.customs[panel] ? JSON.parse(JSON.stringify(data.customs[panel])) : null;
+        warmths[panel] = Number(initialWarmths[panel] || 0);
         syncPaletteGrid();
         syncStatus();
         customBox().classList.toggle('hidden', selections[panel] !== 'custom');
+        syncWarmthBox();
         if (selections[panel] === 'custom') fillEditor(customs[panel]);
         previewCss({ panel }); // CSS ذخیره‌شدهٔ پنل
         App.toast('به پالت ذخیره‌شده بازگشت.', 'info');
@@ -1222,4 +1279,5 @@
     syncPanelChips();
     syncPaletteGrid();
     syncStatus();
+    syncWarmthBox();
 })();

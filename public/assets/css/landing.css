@@ -6,7 +6,56 @@
 @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-    /* پالت برند قهوه‌ای/کهربایی */
+    /* ═══ حالت روز (پیش‌فرض) ═══ */
+    --brand-50:  #eff6ff;
+    --brand-100: #dbeafe;
+    --brand-200: #bfdbfe;
+    --brand-300: #60a5fa;
+    --brand-400: #3b82f6;
+    --brand-500: #3b82f6;
+    --brand-600: #2563eb;
+    --brand-700: #1d4ed8;
+    --brand-800: #1e3a8a;
+    --brand-900: #1e3a8a;
+    --brand-950: #172554;
+
+    --bg-0: #f3f6fc;
+    --bg-1: #f8fafd;
+    --bg-2: #ffffff;
+    --bg-3: #eef2f9;
+
+    --gold: #2563eb;
+    --gold-2: #2563eb;
+    --ok: #16a34a;
+    --ok-soft: rgba(22, 163, 74, .12);
+
+    --ink: #101a2d;
+    --ink-2: rgba(16, 26, 45, .78);
+    --ink-3: rgba(16, 26, 45, .60);
+    --ink-4: rgba(16, 26, 45, .42);
+
+    --line: rgba(16, 42, 100, .10);
+    --line-2: rgba(16, 42, 100, .18);
+
+    --glass: rgba(255, 255, 255, .74);
+    --glass-2: rgba(255, 255, 255, .94);
+
+    --radius: 16px;
+    --radius-lg: 22px;
+    --radius-xl: 28px;
+
+    --shadow-1: 0 2px 10px rgba(15, 23, 42, .05), 0 16px 44px -14px rgba(15, 23, 42, .16);
+    --shadow-glow: 0 0 0 1px rgba(37, 99, 235, .10), 0 18px 50px -12px rgba(37, 99, 235, .25);
+
+    --ease: cubic-bezier(.22, 1, .36, 1);
+    --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+
+    --container: 1180px;
+    --font: 'Vazirmatn', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ═══ حالت شب (با کلید روز/شب هدر) ═══ */
+html.dark {
     --brand-50:  #eff6ff;
     --brand-100: #dbeafe;
     --brand-200: #bfdbfe;
@@ -19,7 +68,7 @@
     --brand-900: #1e3a8a;
     --brand-950: #1a1a2e;
 
-    --bg-0: #1a1a2e;   /* زمینه اصلی */
+    --bg-0: #1a1a2e;
     --bg-1: #1a1a2e;
     --bg-2: #1a1a2e;
     --bg-3: #1a1a2e;
@@ -40,18 +89,8 @@
     --glass: rgba(49, 25, 14, .55);
     --glass-2: rgba(36, 22, 8, .62);
 
-    --radius: 16px;
-    --radius-lg: 22px;
-    --radius-xl: 28px;
-
     --shadow-1: 0 2px 10px rgba(0, 0, 0, .35), 0 12px 40px rgba(0, 0, 0, .28);
     --shadow-glow: 0 0 0 1px rgba(226, 186, 133, .12), 0 18px 50px -12px rgba(59, 130, 246, .35);
-
-    --ease: cubic-bezier(.22, 1, .36, 1);
-    --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
-
-    --container: 1180px;
-    --font: 'Vazirmatn', ui-sans-serif, system-ui, sans-serif;
 }
 
 /* ---------- پایه ---------- */
@@ -206,6 +245,21 @@ section[id] { scroll-margin-top: 88px; }
 
 .btn-lg { padding: 15px 30px; font-size: 15.5px; border-radius: 18px; }
 .btn-sm { padding: 8px 16px; font-size: 13px; border-radius: 12px; }
+
+/* کلید روز/شب */
+.theme-toggle {
+    display: grid; place-items: center; width: 42px; height: 42px;
+    border-radius: 13px; background: rgba(37, 99, 235, .07);
+    border: 1px solid var(--line-2); color: var(--ink);
+    transition: background .25s, transform .3s var(--ease-spring);
+}
+html.dark .theme-toggle { background: rgba(226, 186, 133, .08); }
+.theme-toggle:hover { background: rgba(37, 99, 235, .14); transform: rotate(12deg); }
+html.dark .theme-toggle:hover { background: rgba(226, 186, 133, .16); }
+.theme-toggle:active { transform: scale(.94); }
+.theme-toggle .ic-sun { display: none; }
+html.dark .theme-toggle .ic-sun { display: block; }
+html.dark .theme-toggle .ic-moon { display: none; }
 
 /* دکمه همبرگری موبایل */
 .burger {
@@ -778,7 +832,7 @@ section[id] { scroll-margin-top: 88px; }
 .cta-note { margin-top: 18px; font-size: 12px; color: var(--ink-4); display: flex; align-items: center; justify-content: center; gap: 7px; }
 .cta-note svg { width: 13px; height: 13px; color: var(--ok); }
 
-/* فنجان CTA */
+/* نماد CTA (گلوب/نت) */
 .cta-cup { position: relative; width: 74px; height: 74px; margin: 0 auto 26px; display: grid; place-items: center; border-radius: 24px; background: linear-gradient(135deg, rgba(214, 156, 92, .18), rgba(30, 58, 138, .14)); border: 1px solid var(--line-2); color: var(--gold-2); }
 .cta-cup .steam { position: absolute; top: -22px; display: flex; gap: 9px; }
 .cta-cup .steam i { display: block; width: 4px; height: 20px; border-radius: 4px; background: rgba(237, 213, 179, .5); filter: blur(2px); animation: steam 2.6s ease-in-out infinite; }
@@ -852,3 +906,101 @@ html.js .reveal.is-in { opacity: 1; transform: translateY(0); }
     .cat-ic { width: 44px; height: 44px; font-size: 21px; border-radius: 14px; }
     .float-card { display: none; }
 }
+
+/* ============================================================
+   حالت روز (پیش‌فرض) — اصلاح سطوح با رنگ ثابت
+   (html.dark = شب؛ هرچه این‌جا تعریف شود فقط در روز اعمال می‌شود)
+   ============================================================ */
+
+/* پس‌زمینهٔ صفحه و بافت‌ها */
+html:not(.dark) body {
+    background:
+        radial-gradient(ellipse 80% 42% at 50% -6%, rgba(59, 130, 246, .10), transparent 70%),
+        radial-gradient(ellipse 50% 30% at 88% 12%, rgba(37, 99, 235, .05), transparent 60%),
+        radial-gradient(ellipse 45% 35% at 5% 75%, rgba(30, 58, 138, .06), transparent 65%),
+        var(--bg-0);
+}
+html:not(.dark) .bg-texture { background: repeating-linear-gradient(135deg, transparent 0 9px, rgba(37, 99, 235, .025) 9px 10px); }
+html:not(.dark) .blob-1 { background: rgba(59, 130, 246, .16); }
+html:not(.dark) .blob-2 { background: rgba(37, 99, 235, .09); }
+html:not(.dark) ::selection { color: #fff; }
+
+/* هدر و منو */
+html:not(.dark) .site-header { background: rgba(255, 255, 255, .74); }
+html:not(.dark) .site-header.is-scrolled {
+    background: rgba(255, 255, 255, .9);
+    box-shadow: 0 10px 40px -18px rgba(15, 23, 42, .18);
+}
+html:not(.dark) .mobile-nav.is-open { background: rgba(255, 255, 255, .97); }
+html:not(.dark) .main-nav a:hover { background: rgba(37, 99, 235, .07); }
+html:not(.dark) .mobile-nav a:hover { background: rgba(37, 99, 235, .07); }
+
+/* نقطهٔ سبز برند — حلقهٔ همرنگ پس‌زمینهٔ روز */
+html:not(.dark) .brand-mark .dot { box-shadow: 0 0 0 3px rgba(255, 255, 255, .9); animation-name: dot-pulse-light; }
+@keyframes dot-pulse-light {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(255, 255, 255, .9), 0 0 0 0 rgba(22, 163, 74, .45); }
+    50%      { box-shadow: 0 0 0 3px rgba(255, 255, 255, .9), 0 0 0 6px rgba(22, 163, 74, 0); }
+}
+
+/* دکمه‌ها */
+html:not(.dark) .btn-gold { color: #fff; }
+html:not(.dark) .btn-gold { box-shadow: 0 8px 26px -8px rgba(37, 99, 235, .55), inset 0 1px 0 rgba(255, 255, 255, .35); }
+html:not(.dark) .btn-gold:hover { box-shadow: 0 14px 34px -10px rgba(37, 99, 235, .7), inset 0 1px 0 rgba(255, 255, 255, .35); }
+html:not(.dark) .btn-ghost { background: rgba(37, 99, 235, .06); }
+html:not(.dark) .btn-ghost:hover { background: rgba(37, 99, 235, .12); }
+html:not(.dark) .burger { background: rgba(37, 99, 235, .07); }
+html:not(.dark) .burger:hover { background: rgba(37, 99, 235, .14); }
+html:not(.dark) .svc-order { color: #fff; box-shadow: 0 6px 18px -6px rgba(37, 99, 235, .5); }
+html:not(.dark) .svc-order:hover { box-shadow: 0 10px 26px -6px rgba(37, 99, 235, .65); }
+
+/* تیکر و کارت‌های شناور */
+html:not(.dark) .ticker { background: linear-gradient(90deg, rgba(37, 99, 235, .05), rgba(37, 99, 235, .09), rgba(37, 99, 235, .05)); }
+html:not(.dark) .float-card { background: rgba(255, 255, 255, .94); }
+html:not(.dark) .fc-2 .fc-ic { background: rgba(37, 99, 235, .1); color: var(--brand-600); }
+html:not(.dark) .fc-3 .fc-ic { background: rgba(37, 99, 235, .08); color: var(--brand-700); }
+
+/* دسته‌ها و خدمات */
+html:not(.dark) .cat-more:hover { background: rgba(37, 99, 235, .08); }
+html:not(.dark) .cat-card:hover .cat-card-go { background: rgba(37, 99, 235, .08); }
+html:not(.dark) .svc-card::before { background: linear-gradient(90deg, transparent, rgba(37, 99, 235, .45), transparent); }
+html:not(.dark) .svc-media { background: linear-gradient(150deg, #e6edf9, #d8e3f5); }
+html:not(.dark) .svc-media .svc-ctgr { background: rgba(255, 255, 255, .85); color: var(--brand-700); }
+
+/* مراحل و ویژگی‌ها */
+html:not(.dark) .step-card::before { -webkit-text-stroke: 1px rgba(37, 99, 235, .20); text-stroke: 1px rgba(37, 99, 235, .20); }
+html:not(.dark) .feat-card::after { background: radial-gradient(circle, rgba(37, 99, 235, .09), transparent 65%); }
+
+/* آمار و PWA */
+html:not(.dark) .stats-panel {
+    background:
+        radial-gradient(ellipse 60% 120% at 50% 0%, rgba(59, 130, 246, .10), transparent),
+        linear-gradient(140deg, rgba(255, 255, 255, .95), rgba(244, 247, 253, .98));
+}
+html:not(.dark) .pwa-panel {
+    background:
+        radial-gradient(ellipse 70% 90% at 85% 20%, rgba(59, 130, 246, .08), transparent 60%),
+        linear-gradient(150deg, rgba(255, 255, 255, .96), rgba(243, 246, 252, .98));
+}
+html:not(.dark) .pwa-step .n { color: #fff; }
+
+/* نظرات و سوالات */
+html:not(.dark) .testi-quote { color: rgba(37, 99, 235, .10); }
+html:not(.dark) .testi-avatar { color: #fff; }
+html:not(.dark) .faq-q .chev { background: rgba(37, 99, 235, .07); }
+
+/* CTA نهایی */
+html:not(.dark) .cta-panel {
+    background:
+        radial-gradient(ellipse 80% 100% at 50% 0%, rgba(37, 99, 235, .10), transparent 70%),
+        linear-gradient(160deg, #ffffff, #eef3fb);
+    border-color: rgba(37, 99, 235, .20);
+}
+html:not(.dark) .cta-panel::before { background: repeating-linear-gradient(135deg, transparent 0 14px, rgba(37, 99, 235, .03) 14px 15px); }
+html:not(.dark) .cta-cup { background: linear-gradient(135deg, rgba(37, 99, 235, .12), rgba(30, 58, 138, .08)); }
+html:not(.dark) .cta-cup .steam i { background: rgba(37, 99, 235, .35); }
+
+/* فوتر و دکمهٔ بازگشت */
+html:not(.dark) .site-footer { background: rgba(247, 249, 253, .92); }
+html:not(.dark) .fp-chip:hover { background: rgba(37, 99, 235, .07); }
+html:not(.dark) .to-top { background: rgba(255, 255, 255, .94); }
+html:not(.dark) .to-top:hover { background: rgba(37, 99, 235, .1); }

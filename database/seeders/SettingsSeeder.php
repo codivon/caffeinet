@@ -164,6 +164,13 @@ class SettingsSeeder extends Seeder
             ['group' => 'appearance', 'key' => 'appearance.custom.operator', 'value' => null, 'cast' => 'json', 'label' => 'توکن‌های شخصی‌سازی پنل اپراتور'],
             ['group' => 'appearance', 'key' => 'appearance.custom.org', 'value' => null, 'cast' => 'json', 'label' => 'توکن‌های شخصی‌سازی پنل سازمان'],
             ['group' => 'appearance', 'key' => 'appearance.custom.front', 'value' => null, 'cast' => 'json', 'label' => 'توکن‌های شخصی‌سازی لندینگ'],
+            // دمای سرد/گرم پنل‌ها (برای پالت‌های آماده — ۰ = خنثی)
+            ['group' => 'appearance', 'key' => 'appearance.warmth.admin', 'value' => '0', 'cast' => 'string', 'label' => 'دمای سرد/گرم پنل مدیریت کل'],
+            ['group' => 'appearance', 'key' => 'appearance.warmth.app', 'value' => '0', 'cast' => 'string', 'label' => 'دمای سرد/گرم اپ مشتری'],
+            ['group' => 'appearance', 'key' => 'appearance.warmth.coffeenet', 'value' => '0', 'cast' => 'string', 'label' => 'دمای سرد/گرم پنل کافی‌نت'],
+            ['group' => 'appearance', 'key' => 'appearance.warmth.operator', 'value' => '0', 'cast' => 'string', 'label' => 'دمای سرد/گرم پنل اپراتور'],
+            ['group' => 'appearance', 'key' => 'appearance.warmth.org', 'value' => '0', 'cast' => 'string', 'label' => 'دمای سرد/گرم پنل سازمان'],
+            ['group' => 'appearance', 'key' => 'appearance.warmth.front', 'value' => '0', 'cast' => 'string', 'label' => 'دمای سرد/گرم لندینگ'],
         ];
 
         foreach ($rows as $row) {

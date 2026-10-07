@@ -20,6 +20,14 @@
     let currentPage = 1;
     let signature = ''; // امضای لیست پخش (برای جلوگیری از رندر مجدد بی‌مورد)
 
+    /* v38 «پوشر کامل»: آیا پوشر فعال «و متصل» است؟ (در این حالت پولینگ صندوق پخش خاموش است) */
+    function rtLive() {
+        return !!(window.RT && RT.active() && RT.connected() && RT.cfg.panel_channel);
+    }
+    function rtConfigured() {
+        return !!(window.RT && RT.active() && RT.cfg.panel_channel);
+    }
+
     const els = {
         tabBroadcast: document.getElementById('tab-broadcast'),
         tabMine: document.getElementById('tab-mine'),
@@ -56,7 +64,9 @@
         }
     }
 
-    /* ================== ① صندوق پخش زنده ================== */
+    /* ================== ① صندوق پخش زنده ==================
+       v38: پوشر متصل → بدون پولینگ دوره‌ای؛ رویداد orders.changed → یک poll.
+       قطع اتصال → زنجیرهٔ پولینگ خودکار برمی‌گردد (شرط rtLive در زمان‌بندی). */
     async function pollBroadcast(immediate) {
         stopPolling();
 
@@ -66,11 +76,11 @@
             const data = await res.json();
 
             renderBroadcast(data.orders || []);
-            if (activeTab === 'broadcast') {
+            if (activeTab === 'broadcast' && !rtLive()) {
                 pollTimer = setTimeout(() => pollBroadcast(), POLL_MS);
             }
         } catch {
-            if (activeTab === 'broadcast') {
+            if (activeTab === 'broadcast' && !rtLive()) {
                 pollTimer = setTimeout(() => pollBroadcast(), POLL_MS + 2000);
             }
         }
@@ -527,8 +537,33 @@
         if (booted) return;
         booted = true;
         bindEvents();
+        bindRealtime();
         switchTab('broadcast');
         loadMine(1, true);
+    }
+
+    /* ---------- v38 Realtime پوشر — صندوق پخش بدون پولینگ ----------
+       سفارش جدید/پخش جدید/پذیرش توسط کافی‌نت دیگر → رویداد orders.changed
+       روی کانال سراسری پنل‌ها → یک poll همان لحظه. قطع اتصال → زنجیرهٔ
+       پولینگ خودکار برمی‌گردد؛ وصل شدن → دوباره خاموش می‌شود. */
+    let unConn = null;
+
+    function bindRealtime() {
+        if (!rtConfigured()) { return; }
+
+        RT.on(RT.cfg.panel_channel, 'orders.changed', () => {
+            if (!document.hidden && activeTab === 'broadcast') pollBroadcast(true);
+        });
+
+        /* پاک‌سازی هنگام خروج از صفحه (ناوبری SPA) — ضد زامبی */
+        document.addEventListener('livewire:navigate', () => {
+            stopPolling();
+            if (unConn) { unConn(); unConn = null; }
+        }, { once: true });
+
+        unConn = RT.onConnection((up) => {
+            if (!document.hidden && activeTab === 'broadcast') pollBroadcast(true);
+        });
     }
 
     window.addEventListener('app:ready', boot, { once: true });

@@ -42,6 +42,12 @@ final class Appearance
         return "appearance.custom.{$panel}";
     }
 
+    /** کلید دمای سرد/گرم هر پنل (برای پالت‌های آماده) */
+    public static function warmthKey(string $panel): string
+    {
+        return "appearance.warmth.{$panel}";
+    }
+
     /* ═══════════════════════════ پالت‌ها ═══════════════════════════ */
 
     /**
@@ -144,9 +150,11 @@ final class Appearance
 
         $selected = [];
         $customs = [];
+        $warmths = [];
         foreach (array_keys($panels) as $key) {
             $selected[$key] = self::selectedPalette($key);
             $customs[$key] = self::customTokens($key);
+            $warmths[$key] = self::warmthFor($key);
         }
 
         // کارت‌های پالت — گرادیان سواچ از پیش ساخته‌شده
@@ -185,6 +193,7 @@ final class Appearance
                 ])->all(),
                 'selected' => $selected,
                 'customs' => $customs,
+                'warmths' => $warmths,
             ], JSON_UNESCAPED_UNICODE),
         ];
     }
@@ -198,6 +207,15 @@ final class Appearance
             ->get(self::paletteKey($panel), 'default');
 
         return in_array($key, self::paletteKeys(), true) ? $key : 'default';
+    }
+
+    /** دمای سرد/گرم ذخیره‌شدهٔ پنل (برای پالت‌های آماده) — ۰ یعنی خنثی */
+    public static function warmthFor(string $panel): int
+    {
+        $v = (int) app(\App\Services\Settings\SettingsService::class)
+            ->get(self::warmthKey($panel), 0);
+
+        return max(-40, min(40, $v));
     }
 
     /** توکن‌های شخصی‌سازی پنل (آرایه یا null) — اعتبارسنجی‌شده */
@@ -227,13 +245,16 @@ final class Appearance
             if ($custom) {
                 $tokens = array_merge($tokens, $custom);
             }
+        } elseif (($warmth = self::warmthFor($panel)) !== 0) {
+            // دمای سرد/گرم انتخابی برای پالت‌های آماده
+            $tokens = self::warmTokens($tokens, $warmth);
         }
 
         return $tokens;
     }
 
-    /** ذخیرهٔ انتخاب پنل (پالت + توکن‌های شخصی) */
-    public static function save(string $panel, string $palette, ?array $custom = null): void
+    /** ذخیرهٔ انتخاب پنل (پالت + توکن‌های شخصی + دمای سرد/گرم) */
+    public static function save(string $panel, string $palette, ?array $custom = null, ?int $warmth = null): void
     {
         if (! isset(self::PANELS[$panel]) || ! in_array($palette, self::paletteKeys(), true)) {
             return;
@@ -244,6 +265,14 @@ final class Appearance
         if ($palette === 'custom') {
             $clean = self::sanitizeCustom($custom ?? []);
             self::putSetting(self::customKey($panel), $clean, 'json', 'توکن‌های شخصی‌سازی پنل '.$panel);
+        } elseif ($warmth !== null) {
+            // دمای سرد/گرم برای پالت‌های آماده (۰ = خنثی)
+            self::putSetting(
+                self::warmthKey($panel),
+                (string) max(-40, min(40, (int) $warmth)),
+                'string',
+                'دمای سرد/گرم پنل '.$panel
+            );
         }
     }
 
@@ -328,6 +357,64 @@ final class Appearance
         }
 
         return $out;
+    }
+
+    /* ═════════════════════ دمای سرد/گرم (Warmth) ═════════════════════ */
+
+    /**
+     * اعمال دما روی توکن‌ها — تغییر تراز سفید (White Balance):
+     * گرم (+) = قرمز بیشتر / آبی کمتر (رنگ به کهربا می‌گراید)
+     * سرد (−) = آبی بیشتر / قرمز کمتر (رنگ به یخی می‌گراید)
+     * روی طیف، پس‌زمینهٔ صفحه، سایدبار و متن سایدبار اعمال می‌شود.
+     */
+    public static function warmTokens(array $t, int $temp): array
+    {
+        $temp = max(-40, min(40, $temp));
+        if ($temp === 0) {
+            return $t;
+        }
+
+        $shift = (int) round($temp * 0.6); // حداکثر ±۲۴ پله
+
+        if (! empty($t['ramp']) && is_array($t['ramp'])) {
+            foreach ($t['ramp'] as $k => $hex) {
+                if ($c = self::normalizeHex((string) $hex)) {
+                    $t['ramp'][$k] = self::warmHex($c, $shift);
+                }
+            }
+        }
+
+        foreach (['page_bg', 'sidebar_text'] as $k) {
+            if (! empty($t[$k]) && ($c = self::normalizeHex((string) $t[$k]))) {
+                $t[$k] = self::warmHex($c, $shift);
+            }
+        }
+
+        if (! empty($t['sidebar']) && is_array($t['sidebar'])) {
+            foreach ($t['sidebar'] as $i => $hex) {
+                if ($c = self::normalizeHex((string) $hex)) {
+                    $t['sidebar'][$i] = self::warmHex($c, $shift);
+                }
+            }
+        }
+
+        return $t;
+    }
+
+    /** تغییر تراز سفید یک رنگ — مثبت = گرم، منفی = سرد */
+    public static function warmHex(string $hex, int $shift): string
+    {
+        if ($shift === 0) {
+            return $hex;
+        }
+
+        [$r, $g, $b] = self::toRgb($hex);
+
+        return self::toHex([
+            $r + $shift,
+            $g + (int) round($shift * 0.1),
+            $b - $shift,
+        ]);
     }
 
     /** هگز #rgb / #rrggbb → نرمال به #rrggbb (اگر معتبر نبود null) */

@@ -988,6 +988,15 @@ html.dark .st-logs-shortcut .st-cron-sub b { color: #34d399; }
 .ap-pal-check svg { width: .8rem; height: .8rem; }
 .ap-palette.is-selected .ap-pal-check { opacity: 1; transform: scale(1); }
 
+/* دمای سرد/گرم پالت‌های آماده */
+.ap-warmth {
+    border: 1.5px solid color-mix(in srgb, var(--ui-brand-600, #2563eb) 22%, transparent);
+    border-radius: 1.1rem;
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+    background: color-mix(in srgb, var(--ui-brand-600, #2563eb) 2%, var(--th-surface, #fff));
+}
+
 /* ویرایشگر شخصی‌سازی */
 .ap-custom {
     border: 1.5px dashed color-mix(in srgb, var(--ui-brand-600, #2563eb) 35%, transparent);

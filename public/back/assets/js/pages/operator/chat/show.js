@@ -13,10 +13,9 @@
     const STAFF_MODE = !!PAGE.staffActions; // مدیر کل / مدیر کافی‌نت (گذارهای کامل)
 
     const POLL_MS = 3000;
-    /* Realtime پوشر (فاز ۱۳): با فعال بودن بیدارباش پوشر، پولینگ آرام می‌شود */
-    const POLL_MS_REALTIME = 12000;
-    let currentPollMs = POLL_MS;
+    /* Realtime پوشر (v38 «پوشر کامل»): وقتی پوشر متصل است پولینگ کاملاً خاموش است */
     let rtBound = false;
+    let unConn = null;
     const CHAT_STATUSES = ['accepted', 'in_progress', 'needs_info', 'paid'];
     const DONE_STATUSES = ['delivered', 'completed'];
 
@@ -741,11 +740,11 @@
         });
     }
 
-    /* ================== پولینگ ================== */
+    /* ================== پولینگ (فقط fallback) ================== */
 
     function startPolling() {
         stopPolling();
-        polling = setInterval(() => load(false), currentPollMs);
+        polling = setInterval(() => load(false), POLL_MS);
     }
 
     function stopPolling() {
@@ -762,17 +761,10 @@
         if (isChat && (!d.oid || Number(d.oid) === Number(PAGE.orderId))) { loadPollNow(); }
     });
 
-    /* پولینگ تطبیقی: با فعال شدن پوشر بازهٔ پول بزرگ می‌شود */
-    function relaxPolling() {
-        if (currentPollMs === POLL_MS_REALTIME) { return; }
-        currentPollMs = POLL_MS_REALTIME;
-        if (polling) { startPolling(); } // بازسازی interval با بازهٔ جدید
-    }
-
-    /* ================== Realtime پوشر (فاز ۱۳) — بیدارباش چت ==================
+    /* ================== Realtime پوشر — حالت «پوشر کامل» (بدون پولینگ) ==================
        کانال/کلید از payload چت (data.rt) می‌آید؛ با رویداد message.new
-       پول همان لحظه اجرا می‌شود → پیام مشتری آنی می‌رسد و MySQL
-       فقط با فاصلهٔ طولانی چک می‌شود. */
+       پیام‌ها همان لحظه از API خوانده می‌شوند — بدون هیچ setInterval.
+       قطع اتصال → پولینگ اضطراری؛ وصل شدن → توقف پولینگ. */
     function bindRealtime(rt) {
         if (rtBound) { return; }
         if (!rt.channel || !rt.key || !window.RT) { return; }
@@ -784,7 +776,22 @@
 
         if (ok) {
             rtBound = true;
-            relaxPolling();
+
+            /* پاک‌سازی هنگام خروج از صفحه (ناوبری SPA) — ضد زامبی */
+            document.addEventListener('livewire:navigate', () => {
+                stopPolling();
+                if (unConn) { unConn(); unConn = null; }
+            }, { once: true });
+
+            /* fallback اتصال: قطع → پولینگ اضطراری، وصل → توقف پولینگ */
+            unConn = RT.onConnection((up) => {
+                if (up) { stopPolling(); if (!document.hidden) load(false); }
+                else { startPolling(); }
+            });
+
+            if (RT.connected()) {
+                stopPolling(); // پوشر متصل — بدون پولینگ
+            }
         }
     }
 

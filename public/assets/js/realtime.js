@@ -15,7 +15,14 @@
  *   RT.on(channel, event, cb)   — اشتراک امن با fallback بی‌صدا
  *   RT.bindUser(event, cb)      — کانال اعلان کاربر جاری (اگر موجود)
  *   RT.active()                 — آیا پوشر فعال است؟
+ *   RT.connected()              — آیا اتصال WebSocket برقرار است؟
+ *   RT.onConnection(cb)         — رویداد وصل/قطع شدن اتصال (خروجی: تابع لغو اشتراک)
  *   RT.setup(cfg)               — جایگزینی پیکربندی (اپ مشتری: کانال از API)
+ *
+ * حالت «پوشر کامل» (v38):
+ *   وقتی پوشر فعال و متصل است، صفحات «بدون پولینگ» کار می‌کنند — فقط رویدادمحور.
+ *   با قطع اتصال، صفحات خودکار به پولینگ اضطراری برمی‌گردند و با وصل شدن
+ *   دوباره، پولینگ متوقف می‌شود. (RT.onConnection)
  */
 (function () {
     'use strict';
@@ -37,6 +44,15 @@
     var client = null;
     var connecting = false;
     var boundChannels = {};
+    var connected = false;
+    var stateCbs = [];
+
+    function fireState(up) {
+        connected = !!up;
+        for (var i = 0; i < stateCbs.length; i++) {
+            try { stateCbs[i](connected); } catch (e) { /* noop */ }
+        }
+    }
 
     function connect() {
         if (client) { return client; }
@@ -51,6 +67,12 @@
                 cluster: String(cfg.cluster || 'mt1'),
                 forceTLS: true
             });
+
+            // ردیابی وضعیت اتصال برای fallback خودکار صفحات
+            client.connection.bind('connected', function () { fireState(true); });
+            client.connection.bind('disconnected', function () { fireState(false); });
+            client.connection.bind('failed', function () { fireState(false); });
+            client.connection.bind('unavailable', function () { fireState(false); });
         } catch (e) {
             client = null;
         }
@@ -91,12 +113,29 @@
         return !!(cfg.enabled && cfg.key);
     }
 
+    function connectedNow() {
+        return !!(active() && connected && client && client.connection && client.connection.state === 'connected');
+    }
+
     /* ---------- رابط عمومی ---------- */
     window.RT = {
         on: on,
         bindUser: bindUser,
         active: active,
+        connected: connectedNow,
         cfg: cfg,
+        /**
+         * رویداد وصل/قطع اتصال — cb(up) با true/false صدا زده می‌شود.
+         * خروجی: تابع لغو اشتراک (برای صفحات SPA که در هر ناوبری دوباره اجرا می‌شوند).
+         */
+        onConnection: function (cb) {
+            if (typeof cb !== 'function') { return function () {}; }
+            stateCbs.push(cb);
+            return function () {
+                var i = stateCbs.indexOf(cb);
+                if (i > -1) { stateCbs.splice(i, 1); }
+            };
+        },
         /** برای اپ مشتری: پر کردن/ترکیب پیکربندی (مثلاً کانال از API) */
         setup: function (newCfg) {
             cfg = newCfg || {};

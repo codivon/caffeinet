@@ -648,27 +648,32 @@ class SettingsController extends Controller
             'panel'   => ['required', 'string', 'in:'.implode(',', array_keys(\App\Support\Appearance::PANELS))],
             'palette' => ['required', 'string', 'in:'.implode(',', \App\Support\Appearance::paletteKeys())],
             'custom'  => ['nullable', 'array'],
+            // دمای سرد/گرم — برای «همهٔ» پالت‌ها (فقط شخصی‌سازی از توکن داخلی خودش استفاده می‌کند)
+            'warmth'  => ['nullable', 'integer', 'min:-40', 'max:40'],
         ]);
 
-        \App\Support\Appearance::save($data['panel'], $data['palette'], $data['custom'] ?? null);
+        \App\Support\Appearance::save($data['panel'], $data['palette'], $data['custom'] ?? null, $data['warmth'] ?? null);
+
+        $paletteName = \App\Support\Appearance::palettes()[$data['palette']]['name'] ?? $data['palette'];
 
         AuditLogger::log('settings.updated', null, null,
             [
                 'appearance.panel.'.$data['panel']    => $data['palette'],
-                'appearance.custom.'.$data['panel']   => $data['custom'] ? 'set' : null,
+                'appearance.custom.'.$data['panel']   => isset($data['custom']) ? 'set' : null,
+                'appearance.warmth.'.$data['panel']   => $data['warmth'] ?? null,
             ],
-            'تغییر پوستهٔ «'.\App\Support\Appearance::palettes()[$data['palette']]['name'].'» برای '.\App\Support\Appearance::PANELS[$data['panel']]);
+            'تغییر پوستهٔ «'.$paletteName.'» برای '.\App\Support\Appearance::PANELS[$data['panel']]);
 
         return response()->json([
             'ok'      => true,
-            'message' => 'پوستهٔ «'.\App\Support\Appearance::palettes()[$data['palette']]['name'].'» برای '
+            'message' => 'پوستهٔ «'.$paletteName.'» برای '
                 .\App\Support\Appearance::PANELS[$data['panel']].' ذخیره شد.',
         ]);
     }
 
     /**
      * CSS پوسته برای پیش‌نمایش زندهٔ صفحهٔ تنظیمات (GET settings/appearance-css).
-     * پارامترها: panel + (palette | custom=json) — خروجی text/css کش‌نشونده.
+     * پارامترها: panel + (palette | custom=json) + warmth — خروجی text/css کش‌نشونده.
      */
     public function appearanceCss(Request $request)
     {
@@ -679,6 +684,8 @@ class SettingsController extends Controller
 
         $palette = (string) $request->query('palette', '');
         $customJson = (string) $request->query('custom', '');
+        $warmth = (int) $request->query('warmth', '0');
+        $warmth = max(-40, min(40, $warmth));
 
         if ($customJson !== '') {
             // پیش‌نمایش توکن‌های شخصی (قبل از ذخیره)
@@ -701,6 +708,11 @@ class SettingsController extends Controller
         } else {
             // وضعیت فعلی ذخیره‌شدهٔ پنل
             $tokens = \App\Support\Appearance::tokensFor($panel);
+        }
+
+        // دمای سرد/گرم انتخابی — برای پالت‌های آماده (شخصی‌سازی دمای خودش را در توکن دارد)
+        if ($warmth !== 0 && ($customJson === '' && ($palette === '' || $palette !== 'custom'))) {
+            $tokens = \App\Support\Appearance::warmTokens($tokens, $warmth);
         }
 
         $template = match ($panel) {

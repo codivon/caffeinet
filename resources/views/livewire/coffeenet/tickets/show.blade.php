@@ -108,5 +108,5 @@
 </div>
 
 @push('scripts')
-<script src="{{ asset('back/assets/js/pages/admin/tickets/show.js') }}?v=14"></script>
+<script src="{{ asset('back/assets/js/pages/admin/tickets/show.js') }}?v=15"></script>
 @endpush

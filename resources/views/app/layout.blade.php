@@ -42,9 +42,7 @@
         <header class="app-header">
             <a class="brand" href="{{ route('app.home') }}" wire:navigate>
                 <span class="brand-mark" aria-hidden="true">
-                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
-                    </svg>
+                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
                 </span>
                 <span>
                     <span class="brand-name">کافی‌نت آنلاین</span>
@@ -133,12 +131,12 @@
      re-init هدر/ناوبری با CN.onNavigate --}}
 {{-- Realtime پوشر (فاز ۱۳): پیکربندی عمومی CSP-safe؛ کانال شخصی کاربر از API /realtime/config --}}
 <script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1" data-navigate-once></script>
-<script src="{{ asset('assets/js/realtime.js') }}?v=2" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(null))'></script>
+<script src="{{ asset('assets/js/realtime.js') }}?v=3" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(null))'></script>
 <script src="{{ asset('front/assets/js/core.js') }}?v=9" data-navigate-once defer></script>
 <script src="{{ asset('assets/js/jalali-datepicker.js') }}?v=3" defer></script>
 {{-- نوتیف دستگاه (v26: پیش‌فرض/پوشر/فایربیس) — پیکربندی از PushManager؛ اپ مشتری از CN.api برای ثبت استفاده می‌کند --}}
 <script src="{{ asset('assets/js/push/push-client.js') }}?v=7" defer data-push-config='@json(app(\App\Services\Push\PushManager::class)->clientConfig(auth()->user()))'></script>
-<script src="{{ asset('front/assets/js/pages/notifications.js') }}?v=6" data-navigate-once defer></script>
+<script src="{{ asset('front/assets/js/pages/notifications.js') }}?v=7" data-navigate-once defer></script>
 <script src="{{ asset('front/assets/js/pages/announcements.js') }}?v=16" defer></script>
 
 {{-- Livewire [Task 2-a] --}}

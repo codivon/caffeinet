@@ -108,7 +108,31 @@
         } catch (e) { /* پولینگ بی‌صدا */ }
     }
 
-    setInterval(poll, 10000);
+    /* v38 «پوشر کامل»: پوشر فعال و متصل → بدون پولینگ؛ پاسخ جدید تیکت
+       اعلان می‌سازد → رویداد notif.new روی کانال شخصی کاربر → پیام‌ها
+       همان لحظه تازه می‌شوند. قطع اتصال → پولینگ اضطراری. */
+    let ticketTimer = setInterval(poll, 10000);
+
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) poll();
+    });
+
+    if (window.RT && RT.active() && RT.cfg.channel) {
+        RT.bindUser('notif.new', () => {
+            if (!document.hidden) poll();
+        });
+
+        if (RT.connected()) { clearInterval(ticketTimer); ticketTimer = null; }
+
+        RT.onConnection((up) => {
+            if (up) {
+                if (ticketTimer) { clearInterval(ticketTimer); ticketTimer = null; }
+                if (!document.hidden) poll();
+            } else if (!ticketTimer) {
+                ticketTimer = setInterval(poll, 10000);
+            }
+        });
+    }
 
     /* ---------- ارسال پاسخ + پیش‌نمایش تصویر پیوست (F-3) ---------- */
     function hideFileThumb() {

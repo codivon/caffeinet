@@ -50,9 +50,7 @@
 
         <div class="text-center mb-8 animate-fade-up">
             <span class="inline-grid place-items-center size-16 rounded-3xl bg-gradient-to-br from-amber-400 to-amber-700 shadow-2xl shadow-amber-950/50 mb-4">
-                <svg class="size-8 text-amber-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/>
-                </svg>
+                <svg class="size-8 text-amber-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
             </span>
             <h1 class="text-2xl font-extrabold text-amber-50 tracking-tight">کافی‌نت آنلاین</h1>
             <p class="mt-1.5 text-sm text-amber-200/60 font-light">ورود به پنل مدیریت کافی‌نت</p>

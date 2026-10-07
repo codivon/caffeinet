@@ -33,6 +33,9 @@ class PusherService
     /** پیشوند کانال گفتگوی سفارش */
     public const CHAT_PREFIX = 'c';
 
+    /** پیشوند کانال سراسری پنل‌ها (سفارش جدید/تغییر وضعیت → همهٔ پنل‌های پشتی) */
+    public const PANEL_PREFIX = 'p';
+
     public function __construct(
         protected \App\Services\Settings\SettingsService $settings,
     ) {}
@@ -58,6 +61,9 @@ class PusherService
             'key' => (string) $this->settings->get('realtime.pusher.app_key', ''),
             'cluster' => (string) $this->settings->get('realtime.pusher.cluster', 'mt1'),
             'channel' => null,
+            // کانال سراسری پنل‌ها — رویدادهای «سفارش جدید/تغییر وضعیت» برای
+            // به‌روزرسانی لحظه‌ای لیست‌ها/بج‌ها بدون پولینگ
+            'panel_channel' => $this->enabled() ? $this->panelChannel() : null,
         ];
 
         if ($user && $cfg['enabled']) {
@@ -81,6 +87,12 @@ class PusherService
     public function chatChannel(int $orderId): string
     {
         return self::CHAT_PREFIX.'.'.$this->hash('c', $orderId);
+    }
+
+    /** کانال سراسری پنل‌ها — رویدادهای سفارش برای همهٔ پنل‌های پشتی */
+    public function panelChannel(): string
+    {
+        return self::PANEL_PREFIX.'.'.$this->hash('p', 0);
     }
 
     /** هش غیرقابل حدس از دامنه + شناسه + APP_KEY */
@@ -203,6 +215,29 @@ class PusherService
         $channels = array_map(fn ($id) => $this->userChannel((int) $id), array_unique($userIds));
 
         $this->trigger($channels, 'notif.new', ['type' => $type]);
+    }
+
+    /**
+     * رویداد «سفارش جدید/تغییر وضعیت» روی کانال سراسری پنل‌ها —
+     * لیست‌ها/بج‌های پنل‌های پشتی (ادمین/کافی‌نت/اپراتور) بدون پولینگ لحظه‌ای تازه می‌شوند.
+     */
+    public function ordersChanged(array $payload = []): void
+    {
+        if (! $this->enabled()) {
+            return;
+        }
+
+        $this->trigger($this->panelChannel(), 'orders.changed', $payload);
+    }
+
+    /** رویداد «سفارش من تغییر کرد» روی کانال شخصی مشتری — صفحهٔ پیگیری سفارش بدون پولینگ */
+    public function orderChangedForUser(int $userId, array $payload = []): void
+    {
+        if (! $this->enabled()) {
+            return;
+        }
+
+        $this->trigger($this->userChannel($userId), 'order.changed', $payload);
     }
 
     /* ================================================================== */

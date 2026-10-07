@@ -66,6 +66,22 @@
         if (toTop) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
     });
 
+    /* ---------- کلید روز/شب — سراسری و تنبل ----------
+       پیش‌فرض: روز؛ انتخاب کاربر در localStorage «caffeinet-theme» (مشترک با پنل‌ها) */
+    doc.addEventListener('click', function (e) {
+        var t = e.target && e.target.closest ? e.target.closest('#themeToggle') : null;
+        if (!t) { return; }
+
+        var isDark = doc.documentElement.classList.toggle('dark');
+
+        try { localStorage.setItem('caffeinet-theme', isDark ? 'dark' : 'light'); } catch (err) { /* noop */ }
+
+        t.setAttribute('aria-label', isDark ? 'رفتن به حالت روز' : 'رفتن به حالت شب');
+
+        var meta = doc.querySelector('meta[name="theme-color"]');
+        if (meta) { meta.setAttribute('content', isDark ? '#1a1a2e' : '#f3f6fc'); }
+    });
+
     /* ---------- انیمیشن ورود (IntersectionObserver) ---------- */
     function initReveals() {
         var reveals = doc.querySelectorAll('.reveal');

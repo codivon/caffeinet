@@ -20,13 +20,23 @@
     let signature = '';
     let expanded = new Set(); // کارت‌هایی که جزئیات فرمشان باز است
 
+    /* v38 «پوشر کامل»: آیا پوشر فعال «و متصل» است؟ */
+    function rtLive() {
+        return !!(window.RT && RT.active() && RT.connected() && RT.cfg.panel_channel);
+    }
+    function rtConfigured() {
+        return !!(window.RT && RT.active() && RT.cfg.panel_channel);
+    }
+
     const els = {
         list: document.getElementById('requests-list'),
         empty: document.getElementById('requests-empty'),
         count: document.getElementById('requests-count'),
     };
 
-    /* ================== ① لیست زنده ================== */
+    /* ================== ① لیست زنده ==================
+       v38: پوشر متصل → بدون پولینگ دوره‌ای؛ رویداد orders.changed → یک poll.
+       قطع اتصال → زنجیرهٔ پولینگ خودکار برمی‌گردد. */
     async function poll(immediate) {
         stopPolling();
 
@@ -36,9 +46,13 @@
             const data = await res.json();
 
             render(data.requests || []);
-            pollTimer = setTimeout(() => poll(), POLL_MS);
+            if (!rtLive()) {
+                pollTimer = setTimeout(() => poll(), POLL_MS);
+            }
         } catch {
-            pollTimer = setTimeout(() => poll(), POLL_MS + 2000);
+            if (!rtLive()) {
+                pollTimer = setTimeout(() => poll(), POLL_MS + 2000);
+            }
         }
     }
 
@@ -285,7 +299,32 @@
     function boot() {
         if (booted) return;
         booted = true;
+        bindRealtime();
         poll();
+    }
+
+    /* ---------- v38 Realtime پوشر — درخواست‌ها بدون پولینگ ----------
+       سفارش جدید/پخش جدید/پذیرش/انقضا → رویداد orders.changed روی کانال
+       سراسری پنل‌ها → یک poll همان لحظه. قطع اتصال → زنجیرهٔ پولینگ
+       خودکار برمی‌گردد؛ وصل شدن → دوباره خاموش می‌شود. */
+    let unConn = null;
+
+    function bindRealtime() {
+        if (!rtConfigured()) { return; }
+
+        RT.on(RT.cfg.panel_channel, 'orders.changed', () => {
+            if (!document.hidden) poll(true);
+        });
+
+        /* پاک‌سازی هنگام خروج از صفحه (ناوبری SPA) — ضد زامبی */
+        document.addEventListener('livewire:navigate', () => {
+            stopPolling();
+            if (unConn) { unConn(); unConn = null; }
+        }, { once: true });
+
+        unConn = RT.onConnection((up) => {
+            if (!document.hidden) poll(true);
+        });
     }
 
     window.addEventListener('app:ready', boot, { once: true });

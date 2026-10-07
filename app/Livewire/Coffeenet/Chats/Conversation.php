@@ -58,20 +58,43 @@ class Conversation extends Component
         // عملیات‌های سریع وضعیت برای مدیر کافی‌نت (عیناً staffStatusActions کنترلر)
         $statusActions = $this->staffStatusActions($order);
 
+        $canUpdateStatus = $order->status !== OrderStatus::Cancelled; // لغوشده: فقط خواندن
+
+        $customerName = trim(($order->customer?->name ?? '').' '.($order->customer?->family ?? '')) ?: 'مشتری';
+
+        $chatUrls = [
+            'data' => "/coffeenet/{$this->coffeenet->id}/orders/{$order->id}/chat/data",
+            'send' => "/coffeenet/{$this->coffeenet->id}/orders/{$order->id}/chat/send",
+            'status' => "/coffeenet/{$this->coffeenet->id}/orders/{$order->id}/status",
+            'list' => "/coffeenet/{$this->coffeenet->id}/chats",
+        ];
+
+        // payload صفحهٔ چت برای JS — ساخت در PHP (سازگار با کامپایلر Livewire — @json چندخطی ممنوع)
+        $pagePayload = [
+            'orderId' => $order->id,
+            'orderNumber' => $order->order_number,
+            'customerName' => $customerName,
+            'status' => ['value' => $order->status->value, 'label' => $order->status->label()],
+            'canSend' => $chatMeta['can_send'],
+            'readonly' => $chatMeta['readonly'],
+            'isCancelled' => (bool) ($chatMeta['cancelled'] ?? false),
+            'cancelReason' => $order->cancel_reason,
+            'canUpdateStatus' => $canUpdateStatus,
+            'staffActions' => true,
+            'isPaid' => (bool) $order->paid_at,
+            'urls' => $chatUrls,
+        ];
+
         return view('livewire.coffeenet.chats.conversation', [
             'coffeenet' => $this->coffeenet,
             'order' => $order,
-            'customerName' => trim(($order->customer?->name ?? '').' '.($order->customer?->family ?? '')) ?: 'مشتری',
+            'customerName' => $customerName,
             'initial' => mb_substr($order->customer?->name ?: 'م', 0, 1),
             'chatMeta' => $chatMeta,
             'canUpdateStatus' => $canUpdateStatus,
             'statusActions' => $statusActions,
-            'chatUrls' => [
-                'data' => "/coffeenet/{$this->coffeenet->id}/orders/{$order->id}/chat/data",
-                'send' => "/coffeenet/{$this->coffeenet->id}/orders/{$order->id}/chat/send",
-                'status' => "/coffeenet/{$this->coffeenet->id}/orders/{$order->id}/status",
-                'list' => "/coffeenet/{$this->coffeenet->id}/chats",
-            ],
+            'chatUrls' => $chatUrls,
+            'pagePayload' => $pagePayload,
         ])->layoutData([
             'user' => auth()->user(),
             'pageTitle' => 'گفتگوی سفارش',

@@ -13,9 +13,7 @@
 
     <div class="text-center mb-8 animate-fade-up">
         <span class="inline-grid place-items-center size-16 rounded-3xl bg-brand-gradient shadow-2xl shadow-black/30 mb-4">
-            <svg class="size-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
-            </svg>
+            <svg class="size-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
         </span>
         <h1 class="text-2xl font-extrabold text-white tracking-tight">کافی‌نت آنلاین</h1>
         <p class="mt-1.5 text-sm text-brand-muted font-light">ورود به پنل مدیریت کل</p>
