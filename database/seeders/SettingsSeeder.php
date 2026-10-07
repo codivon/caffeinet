@@ -150,6 +150,20 @@ class SettingsSeeder extends Seeder
             ['group' => 'finnotech', 'key' => 'finnotech.nid', 'value' => '', 'cast' => 'string', 'label' => 'کد ملی صاحب برنامهٔ فینوتک'],
             ['group' => 'finnotech', 'key' => 'finnotech.verify_profile', 'value' => '1', 'cast' => 'boolean', 'label' => 'بررسی تطبیق کد ملی با موبایل در پروفایل مشتری'],
             ['group' => 'finnotech', 'key' => 'finnotech.verify_cards', 'value' => '1', 'cast' => 'boolean', 'label' => 'بررسی تطبیق کارت بانکی با کد ملی'],
+
+            // ظاهر و رنگ‌بندی — پالت اختصاصی هر پنل (پیش‌فرض + ۱۰ پالت + شخصی‌سازی)
+            ['group' => 'appearance', 'key' => 'appearance.panel.admin', 'value' => 'default', 'cast' => 'string', 'label' => 'پالت رنگی پنل مدیریت کل'],
+            ['group' => 'appearance', 'key' => 'appearance.panel.app', 'value' => 'default', 'cast' => 'string', 'label' => 'پالت رنگی اپ مشتری'],
+            ['group' => 'appearance', 'key' => 'appearance.panel.coffeenet', 'value' => 'default', 'cast' => 'string', 'label' => 'پالت رنگی پنل کافی‌نت'],
+            ['group' => 'appearance', 'key' => 'appearance.panel.operator', 'value' => 'default', 'cast' => 'string', 'label' => 'پالت رنگی پنل اپراتور'],
+            ['group' => 'appearance', 'key' => 'appearance.panel.org', 'value' => 'default', 'cast' => 'string', 'label' => 'پالت رنگی پنل سازمان'],
+            ['group' => 'appearance', 'key' => 'appearance.panel.front', 'value' => 'default', 'cast' => 'string', 'label' => 'پالت رنگی لندینگ'],
+            ['group' => 'appearance', 'key' => 'appearance.custom.admin', 'value' => null, 'cast' => 'json', 'label' => 'توکن‌های شخصی‌سازی پنل مدیریت کل'],
+            ['group' => 'appearance', 'key' => 'appearance.custom.app', 'value' => null, 'cast' => 'json', 'label' => 'توکن‌های شخصی‌سازی اپ مشتری'],
+            ['group' => 'appearance', 'key' => 'appearance.custom.coffeenet', 'value' => null, 'cast' => 'json', 'label' => 'توکن‌های شخصی‌سازی پنل کافی‌نت'],
+            ['group' => 'appearance', 'key' => 'appearance.custom.operator', 'value' => null, 'cast' => 'json', 'label' => 'توکن‌های شخصی‌سازی پنل اپراتور'],
+            ['group' => 'appearance', 'key' => 'appearance.custom.org', 'value' => null, 'cast' => 'json', 'label' => 'توکن‌های شخصی‌سازی پنل سازمان'],
+            ['group' => 'appearance', 'key' => 'appearance.custom.front', 'value' => null, 'cast' => 'json', 'label' => 'توکن‌های شخصی‌سازی لندینگ'],
         ];
 
         foreach ($rows as $row) {

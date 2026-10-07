@@ -28,6 +28,8 @@
     <link rel="stylesheet" href="{{ asset('assets/css/panel-announcements.css') }}?v=15">
     {{-- سیستم تم روشن/تاریک (فاز ۱۰) — باید آخرین CSS باشد تا برنده بماند --}}
     <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}?v=11">
+    {{-- پوستهٔ پویا: پالت اختصاصی این پنل (بعد از theme.css) --}}
+    @include('partials.appearance', ['panel' => 'admin'])
     {{-- تقویم/دیت‌پیکر شمسی (CNJdp) --}}
     <link rel="stylesheet" href="{{ asset('assets/css/jalali-datepicker.css') }}?v=3">
     {{-- استایل‌های اختصاصی صفحات (push با @push('styles')) --}}
@@ -228,7 +230,7 @@
      دوباره اجرا نشوند (intervals/listener تکراری ممنوع)؛ re-bind کروم با App.onNavigate --}}
 <script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1" data-navigate-once></script>
 <script src="{{ asset('assets/js/realtime.js') }}?v=2" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(auth()->user()))'></script>
-<script src="{{ asset('back/assets/js/core.js') }}?v=14" data-navigate-once></script>
+<script src="{{ asset('back/assets/js/core.js') }}?v=15" data-navigate-once></script>
 <script src="{{ asset('back/assets/js/ui.js') }}?v=12" data-navigate-once></script>
 <script src="{{ asset('back/assets/js/pages/layout.js') }}?v=13" data-navigate-once></script>
 {{-- اطلاعیه‌های پنل (فاز ۱۵) — بدون once (ری‌ران امن؛ بدون interval) --}}

@@ -28,6 +28,8 @@
     {{-- سیستم تم روشن/تاریک (فاز ۱۰) — باید آخرین CSS باشد تا برنده بماند --}}
     <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}?v=11">
 
+    {{-- پوستهٔ پویا: پالت اختصاصی این پنل (بعد از theme.css) --}}
+    @include('partials.appearance', ['panel' => 'org'])
     {{-- Livewire [Task 6] --}}
     @livewireStyles
 </head>
@@ -55,7 +57,7 @@
 </main>
 
 {{-- [Task 6] data-navigate-once: اسکریپت‌های مشترک بین ناوبری‌های SPA دوباره اجرا نشوند --}}
-<script src="{{ asset('back/assets/js/core.js') }}?v=14" data-navigate-once></script>
+<script src="{{ asset('back/assets/js/core.js') }}?v=15" data-navigate-once></script>
 <script src="{{ asset('back/assets/js/ui.js') }}?v=12" data-navigate-once></script>
 
 {{-- Livewire [Task 6] --}}

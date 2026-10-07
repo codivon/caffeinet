@@ -687,6 +687,122 @@ window.CN = (function () {
         refreshBottomNavActive();
     });
 
+    /* ---------- [F-4] فشرده‌سازی تصویر در سمت کاربر ----------
+       ورودی: File تصویر (jpeg/png/webp) — خروجی: Promise که «همیشه» resolve می‌شود
+       (هیچ‌وقت reject نمی‌شود تا آپلود هرگز مسدود نشود؛ در هر خطا فایل اصلی برمی‌گردد).
+       opts: { maxSide: 2048, quality: 0.85 }
+       قواعد: زیر ۳۵۰KB دست‌نخورده؛ هرگز بزرگ‌نمایی نمی‌کند؛ PNG کوچک/شفاف PNG می‌ماند؛
+       PNG بزرگ بدون شفافیت → JPEG (پس‌زمینه سفید + پسوند .jpg)؛ WebP → WebP؛
+       اگر خروجی کوچک‌تر نشد فایل اصلی برگردانده می‌شود؛ ObjectURL همیشه آزاد می‌شود. */
+    var COMPRESS_MIN_BYTES = 350 * 1024;        /* زیر این حجم دست نمی‌زنیم */
+    var COMPRESS_PNG_KEEP_BYTES = 1536 * 1024;  /* PNG زیر ۱.۵MB همان PNG می‌ماند */
+    var COMPRESS_DEFAULT_SIDE = 2048;           /* بزرگ‌ترین ضلع مجاز (پیش‌فرض) */
+    var COMPRESS_DEFAULT_QUALITY = 0.85;
+
+    function compressImage(file, opts) {
+        return new Promise(function (resolve) {
+            function keep() { resolve(file); }
+
+            var url = null;
+            function safeRevoke() {
+                if (url) {
+                    try { window.URL.revokeObjectURL(url); } catch (e) { /* noop */ }
+                    url = null;
+                }
+            }
+
+            function finish(blob, outType, outName) {
+                safeRevoke();
+                try {
+                    if (!blob || blob.size >= file.size) { return keep(); }        /* کوچک‌تر نشد */
+                    if (blob.type && String(blob.type).toLowerCase() !== outType) { return keep(); } /* انکودر نوع خواسته‌شده را نداشت */
+                    resolve(new window.File([blob], outName, { type: outType, lastModified: Date.now() }));
+                } catch (err) { keep(); }
+            }
+
+            /* نمونه‌گیری ارزان شفافیت: ۴ گوشه + مرکز */
+            function alphaSeen(ctx, w, h) {
+                var pts = [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1], [w >> 1, h >> 1]];
+                try {
+                    for (var i = 0; i < pts.length; i++) {
+                        if (ctx.getImageData(pts[i][0], pts[i][1], 1, 1).data[3] < 255) { return true; }
+                    }
+                } catch (e) { return true; } /* خواندن پیکسل ممکن نشد → محافظه‌کار: PNG بماند */
+                return false;
+            }
+
+            function swapJpgName(name) {
+                name = String(name || 'image');
+                if (/\.png$/i.test(name)) { return name.replace(/\.png$/i, '.jpg'); }
+                return name + '.jpg';
+            }
+
+            try {
+                opts = opts || {};
+                if (!file || typeof file !== 'object' || typeof file.size !== 'number' ||
+                    !window.URL || typeof window.URL.createObjectURL !== 'function' ||
+                    typeof window.File !== 'function') { return keep(); }
+
+                var type = String(file.type || '').toLowerCase();
+                if (type !== 'image/jpeg' && type !== 'image/png' && type !== 'image/webp') { return keep(); }
+                if (file.size <= COMPRESS_MIN_BYTES) { return keep(); }
+
+                var maxSide = Number(opts.maxSide) > 0 ? Number(opts.maxSide) : COMPRESS_DEFAULT_SIDE;
+                var quality = (typeof opts.quality === 'number' && opts.quality > 0 && opts.quality <= 1) ? opts.quality : COMPRESS_DEFAULT_QUALITY;
+
+                url = window.URL.createObjectURL(file);
+                var img = new Image();
+
+                img.onload = function () {
+                    var w = img.naturalWidth || 0;
+                    var h = img.naturalHeight || 0;
+                    if (!w || !h) { safeRevoke(); return keep(); }
+                    try {
+                        var scale = Math.min(1, maxSide / Math.max(w, h)); /* هرگز بزرگ‌نمایی نمی‌کنیم */
+                        var cw = Math.max(1, Math.round(w * scale));
+                        var ch = Math.max(1, Math.round(h * scale));
+
+                        var canvas = document.createElement('canvas');
+                        canvas.width = cw;
+                        canvas.height = ch;
+                        var ctx = canvas.getContext('2d');
+                        if (!ctx || typeof canvas.toBlob !== 'function') { safeRevoke(); return keep(); }
+
+                        if (type === 'image/png') {
+                            ctx.drawImage(img, 0, 0, cw, ch);
+                            if (file.size < COMPRESS_PNG_KEEP_BYTES || alphaSeen(ctx, cw, ch)) {
+                                /* PNG می‌ماند — شفافیت حفظ می‌شود */
+                                canvas.toBlob(function (blob) { finish(blob, 'image/png', file.name); }, 'image/png');
+                            } else {
+                                /* PNG بزرگ بدون شفافیت → JPEG با پس‌زمینهٔ سفید */
+                                ctx.clearRect(0, 0, cw, ch);
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fillRect(0, 0, cw, ch);
+                                ctx.drawImage(img, 0, 0, cw, ch);
+                                canvas.toBlob(function (blob) { finish(blob, 'image/jpeg', swapJpgName(file.name)); }, 'image/jpeg', quality);
+                            }
+                        } else {
+                            /* JPEG → JPEG و WebP → WebP (نوع حفظ می‌شود، شفافیت WebP پاک نمی‌شود) */
+                            ctx.drawImage(img, 0, 0, cw, ch);
+                            canvas.toBlob(function (blob) { finish(blob, type, file.name); }, type, quality);
+                        }
+                    } catch (err) {
+                        safeRevoke();
+                        keep();
+                    }
+                };
+                img.onerror = function () {
+                    safeRevoke();
+                    keep();
+                };
+                img.src = url;
+            } catch (err) {
+                safeRevoke();
+                keep();
+            }
+        });
+    }
+
     return {
         withPort: withPort,
         apiUrl: apiUrl,
@@ -721,6 +837,7 @@ window.CN = (function () {
         toFaDigits: toFaDigits,
         toEnDigits: toEnDigits,
         esc: esc,
+        compressImage: compressImage,
         normalizeMobile: normalizeMobile
     };
 })();

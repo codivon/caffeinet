@@ -22,6 +22,7 @@
     var pollTimer = null;
     var sending = false;
     var pendingFile = null; // { type, file, duration }
+    var pendingSeq = 0;     // [F-4] شمارندهٔ انتخاب فایل — گارد مسابقهٔ انتخاب فایل جدید حین فشرده‌سازی
     var groupedPrev = null;
     var thumbUrl = null;
 
@@ -622,7 +623,25 @@
 
     /* ---------- آپلودر زیبا ---------- */
 
+    /* [F-4] تصویر پیش از نمایش پیش‌نمایش فشرده می‌شود (ویدیو/صدا/فایل دست‌نخورده)؛
+       برچسب حجم از file.size فایل نهایی خوانده می‌شود. */
     function setPendingFile(type, file) {
+        if (type !== 'image' || !CN.compressImage || typeof CN.compressImage !== 'function') {
+            applyPendingFile(type, file);
+            return;
+        }
+        var seq = ++pendingSeq;
+        var use = function (f) {
+            if (seq !== pendingSeq) { return; } /* در میان راه فایل دیگری انتخاب شد */
+            applyPendingFile(type, f || file);
+        };
+        var p = null;
+        try { p = CN.compressImage(file); } catch (e) { p = null; }
+        if (!p || typeof p.then !== 'function') { use(file); return; }
+        p.then(use)['catch'](function () { use(file); });
+    }
+
+    function applyPendingFile(type, file) {
         pendingFile = { type: type, file: file, duration: null };
 
         var map = ATTACH_MAP[type];

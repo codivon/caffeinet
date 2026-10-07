@@ -58,27 +58,57 @@
         if (!zone && root) { zone = root.querySelector('.fup-zone'); }
 
         function addFiles(fileList) {
-            var added = 0;
-            Array.prototype.forEach.call(fileList || [], function (file) {
-                if (!opts.multiple && files.length >= 1) {
-                    CN.toast('برای این فیلد فقط یک فایل قابل انتخاب است.', 'error');
-                    return;
-                }
-                if (opts.maxKb && file.size > opts.maxKb * 1024) {
-                    CN.toast('حجم «' + (file.name || 'فایل') + '» بیش از حد مجاز است (حداکثر ' + fupFa(opts.maxKb / 1024) + ' مگابایت).', 'error');
-                    return;
-                }
-                if (dup(file)) {
-                    CN.toast('این فایل قبلاً اضافه شده است.', 'info');
-                    return;
-                }
-                files.push(file);
-                var t = makeThumb(file);
-                thumbEls.push(t.el);
-                thumbUrls.push(t.url || null);
-                added++;
+            /* [F-4] پردازش ترتیبی فایل‌ها — شرط تک‌فایل و dup مثل قبل روی فایلِ اصلی
+               (نام+حجم پیش از فشرده‌سازی) بررسی می‌شود تا رفتار قدیمی عیناً حفظ شود. */
+            var list = Array.prototype.slice.call(fileList || []);
+            if (!list.length) { return; }
+            var before = files.length;
+            var chain = Promise.resolve();
+            list.forEach(function (file) {
+                chain = chain.then(function () { return addOneFile(file); });
             });
-            if (added) { render(); }
+            chain.then(function () {
+                if (files.length !== before) { render(); }
+            })['catch'](function () {
+                if (files.length !== before) { render(); }
+            });
+        }
+
+        function addOneFile(file) {
+            if (!opts.multiple && files.length >= 1) {
+                CN.toast('برای این فیلد فقط یک فایل قابل انتخاب است.', 'error');
+                return Promise.resolve();
+            }
+            if (opts.maxKb && file.size > opts.maxKb * 1024) {
+                CN.toast('حجم «' + (file.name || 'فایل') + '» بیش از حد مجاز است (حداکثر ' + fupFa(opts.maxKb / 1024) + ' مگابایت).', 'error');
+                return Promise.resolve();
+            }
+            if (dup(file)) {
+                CN.toast('این فایل قبلاً اضافه شده است.', 'info');
+                return Promise.resolve();
+            }
+
+            /* [F-4] تصویر → فشرده‌سازی سمت کاربر پیش از push (آپلود سریع‌تر) */
+            if (fupDetectType(file) === 'image' && CN.compressImage && typeof CN.compressImage === 'function') {
+                var p = null;
+                try { p = CN.compressImage(file); } catch (e) { p = null; }
+                if (p && typeof p.then === 'function') {
+                    return p.then(function (compressed) {
+                        pushFile(compressed && compressed.size <= file.size ? compressed : file);
+                    })['catch'](function () {
+                        pushFile(file);
+                    });
+                }
+            }
+            return Promise.resolve(pushFile(file));
+        }
+
+        function pushFile(file) {
+            if (!opts.multiple && files.length >= 1) { return; } /* گارد مجدد (جریان async) */
+            files.push(file);
+            var t = makeThumb(file); /* بندانگشتی از فایل نهایی (فشرده‌شده) — متن KB از file.size خوانده می‌شود */
+            thumbEls.push(t.el);
+            thumbUrls.push(t.url || null);
         }
 
         function dup(file) {

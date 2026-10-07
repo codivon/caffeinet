@@ -1798,6 +1798,19 @@ html.dark .cpref-call-txt b .cpref-call-tag { background: rgba(56,142,60,.15); }
 .tkd-file-chip-x:hover { background: #fef2f2; }
 .tkd-file-chip-x:active { transform: scale(.9); }
 .tkd-file-chip-x svg { width: 13px; height: 13px; }
+/* F-3 — پیش‌نمایش تصویر پیوست انتخاب‌شده (هم‌خانوادهٔ .tkd-thumb) */
+.tkd-chip-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1px solid rgba(37, 99, 235, .25);
+    background: #fff;
+    box-shadow: 0 4px 12px -6px rgba(37, 99, 235, .45);
+    flex: none;
+}
+.tkd-chip-thumb[hidden] { display: none; }
+.tkd-file-chip.has-thumb > svg { display: none; }
 /* دکمهٔ گیرهٔ پیوست — حالت انتخاب‌شده */
 .tkd-attach-btn.has-file {
     border-style: solid;
@@ -2851,6 +2864,7 @@ html.dark .tkd-file-chip { background: rgba(37, 99, 235, .13); border-color: rgb
 html.dark .tkd-file-chip-x { background: rgba(0, 0, 0, .3); border-color: rgba(248, 113, 113, .3); color: #f87171; }
 html.dark .tkd-file-chip-x:hover { background: rgba(127, 29, 29, .35); }
 html.dark .tkd-attach-btn.has-file { background: rgba(37, 99, 235, .15); }
+html.dark .tkd-chip-thumb { border-color: rgba(240, 180, 101, .28); background: var(--brand-50, #1a1a2e); box-shadow: 0 4px 12px -6px rgba(0, 0, 0, .7); }
 
 /* ---------- اسکلتون/لودر ---------- */
 html.dark .skeleton {

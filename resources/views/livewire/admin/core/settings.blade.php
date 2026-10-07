@@ -3,7 +3,7 @@
      همان AJAX قبلی به PUT/POST settings (کنترلر) می‌رود؛ اسکریپت صفحه
      back/assets/js/pages/admin/settings/index.js بدون تغییر bind می‌شود. --}}
 @push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/pages/settings.css') }}?v=20">
+<link rel="stylesheet" href="{{ asset('assets/css/pages/settings.css') }}?v=21">
 @endpush
 
 <div>
@@ -88,6 +88,13 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
                 <span class="flex-1 text-start">پیامک و پرووایدر</span>
                 <span class="st-nav-hint">{{ $providerLabel }}</span>
+            </button>
+
+            {{-- ظاهر و رنگ‌بندی — پالت اختصاصی هر پنل (پیش‌فرض + ۱۰ پالت + شخصی‌سازی) --}}
+            <button type="button" role="tab" class="st-nav-item" data-section="appearance">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+                <span class="flex-1 text-start">ظاهر و رنگ‌بندی</span>
+                <span class="st-nav-hint">{{ $appearance['selected_name'] }}</span>
             </button>
 
             <button type="button" role="tab" class="st-nav-item" data-section="orders">
@@ -1793,6 +1800,131 @@
             </div>
         </form>
 
+        {{-- ================== ظاهر و رنگ‌بندی (Appearance) ==================
+             هر پنل پالت مستقل خودش را دارد: «پیش‌فرض» + ۱۰ پالت آماده + «شخصی‌سازی»
+        {{-- ================== ظاهر و رنگ‌بندی (Appearance) ==================
+             هر پنل پالت مستقل خودش را دارد: «پیش‌فرض» + ۱۰ پالت آماده + «شخصی‌سازی»
+             (کنترل کامل: طیف برند، پس‌زمینه، سایدبار، رنگ معنایی، دمای سرد/گرم).
+             همهٔ داده‌ها از PHP می‌آید (settingsViewData) — منطق: settings/index.js --}}
+        <section class="st-section card ui-lift animate-fade-up hidden" id="sec-appearance" data-appearance>
+            <div class="st-section-head">
+                <div>
+                    <h2 class="st-section-title">ظاهر و رنگ‌بندی</h2>
+                    <p class="st-section-desc">هر پنل می‌تواند پالت رنگی مستقل خودش را داشته باشد — با کلیک روی هر پالت، همان لحظه پیش‌نمایش زنده را ببینید و سپس ذخیره کنید.</p>
+                </div>
+            </div>
+
+            {{-- انتخاب پنل --}}
+            <div class="ap-panels" role="tablist" aria-label="انتخاب پنل">
+                @foreach ($appearance['panels'] as $apKey => $apLabel)
+                    <button type="button" role="tab" class="ap-panel-chip" data-ap-panel="{{ $apKey }}">
+                        {{ $apLabel }}
+                        <small data-ap-panel-badge></small>
+                    </button>
+                @endforeach
+            </div>
+
+            {{-- شبکهٔ پالت‌ها — سواچ‌ها از پیش ساخته‌شده --}}
+            <div class="ap-palette-grid" data-ap-grid role="listbox" aria-label="انتخاب پالت رنگی">
+                @foreach ($appearance['cards'] as $palKey => $card)
+                    <button type="button" role="option" class="ap-palette" data-ap-palette="{{ $palKey }}" title="{{ $card['hint'] }}">
+                        <span class="ap-swatch" style="background: {{ $card['grad'] }}" aria-hidden="true"></span>
+                        <span class="ap-pal-name">{{ $card['name'] }}</span>
+                        <span class="ap-pal-hint">{{ $card['hint'] }}</span>
+                        <span class="ap-pal-check" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                        </span>
+                    </button>
+                @endforeach
+            </div>
+
+            {{-- ویرایشگر شخصی‌سازی (فقط برای پالت custom) --}}
+            <div class="ap-custom hidden" data-ap-custom>
+                <div class="ap-custom-head">
+                    <div>
+                        <b class="text-sm font-extrabold text-stone-800">شخصی‌سازی کامل رنگ‌ها</b>
+                        <p class="st-hint mt-0.5">رنگ پایه را انتخاب کنید و دمای سرد/گرم را تنظیم کنید تا کل طیف ساخته شود؛ یا هر سایه را جداگانه تغییر دهید. همهٔ بخش‌ها همین‌جا کنترل‌پذیرند.</p>
+                    </div>
+                    <button type="button" class="btn-ghost !py-2 !px-3 text-xs" data-ap-from-current>شروع از پالت فعلی</button>
+                </div>
+
+                <div class="ap-custom-grid">
+                    <div class="ap-cfield">
+                        <label class="lbl" for="ap-base">رنگ پایه برند</label>
+                        <div class="ap-color-row">
+                            <input type="color" id="ap-base" value="#2563eb" class="ap-color">
+                            <input type="text" id="ap-base-hex" dir="ltr" class="field !py-1.5 font-mono text-xs" value="#2563eb" maxlength="7">
+                        </div>
+                    </div>
+                    <div class="ap-cfield">
+                        <label class="lbl" for="ap-temp">دمای رنگ — <span data-ap-temp-label>خنثی</span></label>
+                        <div class="ap-temp-row">
+                            <span class="text-[10px] font-bold text-sky-600">سرد</span>
+                            <input type="range" id="ap-temp" min="-40" max="40" step="1" value="0" class="ap-temp flex-1">
+                            <span class="text-[10px] font-bold text-amber-600">گرم</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ap-cfield mt-4">
+                    <label class="lbl">طیف برند (۵۰ تا ۹۵۰) — قابل ویرایش تک‌تک</label>
+                    <div class="ap-shades" data-ap-shades>
+                        @foreach ($appearance['shades'] as $shade)
+                            <label class="ap-shade" title="سایهٔ {{ $shade['key'] }}">
+                                <input type="color" value="{{ $shade['hex'] }}" data-ap-shade="{{ $shade['key'] }}">
+                                <span dir="ltr">{{ $shade['key'] }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="ap-custom-grid mt-4">
+                    <div class="ap-cfield">
+                        <label class="lbl" for="ap-pagebg">پس‌زمینهٔ صفحه (تم روشن)</label>
+                        <div class="ap-color-row">
+                            <input type="color" id="ap-pagebg" value="#dbeafe" class="ap-color">
+                            <input type="text" id="ap-pagebg-hex" dir="ltr" class="field !py-1.5 font-mono text-xs" value="#dbeafe" maxlength="7">
+                        </div>
+                    </div>
+                    <div class="ap-cfield">
+                        <label class="lbl">رنگ معنایی (موفقیت / هشدار / خطا / اطلاع)</label>
+                        <div class="ap-semantic">
+                            <label class="ap-shade" title="موفقیت"><input type="color" value="#10b981" data-ap-sem="ok"><span>موفقیت</span></label>
+                            <label class="ap-shade" title="هشدار"><input type="color" value="#f59e0b" data-ap-sem="warn"><span>هشدار</span></label>
+                            <label class="ap-shade" title="خطا"><input type="color" value="#ef4444" data-ap-sem="err"><span>خطا</span></label>
+                            <label class="ap-shade" title="اطلاع"><input type="color" value="#0ea5e9" data-ap-sem="info"><span>اطلاع</span></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ap-cfield mt-4">
+                    <label class="lbl">سایدبار (۴ ایست گرادیان + متن) — سایدبار همیشه تیره است</label>
+                    <div class="ap-shades">
+                        <label class="ap-shade" title="ایست ۱"><input type="color" value="#172f6d" data-ap-sb="0"><span>ایست ۱</span></label>
+                        <label class="ap-shade" title="ایست ۲"><input type="color" value="#1d3e8d" data-ap-sb="1"><span>ایست ۲</span></label>
+                        <label class="ap-shade" title="ایست ۳"><input type="color" value="#14295f" data-ap-sb="2"><span>ایست ۳</span></label>
+                        <label class="ap-shade" title="ایست ۴"><input type="color" value="#0d1d4a" data-ap-sb="3"><span>ایست ۴</span></label>
+                        <label class="ap-shade" title="متن سایدبار"><input type="color" value="#dbeafe" data-ap-sbtext><span>متن</span></label>
+                    </div>
+                </div>
+            </div>
+
+            {{-- دادهٔ پالت‌ها برای اسکریپت (بدون درخواست اضافه) --}}
+            <script type="application/json" id="ap-data">{!! $appearance['json'] !!}</script>
+
+            {{-- نوار عملیات --}}
+            <div class="ap-actions">
+                <p class="st-hint !mt-0" data-ap-status>پالت فعال این پنل: <b>{{ $appearance['selected_name'] }}</b></p>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="btn-ghost !py-2 !px-3 text-xs" data-ap-revert>بازگشت به ذخیره‌شده</button>
+                    <button type="button" class="btn-primary btn-shine ui-press !py-2.5 px-7" data-ap-save>
+                        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+                        ذخیرهٔ پوسته
+                    </button>
+                </div>
+            </div>
+        </section>
+
     </div>
 </div>
 
@@ -1820,6 +1952,6 @@
 </div>
 </div>
 @push('scripts')
-<script src="{{ asset('back/assets/js/pages/admin/settings/index.js') }}?v=24"></script>
+<script src="{{ asset('back/assets/js/pages/admin/settings/index.js') }}?v=26"></script>
 @endpush
 

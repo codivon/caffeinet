@@ -338,7 +338,7 @@
 <div id="page-data" hidden data-payload="{{ json_encode(['mode' => $mode, 'payload' => $payload, 'field_types' => $fieldTypes, 'category_names' => collect($categories)->pluck('name', 'id')]) }}"></div>
 
 @push('scripts')
-<script src="{{ asset('back/assets/js/pages/admin/services/builder.js') }}?v=15"></script>
+<script src="{{ asset('back/assets/js/pages/admin/services/builder.js') }}?v=16"></script>
 @endpush
 
 </div>

@@ -1,6 +1,6 @@
 /**
  * کافی‌نت آنلاین — اسکریپت صفحه «گفتگوی سفارش» پنل اپراتور (فاز ۷)
- * فایل مستقل (Blade + jQuery) — بدون Node / بدون بیلد
+ * فایل مستقل (بدون jQuery) — بدون Node / بدون بیلد
  *
  * چت تلگرام‌گونه: پولینگ افزایشی ۳ ثانیه + حباب‌ها + دیده‌شدن (تیک دوتایی)
  * + آپلود چندرسانه‌ای با نوار پیشرفت + عملیات سریع وضعیت.
@@ -27,7 +27,6 @@
     let groupedPrev = null; // آخرین پیام رندرشده (برای گروه‌بندی)
     let thumbUrl = null;   // فاز ۱۲ — بندانگشتی تصویر انتخاب‌شده
 
-    const $ = window.jQuery;
     const els = {
         msgs: document.getElementById('chatMsgs'),
         pane: document.getElementById('chatPane'),
@@ -331,57 +330,64 @@
         }
     }
 
-    function sendFile(pfile, caption) {
+    async function sendFile(pfile, caption) {
+        // فشرده‌سازی سمت کلاینت تصویر پیش از آپلود — فقط برای تصویر (نه ویدیو/صدا)
+        let file = pfile.file;
+        if (pfile.type === 'image') {
+            try { if (window.App?.compressImage) file = await App.compressImage(file); } catch { /* noop */ }
+        }
+
+        const fd = new FormData();
+        fd.append('type', pfile.type);
+        fd.append('file', file);
+        if (caption) fd.append('content', caption);
+        if (pfile.duration) fd.append('duration', String(pfile.duration));
+
+        const token = document.querySelector('meta[name="csrf-token"]')?.content;
+
         return new Promise((resolve) => {
-            const fd = new FormData();
-            fd.append('type', pfile.type);
-            fd.append('file', pfile.file);
-            if (caption) fd.append('content', caption);
-            if (pfile.duration) fd.append('duration', String(pfile.duration));
+            const fail = (xhr) => {
+                setUploadState(false);
+                let msg = 'ارسال فایل ناموفق بود.';
+                try { msg = JSON.parse(xhr.responseText).message || msg; } catch { /* noop */ }
+                App.toast(msg, 'error');
+                resolve();
+            };
 
-            const token = document.querySelector('meta[name="csrf-token"]')?.content;
+            const xhr = new XMLHttpRequest();
+            setUploadState(true);
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const pct = Math.round((e.loaded / e.total) * 100);
+                    els.uploadFill.style.width = pct + '%';
+                    if (els.pPct) els.pPct.textContent = fa(pct) + '٪';
+                }
+            }, false);
 
-            $.ajax({
-                url: App.url(URLS.send),
-                type: 'POST',
-                data: fd,
-                processData: false,
-                contentType: false,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    ...(token ? { 'X-CSRF-TOKEN': token } : {}),
-                },
-                xhr: () => {
-                    const xhr = new XMLHttpRequest();
-                    setUploadState(true);
-                    xhr.upload.addEventListener('progress', (e) => {
-                        if (e.lengthComputable) {
-                            const pct = Math.round((e.loaded / e.total) * 100);
-                            els.uploadFill.style.width = pct + '%';
-                            if (els.pPct) els.pPct.textContent = fa(pct) + '٪';
-                        }
-                    }, false);
-                    return xhr;
-                },
-                success: (data) => {
-                    setUploadState(false);
-                    clearPendingFile();
-                    els.input.value = '';
-                    autoGrow();
-                    ingestLocal(data.data);
-                    scrollToBottom();
-                    loadPollNow();
-                    resolve();
-                },
-                error: (xhr) => {
-                    setUploadState(false);
-                    let msg = 'ارسال فایل ناموفق بود.';
-                    try { msg = JSON.parse(xhr.responseText).message || msg; } catch { /* noop */ }
-                    App.toast(msg, 'error');
-                    resolve();
-                },
+            xhr.open('POST', App.url(URLS.send));
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.setRequestHeader('Accept', 'application/json');
+            if (token) xhr.setRequestHeader('X-CSRF-TOKEN', token);
+
+            xhr.addEventListener('load', () => {
+                // معادل httpSuccess جی‌کوئری: 2xx یا 304
+                const ok = (xhr.status >= 200 && xhr.status < 300) || xhr.status === 304;
+                if (!ok) { fail(xhr); return; }
+
+                setUploadState(false);
+                clearPendingFile();
+                els.input.value = '';
+                autoGrow();
+                let data = null;
+                try { data = JSON.parse(xhr.responseText); } catch { /* noop */ }
+                ingestLocal(data?.data);
+                scrollToBottom();
+                loadPollNow();
+                resolve();
             });
+            xhr.addEventListener('error', () => fail(xhr));
+
+            xhr.send(fd);
         });
     }
 

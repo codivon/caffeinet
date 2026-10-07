@@ -45,6 +45,21 @@ Route::get('media/{path}', [\App\Http\Controllers\MediaController::class, 'show'
     ->middleware('throttle:240,1')
     ->name('media.show');
 
+/* ---------- دانلود/نمایش فایل‌ها (لینک موقت امضاشده) ----------
+| ⚠ این سه روت در بازسازی روت‌ها (بازلاین) به‌اشتباه حذف شده بودند؛ بدون آن‌ها
+| URL::temporarySignedRoute('files.*') خطا می‌داد → null برمی‌گشت و
+| پیش‌نمایش همهٔ فایل‌های آپلودشده (چت سفارش، مدارک سفارش، پیوست تیکت)
+| «خراب/خالی» نمایش داده می‌شد. بازگردانی عیناً از اولین کامیت پروژه.
+*/
+Route::get('files/order/{file}', [App\Http\Controllers\Front\App\FilesController::class, 'download'])
+    ->whereNumber('file')->middleware('throttle:120,1')->name('files.order');
+
+Route::get('files/chat/{message}', [App\Http\Controllers\Front\App\ChatFilesController::class, 'download'])
+    ->whereNumber('message')->middleware('throttle:240,1')->name('files.chat');
+
+Route::get('files/ticket/{message}', [App\Http\Controllers\Front\App\TicketFilesController::class, 'download'])
+    ->whereNumber('message')->middleware('throttle:120,1')->name('files.ticket');
+
 /* ---------- PWA (فاز ۱۴ — بازطراحی تفکیک‌شده) — مانیفست مستقل هر پنل ----------
 | هر بخش «اپ نصب‌شدنی» اختصاصی خودش را دارد؛ نصب از داخل همان پنل انجام
 | می‌شود و آیکون نصب‌شده مستقیماً همان پنل را باز می‌کند (نه صفحه فرود):
@@ -116,6 +131,12 @@ Route::get('{panel}/manifest.webmanifest', function (string $panel) {
     abort_unless(isset($panels[$panel]), 404);
     $cfg = $panels[$panel];
 
+    /* ظاهر پویا — theme_color/background_color از پالت رنگی همان پنل
+       (تنظیمات ← ظاهر و رنگ‌بندی) — سازمان → کلید org در سیستم پوسته */
+    $appearancePanel = $panel === 'organization' ? 'org' : $panel;
+    $themeColor = \App\Support\Appearance::manifestThemeColor($appearancePanel);
+    $bgColor = \App\Support\Appearance::tokensFor($appearancePanel)['ramp']['950'] ?? '#172554';
+
     /* آیکون اختصاصی پنل (icons/panels/…) — در نبود فایل‌ها → آیکون برند */
     $usePanelIcons = $cfg['panel_icons'] !== null
         && is_file(public_path('icons/panels/'.$cfg['panel_icons'].'-512.png'));
@@ -139,8 +160,8 @@ Route::get('{panel}/manifest.webmanifest', function (string $panel) {
         'scope'                  => rtrim(url($cfg['scope']), '/').'/',
         'display'                => 'standalone',
         'display_override'       => ['standalone', 'minimal-ui'],
-        'background_color'       => '#31190e',
-        'theme_color'            => '#a8652e',
+        'background_color'       => $bgColor,
+        'theme_color'            => $themeColor,
         'categories'             => ['business', 'productivity', 'shopping'],
         'prefer_related_applications' => false,
 

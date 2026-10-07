@@ -9,7 +9,7 @@
 <div>
     @push('styles')
     <link rel="stylesheet" href="{{ asset('assets/css/notifications.css') }}?v=14">
-    <link rel="stylesheet" href="{{ asset('assets/css/pages/tickets.css') }}?v=13">
+    <link rel="stylesheet" href="{{ asset('assets/css/pages/tickets.css') }}?v=14">
     @endpush
 
     <a href="{{ route('admin.tickets.index') }}" wire:navigate class="inline-flex items-center gap-2 text-xs font-bold text-stone-500 hover:text-amber-600 transition-colors mb-4">
@@ -111,7 +111,10 @@
                     <label class="tk-file-label" for="tk-file">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
                         پیوست (تا ۱۵ مگابایت)
-                        <span class="tk-file-picked" id="tk-file-name"></span>
+                        <span class="tk-file-picked">
+                            <img id="tk-file-thumb" class="tk-file-thumb" alt="" hidden>
+                            <span id="tk-file-name"></span>
+                        </span>
                         <input type="file" id="tk-file" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.7z,.mp3,.mp4,.webm">
                     </label>
                     <label class="tk-internal-check" for="tk-internal" title="فقط کارشناسان می‌بینند">
@@ -136,5 +139,5 @@
 </div>
 
 @push('scripts')
-<script src="{{ asset('back/assets/js/pages/admin/tickets/show.js') }}?v=13"></script>
+<script src="{{ asset('back/assets/js/pages/admin/tickets/show.js') }}?v=14"></script>
 @endpush

@@ -217,24 +217,44 @@
         });
     }
 
+    /* [F-4] پذیرش تصویر زون‌ها: فشرده‌سازی سمت کاربر پیش از انتساب + بررسی حجم روی
+       خروجی نهایی (عکس موبایل چند مگابایتی بعد از فشرده‌سازی زیر سقف ۲MB می‌آید)؛
+       منطق حذف/پیش‌نمایش دست‌نخورده باقی می‌ماند. */
+    let zoneImageSeq = 0;
+
+    function acceptZoneImage(file, apply) {
+        if (!file.type || !file.type.startsWith('image/')) { App.toast('فایل انتخاب‌شده تصویر نیست.', 'error'); return; }
+        const seq = ++zoneImageSeq;
+        const use = (f) => {
+            if (seq !== zoneImageSeq) { return; } // در این میان تصویر دیگری انتخاب شد
+            const finalFile = (f && f.size <= file.size) ? f : file;
+            if (finalFile.size > 2 * 1024 * 1024) { App.toast('حجم تصویر حداکثر ۲ مگابایت است.', 'error'); return; }
+            apply(finalFile);
+        };
+        let p = null;
+        try { p = App.compressImage?.(file); } catch (err) { p = null; }
+        if (!p || typeof p.then !== 'function') { use(file); return; }
+        p.then(use).catch(() => use(file));
+    }
+
     bindSvbZone('s-image-zone', 's-image-file', file => {
-        if (!file.type.startsWith('image/')) { App.toast('فایل انتخاب‌شده تصویر نیست.', 'error'); return; }
-        if (file.size > 2 * 1024 * 1024) { App.toast('حجم تصویر حداکثر ۲ مگابایت است.', 'error'); return; }
-        imageFile = file;
-        removeImage = false;
-        el('s-image-preview-img').src = URL.createObjectURL(file);
-        el('s-image-preview').classList.remove('hidden');
-        markDirty();
+        acceptZoneImage(file, finalFile => {
+            imageFile = finalFile;
+            removeImage = false;
+            el('s-image-preview-img').src = URL.createObjectURL(finalFile);
+            el('s-image-preview').classList.remove('hidden');
+            markDirty();
+        });
     });
 
     bindSvbZone('svb-alert-image-zone', 'svb-alert-image-file', file => {
-        if (!file.type.startsWith('image/')) { App.toast('فایل انتخاب‌شده تصویر نیست.', 'error'); return; }
-        if (file.size > 2 * 1024 * 1024) { App.toast('حجم تصویر حداکثر ۲ مگابایت است.', 'error'); return; }
-        alertImageFile = file;
-        removeAlertImage = false;
-        el('svb-alert-image-preview-img').src = URL.createObjectURL(file);
-        el('svb-alert-image-preview').classList.remove('hidden');
-        markDirty();
+        acceptZoneImage(file, finalFile => {
+            alertImageFile = finalFile;
+            removeAlertImage = false;
+            el('svb-alert-image-preview-img').src = URL.createObjectURL(finalFile);
+            el('svb-alert-image-preview').classList.remove('hidden');
+            markDirty();
+        });
     });
 
     el('s-image-remove')?.addEventListener('click', e => {

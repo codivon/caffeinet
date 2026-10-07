@@ -66,3 +66,22 @@
 3. لینک‌های بین‌صفحه‌ای حتماً `wire:navigate` تا SPA بماند.
 4. برای رخدادهای Livewire در JS موجود (charts، push، صدا): شنوندهٔ `livewire:navigated` بجای `DOMContentLoaded`.
 5. RTL و فونت Vazirmatn مثل قبل حفظ شود.
+
+---
+
+## ۶) پوستهٔ پویا (Appearance) — پالت اختصاصی هر پنل
+
+از این پس رنگ برند «ثابت» نیست؛ مدیر کل از **تنظیمات ← ظاهر و رنگ‌بندی** برای هر پنل
+(admin / app / coffeenet / operator / org / front) یک پالت مستقل انتخاب می‌کند:
+«پیش‌فرض» (همان آبی سافایر این سند) + ۱۰ پالت آماده + «شخصی‌سازی» (کنترل کامل همهٔ بخش‌ها + دمای سرد/گرم).
+
+سازوکار: `app/Support/Appearance.php` یک CSS کوچک تولید می‌کند که در همهٔ لایه‌ها
+«بعد از theme.css» تزریق می‌شود (`partials/appearance`) و همین متغیرهای بالا
+(`--color-blue-*`، `--brand-*`، `--ui-*`، `--th-*`، گرادیان سایدبار و سطوح دارک) را بازنویسی می‌کند.
+
+قواعد برای ایجنت‌ها:
+1. **هیچ هگز برندی به‌صورت هاردکد در Blade/JS جدید ننویسید** — فقط کلاس Tailwind آبی یا متغیرها.
+2. اگر selector جدیدی با رنگ برند هاردکد لازم شد، در `Appearance::css*` هم override آن را اضافه کنید.
+3. کلیدهای تنظیم: `appearance.panel.{panel}` (string) و `appearance.custom.{panel}` (json).
+4. پیش‌نمایش زندهٔ صفحهٔ تنظیمات از endpoint `GET admin/settings/appearance-css` می‌آید (کش‌نشده).
+5. مانیفست PWA و `<meta theme-color>` هم از همین پالت می‌خوانند (`manifestThemeColor`).

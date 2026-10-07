@@ -24,7 +24,12 @@
     };
 @endphp
 <link rel="manifest" href="{{ url($pwaPanel.'/manifest.webmanifest') }}">
-<meta name="theme-color" content="#2563eb">
+{{-- رنگ نوار مرورگر از پالت پویای همان پنل (تنظیمات ← ظاهر و رنگ‌بندی) --}}
+@php
+    $pwaAppearancePanel = $pwaPanel === 'organization' ? 'org' : $pwaPanel;
+    $pwaThemeColor = \App\Support\Appearance::manifestThemeColor($pwaAppearancePanel);
+@endphp
+<meta name="theme-color" content="{{ $pwaThemeColor }}">
 
 {{-- آیکون‌ها (اختصاصی پنل؛ در نبود فایل → آیکون برند + fallback به favicon.ico) --}}
 <link rel="icon" type="image/png" sizes="48x48" href="{{ $pwaIcon(48) }}">

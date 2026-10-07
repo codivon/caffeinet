@@ -29,6 +29,8 @@
 
     {{-- استایل مستقل صفحه فرود --}}
     <link rel="stylesheet" href="{{ asset('assets/css/landing.css') }}?v=6">
+    {{-- پوستهٔ پویا: پالت اختصاصی لندینگ --}}
+    @include('partials.appearance', ['panel' => 'front'])
 
     {{-- [Task 8] Livewire SPA --}}
     @livewireStyles

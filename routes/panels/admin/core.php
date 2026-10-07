@@ -21,6 +21,11 @@ Route::middleware(['admin.access'])->group(function () {
             ->name('settings.edit');
         Route::put('settings', [App\Http\Controllers\Back\Admin\SettingsController::class, 'save'])
             ->name('settings.save');
+        // ظاهر و رنگ‌بندی — پالت اختصاصی هر پنل + پیش‌نمایش زنده
+        Route::put('settings/appearance', [App\Http\Controllers\Back\Admin\SettingsController::class, 'saveAppearance'])
+            ->name('settings.appearance');
+        Route::get('settings/appearance-css', [App\Http\Controllers\Back\Admin\SettingsController::class, 'appearanceCss'])
+            ->name('settings.appearance-css');
         Route::put('settings/referral', [App\Http\Controllers\Back\Admin\SettingsController::class, 'saveReferral'])
             ->name('settings.referral');
         Route::post('settings/test-sms', [App\Http\Controllers\Back\Admin\SettingsController::class, 'testSms'])

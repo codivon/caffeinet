@@ -47,6 +47,9 @@ class Settings extends Component
             'ratingSummary' => app(\App\Services\Orders\RatingDistributionService::class)->summary(),
             // v36 — وضعیت کرون جاب (نشانگر قرمز/سبز تنظیمات عمومی)
             'cronStatus' => $this->cronStatus(),
+            // ظاهر و رنگ‌بندی — پالت‌ها + انتخاب فعلی هر پنل + توکن‌های شخصی
+            // (همهٔ محاسبات در PHP انجام می‌شود تا Blade ساده بماند)
+            'appearance' => \App\Support\Appearance::settingsViewData(),
         ])->layoutData([
             'user' => auth()->user(),
             'pageTitle' => 'تنظیمات سیستم',

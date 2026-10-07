@@ -310,7 +310,33 @@ html.dark .tk-internal-tag { color: #fbbf24; }
 }
 .tk-file-label svg { width: 0.9rem; height: 0.9rem; }
 .tk-file-label input { display: none; }
-.tk-file-label .tk-file-picked { color: var(--ui-brand-600, #2563eb); font-weight: 800; max-width: 9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tk-file-label .tk-file-picked {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--ui-brand-600, #2563eb);
+    font-weight: 800;
+    max-width: 12rem;
+    overflow: hidden;
+}
+.tk-file-label .tk-file-picked > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* F-3 — پیش‌نمایش تصویر پیوست انتخاب‌شده (هم‌خانوادهٔ .tk-thumb) */
+.tk-file-thumb {
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1px solid var(--th-line, #dbeafe);
+    background: var(--th-surface, #fff);
+    box-shadow: 0 3px 10px -6px rgba(49, 25, 14, 0.35);
+}
+.tk-file-thumb[hidden] { display: none; }
+html.dark .tk-file-thumb {
+    border-color: rgba(251, 191, 36, 0.28);
+    box-shadow: 0 3px 10px -6px rgba(0, 0, 0, 0.6);
+}
 
 .tk-internal-check {
     display: inline-flex;

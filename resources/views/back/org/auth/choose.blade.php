@@ -20,6 +20,8 @@
     <link rel="stylesheet" href="{{ asset('assets/css/pages/net-org.css') }}?v=11">
     {{-- سیستم تم روشن/تاریک (فاز ۱۰) — باید آخرین CSS باشد تا برنده بماند --}}
     <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}?v=11">
+    {{-- پوستهٔ پویا: پالت اختصاصی این پنل (بعد از theme.css) --}}
+    @include('partials.appearance', ['panel' => 'org'])
 </head>
 <body class="font-sans antialiased selection:bg-amber-200 selection:text-amber-950">
 
@@ -74,7 +76,7 @@
     </div>
 </main>
 
-<script src="{{ asset('back/assets/js/core.js') }}?v=14"></script>
+<script src="{{ asset('back/assets/js/core.js') }}?v=15"></script>
 <script src="{{ asset('back/assets/js/ui.js') }}?v=12"></script>
 <script src="{{ asset('back/assets/js/pages/org/auth/choose.js') }}?v=10"></script>
 </body>

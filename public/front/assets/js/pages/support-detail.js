@@ -136,7 +136,9 @@
     var chipName = document.getElementById('tkdChipName');
     var chipSize = document.getElementById('tkdChipSize');
     var chipHint = document.getElementById('tkdChipHint');
+    var chipThumb = document.getElementById('tkdChipThumb');
     var attachBtn = document.getElementById('tkdAttachBtn');
+    var chipThumbUrl = '';
 
     function sizeFa(bytes) {
         if (!bytes || bytes <= 0) { return ''; }
@@ -145,15 +147,31 @@
         return (bytes / 1048576).toLocaleString('fa-IR', { maximumFractionDigits: 1 }) + ' مگابایت';
     }
 
+    function clearChipThumb() {
+        if (chipThumb) { chipThumb.setAttribute('hidden', ''); chipThumb.removeAttribute('src'); }
+        if (chipThumbUrl) { URL.revokeObjectURL(chipThumbUrl); chipThumbUrl = ''; }
+    }
+
     function renderChip(file) {
+        clearChipThumb();
+        var isImage = !!(file && file.type && file.type.indexOf('image/') === 0);
+        var showThumb = isImage && !!chipThumb;
         if (file) {
             if (chipName) { chipName.textContent = file.name || 'پیوست'; }
             if (chipSize) { chipSize.textContent = sizeFa(file.size); }
-            if (chip) { chip.removeAttribute('hidden'); }
+            if (chip) {
+                chip.removeAttribute('hidden');
+                chip.classList.toggle('has-thumb', showThumb);
+            }
+            if (showThumb) {
+                chipThumbUrl = URL.createObjectURL(file);
+                chipThumb.src = chipThumbUrl;
+                chipThumb.removeAttribute('hidden');
+            }
             if (chipHint) { chipHint.removeAttribute('hidden'); }
             if (attachBtn) { attachBtn.classList.add('has-file'); }
         } else {
-            if (chip) { chip.setAttribute('hidden', ''); }
+            if (chip) { chip.setAttribute('hidden', ''); chip.classList.remove('has-thumb'); }
             if (chipHint) { chipHint.setAttribute('hidden', ''); }
             if (attachBtn) { attachBtn.classList.remove('has-file'); }
         }

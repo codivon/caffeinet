@@ -207,5 +207,5 @@
 @endpush
 
 @push('scripts')
-<script src="{{ asset('back/assets/js/pages/operator/chat/show.js') }}?v=17"></script>
+<script src="{{ asset('back/assets/js/pages/operator/chat/show.js') }}?v=18"></script>
 @endpush

@@ -344,5 +344,5 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('back/assets/js/pages/admin/services/builder.js') }}?v=15"></script>
+<script src="{{ asset('back/assets/js/pages/admin/services/builder.js') }}?v=16"></script>
 @endpush

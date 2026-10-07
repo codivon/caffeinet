@@ -23,6 +23,7 @@
     const msgInput = document.getElementById('tk-message');
     const fileInput = document.getElementById('tk-file');
     const fileNameEl = document.getElementById('tk-file-name');
+    const fileThumbEl = document.getElementById('tk-file-thumb');
     const internalInput = document.getElementById('tk-internal');
     const sendBtn = document.getElementById('tk-send');
 
@@ -30,6 +31,7 @@
     let messages = (PAGE.messages || []).filter(m => !m.internal_hidden);
     let sending = false;
     let lastDay = '';
+    let fileThumbUrl = ''; // پیش‌نمایش تصویر پیوست — blob URL فعلی
 
     /* ---------- ابزار ---------- */
     function esc(s) {
@@ -108,10 +110,27 @@
 
     setInterval(poll, 10000);
 
-    /* ---------- ارسال پاسخ ---------- */
+    /* ---------- ارسال پاسخ + پیش‌نمایش تصویر پیوست (F-3) ---------- */
+    function hideFileThumb() {
+        if (fileThumbEl) {
+            fileThumbEl.hidden = true;
+            fileThumbEl.removeAttribute('src');
+        }
+        if (fileThumbUrl) {
+            URL.revokeObjectURL(fileThumbUrl);
+            fileThumbUrl = '';
+        }
+    }
+
     fileInput?.addEventListener('change', function () {
         const f = this.files && this.files[0];
+        hideFileThumb();
         if (fileNameEl) { fileNameEl.textContent = f ? f.name : ''; }
+        if (f && fileThumbEl && f.type && f.type.startsWith('image/')) {
+            fileThumbUrl = URL.createObjectURL(f);
+            fileThumbEl.src = fileThumbUrl;
+            fileThumbEl.removeAttribute('hidden');
+        }
     });
 
     msgInput?.addEventListener('keydown', function (e) {
@@ -150,6 +169,7 @@
                 msgInput.value = '';
                 fileInput.value = '';
                 if (fileNameEl) { fileNameEl.textContent = ''; }
+                hideFileThumb();
                 if (internalInput) { internalInput.checked = false; }
                 if (data.data) {
                     messages.push(data.data);

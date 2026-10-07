@@ -10,6 +10,12 @@
  * App.onNavigate : ثبت init برای بار اول + هر ناوبری SPA (wire:navigate) — [Task 2-a]
  */
 
+/* ---------- [F-4] ثابت‌های فشرده‌سازی تصویر سمت کاربر ---------- */
+const APP_IMG_MIN_BYTES = 350 * 1024;       // زیر این حجم دست نمی‌زنیم
+const APP_IMG_PNG_KEEP_BYTES = 1536 * 1024; // PNG زیر ۱.۵MB همان PNG می‌ماند
+const APP_IMG_MAX_SIDE = 2048;              // بزرگ‌ترین ضلع مجاز (پیش‌فرض)
+const APP_IMG_QUALITY = 0.85;
+
 window.App = {
     /**
      * پارامتر گیت‌وی پیش‌نمایش (در پروداکشن null است)
@@ -144,6 +150,102 @@ window.App = {
             el.style.transform = 'translateY(-10px)';
             setTimeout(() => el.remove(), 400);
         }, 4200);
+    },
+
+    /**
+     * [F-4] فشرده‌سازی تصویر در سمت کاربر — Promise «همیشه» resolve می‌شود
+     * (هیچ‌وقت reject نمی‌شود تا آپلود هرگز مسدود نشود؛ در هر خطا فایل اصلی برمی‌گردد)
+     *
+     * قواعد: زیر ۳۵۰KB دست‌نخورده؛ هرگز بزرگ‌نمایی نمی‌کند؛ PNG کوچک/شفاف PNG می‌ماند؛
+     * PNG بزرگ بدون شفافیت → JPEG (پس‌زمینه سفید + پسوند .jpg)؛ WebP → WebP؛
+     * اگر خروجی کوچک‌تر نشد فایل اصلی برگردانده می‌شود؛ ObjectURL همیشه آزاد می‌شود.
+     *
+     * @param {File} file فایل تصویر (jpeg/png/webp)
+     * @param {object} [opts] { maxSide: 2048, quality: 0.85 }
+     * @returns {Promise<File>} فایل فشرده‌شده یا خود فایل اصلی
+     */
+    async compressImage(file, opts = {}) {
+        const keep = () => file;
+        let url = null;
+        try {
+            if (!file || typeof file !== 'object' || typeof file.size !== 'number') { return keep(); }
+            const type = String(file.type || '').toLowerCase();
+            if (type !== 'image/jpeg' && type !== 'image/png' && type !== 'image/webp') { return keep(); }
+            if (file.size <= APP_IMG_MIN_BYTES) { return keep(); }
+            if (!window.URL || typeof window.URL.createObjectURL !== 'function' || typeof window.File !== 'function') { return keep(); }
+
+            const maxSide = Number(opts.maxSide) > 0 ? Number(opts.maxSide) : APP_IMG_MAX_SIDE;
+            const quality = (typeof opts.quality === 'number' && opts.quality > 0 && opts.quality <= 1) ? opts.quality : APP_IMG_QUALITY;
+
+            url = window.URL.createObjectURL(file);
+            const img = new Image();
+
+            const loaded = await new Promise((res) => {
+                img.onload = () => res(true);
+                img.onerror = () => res(false);
+            });
+            const w = img.naturalWidth || 0;
+            const h = img.naturalHeight || 0;
+            if (!loaded || !w || !h) { return keep(); }
+
+            const scale = Math.min(1, maxSide / Math.max(w, h)); // هرگز بزرگ‌نمایی نمی‌کنیم
+            const cw = Math.max(1, Math.round(w * scale));
+            const ch = Math.max(1, Math.round(h * scale));
+
+            const canvas = document.createElement('canvas');
+            canvas.width = cw;
+            canvas.height = ch;
+            const ctx = canvas.getContext('2d');
+            if (!ctx || typeof canvas.toBlob !== 'function') { return keep(); }
+
+            /* نمونه‌گیری ارزان شفافیت: ۴ گوشه + مرکز */
+            const alphaSeen = () => {
+                const pts = [[0, 0], [cw - 1, 0], [0, ch - 1], [cw - 1, ch - 1], [cw >> 1, ch >> 1]];
+                try {
+                    for (const [x, y] of pts) {
+                        if (ctx.getImageData(x, y, 1, 1).data[3] < 255) { return true; }
+                    }
+                } catch (e) { return true; } // خواندن پیکسل ممکن نشد → محافظه‌کار: PNG بماند
+                return false;
+            };
+
+            const toBlob = (mime, q) => new Promise((res) => {
+                try { canvas.toBlob(res, mime, q); } catch (e) { res(null); }
+            });
+
+            let outType = type;
+            let outName = file.name;
+            let blob = null;
+
+            if (type === 'image/png') {
+                ctx.drawImage(img, 0, 0, cw, ch);
+                if (file.size < APP_IMG_PNG_KEEP_BYTES || alphaSeen()) {
+                    // PNG می‌ماند — شفافیت حفظ می‌شود
+                    blob = await toBlob('image/png');
+                } else {
+                    // PNG بزرگ بدون شفافیت → JPEG با پس‌زمینهٔ سفید
+                    ctx.clearRect(0, 0, cw, ch);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, cw, ch);
+                    ctx.drawImage(img, 0, 0, cw, ch);
+                    outType = 'image/jpeg';
+                    outName = /\.png$/i.test(outName) ? outName.replace(/\.png$/i, '.jpg') : outName + '.jpg';
+                    blob = await toBlob('image/jpeg', quality);
+                }
+            } else {
+                // JPEG → JPEG و WebP → WebP (نوع حفظ می‌شود، شفافیت WebP پاک نمی‌شود)
+                ctx.drawImage(img, 0, 0, cw, ch);
+                blob = await toBlob(type, quality);
+            }
+
+            if (!blob || blob.size >= file.size) { return keep(); }          // کوچک‌تر نشد
+            if (blob.type && blob.type.toLowerCase() !== outType) { return keep(); } // انکودر نوع خواسته‌شده را نداشت
+            return new window.File([blob], outName, { type: outType, lastModified: Date.now() });
+        } catch (e) {
+            return keep();
+        } finally {
+            if (url) { try { window.URL.revokeObjectURL(url); } catch (e) { /* noop */ } }
+        }
     },
 
     /**

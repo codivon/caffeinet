@@ -826,3 +826,400 @@
         if (rtModeHint) rtModeHint.textContent = MODE_HINTS[rtModeSelect.value] || '';
     });
 
+
+/* ═══════════════════════════════════════════════════════════════
+   ظاهر و رنگ‌بندی (Appearance) — پالت اختصاصی هر پنل
+   پیش‌نمایش زنده با GET settings/appearance-css و ذخیره با PUT settings/appearance
+   ═══════════════════════════════════════════════════════════════ */
+(function () {
+    const dataEl = document.getElementById('ap-data');
+    const section = document.getElementById('sec-appearance');
+    if (!dataEl || !section) return;
+
+    let data;
+    try { data = JSON.parse(dataEl.textContent); } catch { return; }
+
+    const SHADES = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
+
+    /* ---------- وضعیت ---------- */
+    const initial = JSON.parse(JSON.stringify(data.selected));
+    let panel = 'admin';
+    let selections = Object.assign({}, data.selected);   // کلید پالت هر پنل (ممکن است ذخیره‌نشده باشد)
+    let customs = {};                                     // توکن‌های شخصی هر پنل (در حال ویرایش)
+    Object.keys(data.panels).forEach(k => {
+        customs[k] = data.customs[k] ? JSON.parse(JSON.stringify(data.customs[k])) : null;
+    });
+
+    /* ---------- ابزارهای DOM ---------- */
+    const q = (sel) => section.querySelector(sel);
+    const qa = (sel) => Array.from(section.querySelectorAll(sel));
+
+    /* ---------- استایل پیش‌نمایش زنده ---------- */
+    let liveStyle = document.getElementById('ap-live-style');
+    if (!liveStyle) {
+        liveStyle = document.createElement('style');
+        liveStyle.id = 'ap-live-style';
+        document.head.appendChild(liveStyle);
+    }
+    let previewTimer = null;
+
+    function previewCss(params) {
+        clearTimeout(previewTimer);
+        previewTimer = setTimeout(async () => {
+            try {
+                const qs = new URLSearchParams(params).toString();
+                const res = await fetch('/admin/settings/appearance-css?' + qs, { headers: { 'Accept': 'text/css' } });
+                if (res.ok) liveStyle.textContent = await res.text();
+            } catch { /* noop — پیش‌نمایش اختیاری است */ }
+        }, 120);
+    }
+
+    function previewCurrent() {
+        const pal = selections[panel] || 'default';
+        if (pal === 'custom' && customs[panel]) {
+            previewCss({ panel, custom: JSON.stringify(customs[panel]) });
+        } else {
+            previewCss({ panel, palette: pal });
+        }
+    }
+
+    /* ---------- رندر UI ---------- */
+    function panelChips() { return qa('.ap-panel-chip'); }
+
+    function syncPanelChips() {
+        panelChips().forEach(chip => {
+            const on = chip.dataset.apPanel === panel;
+            chip.classList.toggle('is-active', on);
+            chip.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+    }
+
+    function syncPaletteGrid() {
+        qa('.ap-palette').forEach(card => {
+            const on = card.dataset.apPalette === (selections[panel] || 'default');
+            card.classList.toggle('is-selected', on);
+            card.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+    }
+
+    function palName(key) {
+        return (data.palettes[key] && data.palettes[key].name) || key;
+    }
+
+    function syncStatus() {
+        const st = q('[data-ap-status]');
+        if (st) {
+            const isDirty = (selections[panel] !== (initial[panel] || 'default'));
+            st.innerHTML = 'پالت فعال این پنل: <b>' + palName(selections[panel] || 'default') + '</b>'
+                + (isDirty ? ' — <span class="text-amber-600 font-bold">ذخیره نشده (پیش‌نمایش فعال است)</span>' : '');
+        }
+        qa('[data-ap-panel-badge]').forEach(b => {
+            const chip = b.closest('.ap-panel-chip');
+            if (chip) b.textContent = palName(selections[chip.dataset.apPanel] || 'default');
+        });
+        const navHint = document.querySelector('.st-nav-item[data-section="appearance"] .st-nav-hint');
+        if (navHint) navHint.textContent = palName(selections[panel] || 'default');
+    }
+
+    /* ---------- ویرایشگر شخصی‌سازی ---------- */
+    const customBox = () => q('[data-ap-custom]');
+
+    function fillEditor(tokens) {
+        if (!tokens) return;
+        const base = q('#ap-base'), baseHex = q('#ap-base-hex');
+        if (base) base.value = tokens.base || tokens.ramp['600'] || '#2563eb';
+        if (baseHex) baseHex.value = base ? base.value : '#2563eb';
+        const temp = q('#ap-temp');
+        if (temp) { temp.value = String(tokens.temperature ?? 0); syncTempLabel(); }
+        SHADES.forEach(s => {
+            const input = q('[data-ap-shade="' + s + '"]');
+            if (input && tokens.ramp && tokens.ramp[s]) input.value = tokens.ramp[s];
+        });
+        const pb = q('#ap-pagebg'), pbHex = q('#ap-pagebg-hex');
+        if (pb && tokens.page_bg) pb.value = tokens.page_bg;
+        if (pbHex) pbHex.value = pb ? pb.value : (tokens.page_bg || '#dbeafe');
+        if (tokens.semantic) {
+            Object.entries(tokens.semantic).forEach(([k, v]) => {
+                const input = q('[data-ap-sem="' + k + '"]');
+                if (input) input.value = v;
+            });
+        }
+        if (tokens.sidebar) {
+            tokens.sidebar.forEach((c, i) => {
+                const input = q('[data-ap-sb="' + i + '"]');
+                if (input) input.value = c;
+            });
+        }
+        const sbt = q('[data-ap-sbtext]');
+        if (sbt && tokens.sidebar_text) sbt.value = tokens.sidebar_text;
+    }
+
+    function readEditor() {
+        const ramp = {};
+        let ok = true;
+        SHADES.forEach(s => {
+            const input = q('[data-ap-shade="' + s + '"]');
+            if (input && /^#[0-9a-fA-F]{6}$/.test(input.value)) ramp[s] = input.value.toLowerCase();
+            else ok = false;
+        });
+        const tokens = {};
+        if (ok) tokens.ramp = ramp;
+        const pb = q('#ap-pagebg');
+        if (pb && /^#[0-9a-fA-F]{6}$/.test(pb.value)) tokens.page_bg = pb.value.toLowerCase();
+        const sem = {};
+        qa('[data-ap-sem]').forEach(input => {
+            if (/^#[0-9a-fA-F]{6}$/.test(input.value)) sem[input.dataset.apSem] = input.value.toLowerCase();
+        });
+        if (Object.keys(sem).length === 4) tokens.semantic = sem;
+        const sb = [];
+        qa('[data-ap-sb]').forEach(input => {
+            if (/^#[0-9a-fA-F]{6}$/.test(input.value)) sb.push(input.value.toLowerCase());
+        });
+        if (sb.length === 4) tokens.sidebar = sb;
+        const sbt = q('[data-ap-sbtext]');
+        if (sbt && /^#[0-9a-fA-F]{6}$/.test(sbt.value)) tokens.sidebar_text = sbt.value.toLowerCase();
+        tokens.base = (q('#ap-base') || {}).value || ramp['600'];
+        tokens.temperature = Number((q('#ap-temp') || {}).value || 0);
+        return tokens;
+    }
+
+    /* ---------- تولید طیف از رنگ پایه + دما (سرد/گرم) ---------- */
+    function hexToHsl(hex) {
+        const m = /^#?([0-9a-f]{6})$/i.exec(hex);
+        if (!m) return null;
+        const n = parseInt(m[1], 16);
+        const r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h = 0, s = 0;
+        const l = (max + min) / 2;
+        if (max !== min) {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            if (max === r) h = ((g - b) / d + (g < b ? 6 : 0));
+            else if (max === g) h = (b - r) / d + 2;
+            else h = (r - g) / d + 4;
+            h *= 60;
+        }
+        return { h, s: s * 100, l: l * 100 };
+    }
+
+    function hslToHex(h, s, l) {
+        h = ((h % 360) + 360) % 360;
+        s = Math.max(0, Math.min(100, s)) / 100;
+        l = Math.max(0, Math.min(100, l)) / 100;
+        const c = (1 - Math.abs(2 * l - 1)) * s;
+        const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+        const m = l - c / 2;
+        let rgb;
+        if (h < 60) rgb = [c, x, 0];
+        else if (h < 120) rgb = [x, c, 0];
+        else if (h < 180) rgb = [0, c, x];
+        else if (h < 240) rgb = [0, x, c];
+        else if (h < 300) rgb = [x, 0, c];
+        else rgb = [c, 0, x];
+        const hex = rgb.map(v => Math.round((v + m) * 255).toString(16).padStart(2, '0'));
+        return '#' + hex.join('');
+    }
+
+    /* منحنی روشنایی/اشباع شبیه ramp های Tailwind — سایه‌های تیره‌تر کمی خنک‌تر می‌شوند */
+    const L_CURVE = { '50': 97, '100': 94, '200': 86, '300': 77, '400': 66, '500': 54, '600': 47, '700': 40, '800': 33, '900': 26, '950': 17 };
+    const S_CURVE = { '50': 84, '100': 90, '200': 94, '300': 92, '400': 92, '500': 90, '600': 88, '700': 84, '800': 78, '900': 72, '950': 74 };
+    const H_SHIFT = { '50': 4, '100': 3, '200': 2, '300': 1, '400': 0, '500': 0, '600': -2, '700': -4, '800': -6, '900': -8, '950': -10 };
+
+    function generateRamp(baseHex, temperature) {
+        const hsl = hexToHsl(baseHex);
+        if (!hsl) return null;
+        const out = {};
+        SHADES.forEach(s => {
+            const hue = hsl.h + (H_SHIFT[s] || 0) + (temperature || 0);
+            out[s] = hslToHex(hue, S_CURVE[s], L_CURVE[s]);
+        });
+        return out;
+    }
+
+    function syncTempLabel() {
+        const temp = q('#ap-temp'), label = q('[data-ap-temp-label]');
+        if (!temp || !label) return;
+        const v = Number(temp.value);
+        label.textContent = v === 0 ? 'خنثی' : (v > 0 ? 'گرم +' + v : 'سرد ' + v);
+    }
+
+    function regenerateFromBase() {
+        const base = q('#ap-base');
+        const temp = q('#ap-temp');
+        if (!base || !/^#[0-9a-fA-F]{6}$/.test(base.value)) return;
+        const ramp = generateRamp(base.value, Number((temp || {}).value || 0));
+        if (!ramp) return;
+        SHADES.forEach(s => {
+            const input = q('[data-ap-shade="' + s + '"]');
+            if (input) input.value = ramp[s];
+        });
+        // پس‌زمینهٔ صفحه هم از طیف مشتق شود (تا هماهنگ بمانند)
+        const pb = q('#ap-pagebg');
+        if (pb) pb.value = ramp['100'];
+        const pbHex = q('#ap-pagebg-hex');
+        if (pbHex) pbHex.value = ramp['100'];
+        // سایدبار (همیشه تیره) از سایهٔ ۹۰۰ مشتق شود — ۴ ایست + متن
+        const hsl900 = hexToHsl(ramp['900']);
+        if (hsl900) {
+            const stops = [
+                hslToHex(hsl900.h + 2, hsl900.s, Math.min(92, hsl900.l + 5)),
+                ramp['900'],
+                hslToHex(hsl900.h - 2, hsl900.s, Math.max(4, hsl900.l - 7)),
+                hslToHex(hsl900.h - 4, hsl900.s, Math.max(3, hsl900.l - 14)),
+            ];
+            stops.forEach((c, i) => {
+                const input = q('[data-ap-sb="' + i + '"]');
+                if (input) input.value = c;
+            });
+            const sbt = q('[data-ap-sbtext]');
+            if (sbt) sbt.value = ramp['100'];
+        }
+    }
+
+    /* ---------- رویدادها ---------- */
+    panelChips().forEach(chip => {
+        chip.addEventListener('click', () => {
+            panel = chip.dataset.apPanel;
+            syncPanelChips();
+            syncPaletteGrid();
+            syncStatus();
+            const isCustom = (selections[panel] || 'default') === 'custom';
+            customBox().classList.toggle('hidden', !isCustom);
+            if (isCustom) {
+                fillEditor(customs[panel] || tokensOfPalette(selections[panel]));
+                previewCurrent();
+            }
+        });
+    });
+
+    function tokensOfPalette(key) {
+        const p = data.palettes[key];
+        if (!p) return null;
+        return {
+            ramp: p.ramp,
+            page_bg: p.page_bg || p.ramp['100'],
+            sidebar: p.sidebar || null,
+            sidebar_text: p.sidebar_text || p.ramp['100'],
+        };
+    }
+
+    qa('.ap-palette').forEach(card => {
+        card.addEventListener('click', () => {
+            selections[panel] = card.dataset.apPalette;
+            syncPaletteGrid();
+            syncStatus();
+            const isCustom = selections[panel] === 'custom';
+            customBox().classList.toggle('hidden', !isCustom);
+            if (isCustom && !customs[panel]) {
+                // اولین ورود به شخصی‌سازی: از پالت قبلی پنل شروع کن
+                const seed = tokensOfPalette(initial[panel] || 'default');
+                customs[panel] = seed;
+                fillEditor(seed);
+            }
+            previewCurrent();
+            App.toast('پیش‌نمایش «' + palName(selections[panel]) + '» اعمال شد — برای ماندگاری ذخیره کنید.', 'info');
+        });
+    });
+
+    /* رنگ پایه + دما → بازتولید طیف */
+    ['input', 'change'].forEach(evt => {
+        q('#ap-base')?.addEventListener(evt, () => {
+            const baseHex = q('#ap-base-hex');
+            if (baseHex) baseHex.value = q('#ap-base').value;
+            regenerateFromBase();
+            scheduleCustomPreview();
+        });
+        q('#ap-base-hex')?.addEventListener('change', () => {
+            const inp = q('#ap-base-hex'), base = q('#ap-base');
+            if (!inp || !base) return;
+            if (/^#[0-9a-fA-F]{6}$/.test(inp.value)) { base.value = inp.value; regenerateFromBase(); scheduleCustomPreview(); }
+        });
+        q('#ap-temp')?.addEventListener('input', () => {
+            syncTempLabel();
+            regenerateFromBase();
+            scheduleCustomPreview();
+        });
+    });
+
+    /* هر تغییر دیگر در ویرایشگر → پیش‌نمایش */
+    ['data-ap-shade', 'data-ap-sem', 'data-ap-sb'].forEach(attr => {
+        qa('[' + attr + ']').forEach(input => {
+            input.addEventListener('input', scheduleCustomPreview);
+        });
+    });
+    q('#ap-pagebg')?.addEventListener('input', () => {
+        const pbHex = q('#ap-pagebg-hex');
+        if (pbHex) pbHex.value = q('#ap-pagebg').value;
+        scheduleCustomPreview();
+    });
+    q('#ap-pagebg-hex')?.addEventListener('change', () => {
+        const inp = q('#ap-pagebg-hex'), pb = q('#ap-pagebg');
+        if (inp && pb && /^#[0-9a-fA-F]{6}$/.test(inp.value)) { pb.value = inp.value; scheduleCustomPreview(); }
+    });
+    q('[data-ap-sbtext]')?.addEventListener('input', scheduleCustomPreview);
+
+    function scheduleCustomPreview() {
+        if ((selections[panel] || 'default') !== 'custom') return;
+        customs[panel] = readEditor();
+        previewCss({ panel, custom: JSON.stringify(customs[panel]) });
+    }
+
+    /* شروع از پالت فعلی */
+    q('[data-ap-from-current]')?.addEventListener('click', () => {
+        const seed = tokensOfPalette(initial[panel] || 'default');
+        if (!seed) return;
+        customs[panel] = seed;
+        selections[panel] = 'custom';
+        syncPaletteGrid();
+        customBox().classList.remove('hidden');
+        fillEditor(seed);
+        previewCss({ panel, custom: JSON.stringify(customs[panel]) });
+        syncStatus();
+        App.toast('توکن‌های «' + palName(initial[panel]) + '» بارگذاری شد — حالا رنگ‌ها را تغییر دهید.', 'info');
+    });
+
+    /* ذخیره */
+    q('[data-ap-save]')?.addEventListener('click', async () => {
+        const btn = q('[data-ap-save]');
+        const body = { panel, palette: selections[panel] || 'default' };
+        if (body.palette === 'custom') {
+            body.custom = customs[panel] || readEditor();
+        }
+
+        btn.disabled = true;
+        try {
+            const res = await App.ajax('/admin/settings/appearance', { method: 'PUT', body });
+            if (res.ok) {
+                const out = await res.json().catch(() => ({}));
+                App.toast(out.message || 'پوسته ذخیره شد.', 'success');
+                initial[panel] = body.palette;
+                syncStatus();
+            } else {
+                const out = await res.json().catch(() => ({}));
+                App.toast(out.message || 'ذخیرهٔ پوسته ناموفق بود.', 'error');
+            }
+        } catch {
+            App.toast('ارتباط با سرور برقرار نشد.', 'error');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    /* بازگشت به ذخیره‌شده */
+    q('[data-ap-revert]')?.addEventListener('click', () => {
+        selections[panel] = initial[panel] || 'default';
+        customs[panel] = data.customs[panel] ? JSON.parse(JSON.stringify(data.customs[panel])) : null;
+        syncPaletteGrid();
+        syncStatus();
+        customBox().classList.toggle('hidden', selections[panel] !== 'custom');
+        if (selections[panel] === 'custom') fillEditor(customs[panel]);
+        previewCss({ panel }); // CSS ذخیره‌شدهٔ پنل
+        App.toast('به پالت ذخیره‌شده بازگشت.', 'info');
+    });
+
+    /* وضعیت اولیه */
+    syncPanelChips();
+    syncPaletteGrid();
+    syncStatus();
+})();

@@ -255,6 +255,6 @@
 <div id="page-data" hidden data-payload="{{ json_encode(['audiences' => $audiences]) }}"></div>
 </div>
 @push('scripts')
-<script src="{{ asset('back/assets/js/pages/admin/announcements/index.js') }}?v=16"></script>
+<script src="{{ asset('back/assets/js/pages/admin/announcements/index.js') }}?v=17"></script>
 @endpush
 

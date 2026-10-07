@@ -635,4 +635,82 @@ class SettingsController extends Controller
             'message' => $result['message'],
         ], $result['ok'] ? 200 : 422);
     }
+
+    /* ═══════════ ظاهر و رنگ‌بندی (Appearance) ═══════════ */
+
+    /**
+     * ذخیرهٔ پالت رنگی یک پنل (PUT settings/appearance — AJAX).
+     * body: { panel, palette, custom? } — custom فقط برای پالت «شخصی‌سازی».
+     */
+    public function saveAppearance(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'panel'   => ['required', 'string', 'in:'.implode(',', array_keys(\App\Support\Appearance::PANELS))],
+            'palette' => ['required', 'string', 'in:'.implode(',', \App\Support\Appearance::paletteKeys())],
+            'custom'  => ['nullable', 'array'],
+        ]);
+
+        \App\Support\Appearance::save($data['panel'], $data['palette'], $data['custom'] ?? null);
+
+        AuditLogger::log('settings.updated', null, null,
+            [
+                'appearance.panel.'.$data['panel']    => $data['palette'],
+                'appearance.custom.'.$data['panel']   => $data['custom'] ? 'set' : null,
+            ],
+            'تغییر پوستهٔ «'.\App\Support\Appearance::palettes()[$data['palette']]['name'].'» برای '.\App\Support\Appearance::PANELS[$data['panel']]);
+
+        return response()->json([
+            'ok'      => true,
+            'message' => 'پوستهٔ «'.\App\Support\Appearance::palettes()[$data['palette']]['name'].'» برای '
+                .\App\Support\Appearance::PANELS[$data['panel']].' ذخیره شد.',
+        ]);
+    }
+
+    /**
+     * CSS پوسته برای پیش‌نمایش زندهٔ صفحهٔ تنظیمات (GET settings/appearance-css).
+     * پارامترها: panel + (palette | custom=json) — خروجی text/css کش‌نشونده.
+     */
+    public function appearanceCss(Request $request)
+    {
+        $panel = (string) $request->query('panel', 'admin');
+        if (! isset(\App\Support\Appearance::PANELS[$panel])) {
+            $panel = 'admin';
+        }
+
+        $palette = (string) $request->query('palette', '');
+        $customJson = (string) $request->query('custom', '');
+
+        if ($customJson !== '') {
+            // پیش‌نمایش توکن‌های شخصی (قبل از ذخیره)
+            $custom = json_decode($customJson, true);
+            $base = \App\Support\Appearance::tokensFor($panel);
+            $tokens = array_merge($base, is_array($custom) ? \App\Support\Appearance::sanitizeCustom($custom) : []);
+        } elseif ($palette !== '' && in_array($palette, \App\Support\Appearance::paletteKeys(), true)) {
+            // پیش‌نمایش یک پالت آماده (قبل از ذخیره)
+            if ($palette === 'custom') {
+                $tokens = \App\Support\Appearance::tokensFor($panel);
+            } else {
+                $def = \App\Support\Appearance::palettes()[$palette];
+                $tokens = [
+                    'ramp' => $def['ramp'],
+                    'page_bg' => $def['page_bg'] ?? $def['ramp']['100'],
+                    'sidebar' => $def['sidebar'] ?? \App\Support\Appearance::deriveSidebar($def['ramp']),
+                    'sidebar_text' => $def['sidebar_text'] ?? $def['ramp']['100'],
+                ];
+            }
+        } else {
+            // وضعیت فعلی ذخیره‌شدهٔ پنل
+            $tokens = \App\Support\Appearance::tokensFor($panel);
+        }
+
+        $template = match ($panel) {
+            'app' => 'app',
+            'front' => 'front',
+            default => 'back',
+        };
+
+        return response(\App\Support\Appearance::buildCss($tokens, $template))
+            ->header('Content-Type', 'text/css; charset=utf-8')
+            ->header('Cache-Control', 'no-store');
+    }
 }
