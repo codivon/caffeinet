@@ -23,7 +23,7 @@
  *       دستگاه‌ها SW جدید را بگیرند.
  * ============================================================= */
 
-const VERSION       = 'v1.3.0';
+const VERSION       = 'v1.4.0';
 const STATIC_CACHE  = `cn-static-${VERSION}`;
 const RUNTIME_CACHE = `cn-runtime-${VERSION}`;
 const NAV_LIMIT     = 24;   // حداکثر HTML کش‌شده (LRU ساده)
@@ -74,7 +74,13 @@ function smartMatch(cache, request) {
     return cache.match(request).then(function (hit) {
         if (hit) return hit;
         try {
-            return cache.match(new URL(request.url).pathname);
+            /* [فاز ۱۲-fix] fallback فقط برای درخواست‌های «بدون query»؛
+             * در غیر این صورت نسخهٔ قدیمیِ کش‌شدهٔ همان مسیر جای نسخهٔ جدید
+             * (?v=جدید) می‌نشیند و cache-bust بی‌اثر می‌شود — بعد از هر
+             * دیپلوی، کاربرانِ SW فعال JS/CSS کهنه می‌گرفتند. */
+            var url = new URL(request.url);
+            if (url.search) return undefined; // نسخه‌دار (؟v=…) → شبکه
+            return cache.match(url.pathname);
         } catch (e) { return undefined; }
     });
 }

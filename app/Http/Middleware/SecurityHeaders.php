@@ -32,10 +32,11 @@ class SecurityHeaders
         // CSP فقط برای پاسخ‌های HTML (JSON/API نیازی ندارد)
         if (str_contains((string) $response->headers->get('Content-Type'), 'text/html')) {
             // فاز ۱۳: با فعال بودن Realtime پوشر، اتصال WS/HTTPS به پوشر مجاز است
+            // فاز ۱۲-fix: فقط وقتی «روش انتخابی پوشر» است — SSE هم‌دامنه است و self کافی است
             $connectSrc = "'self'";
 
             try {
-                if (app(\App\Services\Realtime\PusherService::class)->enabled()) {
+                if (app(\App\Services\Realtime\PusherService::class)->pusherReady()) {
                     $connectSrc .= ' wss://*.pusher.com https://*.pusher.com';
                 }
             } catch (\Throwable) {

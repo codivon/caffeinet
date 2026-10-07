@@ -140,8 +140,8 @@
 
             <button type="button" role="tab" class="st-nav-item" data-section="realtime">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                <span class="flex-1 text-start">Realtime (پوشر)</span>
-                <span class="st-nav-hint">{{ $settings->get('realtime.pusher.enabled') ? 'فعال' : 'خاموش' }}</span>
+                <span class="flex-1 text-start">Realtime</span>
+                <span class="st-nav-hint">{{ ['polling' => 'پولینگ', 'sse' => 'SSE', 'pusher' => ($pusherReady ? 'پوشر' : 'ناقص')][$rtMethod] }}</span>
             </button>
 
             <button type="button" role="tab" class="st-nav-item" data-section="notifications">
@@ -1373,10 +1373,12 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                 </span>
                 <div class="flex-1">
-                    <h2 class="st-section-title">Realtime — سرویس پوشر (Pusher)</h2>
-                    <p class="st-section-desc">لایهٔ آنی روی سیستم اعلان/چت: با هر رویداد، مرورگرها همان لحظه بیدار می‌شوند و دیگر به پولینگ پرتکرار وابسته نیستند (کاهش فشار MySQL).</p>
+                    <h2 class="st-section-title">Realtime — به‌روزرسانی لحظه‌ای</h2>
+                    <p class="st-section-desc">روش ارتباط لحظه‌ای را انتخاب کنید: با هر رویداد (پیام چت، اعلان، سفارش جدید) مرورگرها همان لحظه بیدار می‌شوند و دیگر به پولینگ پرتکرار وابسته نیستند (کاهش فشار MySQL).</p>
                 </div>
-                <span class="badge {{ $pusherReady ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($pusherOn ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-stone-100 text-stone-500 border border-stone-200') }}">{{ $pusherReady ? 'فعال' : ($pusherOn ? 'ناقص' : 'خاموش') }}</span>
+                <span class="badge {{ $rtMethod === 'polling' ? 'bg-stone-100 text-stone-500 border border-stone-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200' }}">
+                    {{ ['polling' => 'فقط پولینگ', 'sse' => 'اتصال دائمی داخلی', 'pusher' => ($pusherReady ? 'پوشر فعال' : 'پوشر ناقص')][$rtMethod] }}
+                </span>
             </div>
 
             <div class="st-sub-card" style="background:linear-gradient(135deg,rgba(245,158,11,.05),transparent)">
@@ -1384,22 +1386,53 @@
                     <b>چگونه کار می‌کند؟</b>
                 </div>
                 <p class="st-hint leading-6">
-                    پوشر فقط «زنگ خبر» است؛ داده‌ها همیشه از سرور خود شما خوانده می‌شوند. با فعال بودن و اتصال پوشر،
+                    هر ترابورت فقط «زنگ خبر» است؛ داده‌ها همیشه از سرور خود شما خوانده می‌شوند. با فعال بودن اتصال،
                     <b>پولینگ کاملاً خاموش می‌شود</b> و همهٔ صفحات رویدادمحور می‌شوند: پیام‌های گفتگو، زنگ اعلان‌ها،
-                    صندوق پخش کافی‌نت، درخواست‌های اپراتور، بج‌های سایدبار و آمار سفارش‌ها با رویداد پوشر «همان لحظه» تازه می‌شوند —
-                    بدون هیچ درخواست دوره‌ای (سرور با ورود مشتری زیاد کند نمی‌شود).
-                    اگر پوشر خاموش یا قطع باشد، سیستم خودکار به پولینگ قبلی برمی‌گردد — هیچ داده‌ای از دست نمی‌رود.
+                    صندوق پخش کافی‌نت، درخواست‌های اپراتور، بج‌های سایدبار و آمار سفارش‌ها «همان لحظه» تازه می‌شوند.
+                    اگر اتصال قطع باشد، سیستم خودکار به پولینگ قبلی برمی‌گردد — هیچ داده‌ای از دست نمی‌رود.
                 </p>
             </div>
 
-            <div class="st-field-row">
-                <label class="lbl" for="rt-enabled">فعال‌سازی پوشر</label>
-                <label class="flex items-center gap-3 cursor-pointer select-none">
-                    <input id="rt-enabled" data-key="realtime.pusher.enabled" type="checkbox" class="size-5 accent-amber-600" {{ $pusherOn ? 'checked' : '' }}>
-                    <span class="text-xs font-bold text-stone-700">{{ $pusherOn ? 'پوشر فعال است' : 'پوشر خاموش است (فقط پولینگ)' }}</span>
-                </label>
+            {{-- ===== روش Realtime (فاز ۱۲) ===== --}}
+            <div class="st-sub-card">
+                <div class="st-sub-head"><b>روش اتصال</b></div>
+                <div class="grid gap-2.5 mt-1">
+                    <label class="flex items-start gap-3 cursor-pointer select-none px-4 py-3 rounded-xl border border-stone-200 hover:border-stone-300 transition-colors">
+                        <input type="radio" name="rt-method" value="polling" data-key="realtime.method" class="mt-0.5 accent-amber-600" {{ $rtMethod === 'polling' ? 'checked' : '' }}>
+                        <span class="flex-1">
+                            <span class="text-xs font-bold text-stone-700 block">۱) پولینگ دوره‌ای <span class="text-stone-400 font-normal">(پیش‌فرض — بدون تنظیمات)</span></span>
+                            <span class="text-[11px] text-stone-400 leading-5 block mt-0.5">سازگار با همهٔ هاست‌ها؛ تأخیر ~۳ ثانیه و درخواست دوره‌ای به سرور. ساده‌ترین گزینه اما «لحظه‌ای» نیست.</span>
+                        </span>
+                    </label>
+                    <label class="flex items-start gap-3 cursor-pointer select-none px-4 py-3 rounded-xl border border-stone-200 hover:border-stone-300 transition-colors">
+                        <input type="radio" name="rt-method" value="sse" data-key="realtime.method" class="mt-0.5 accent-amber-600" {{ $rtMethod === 'sse' ? 'checked' : '' }}>
+                        <span class="flex-1">
+                            <span class="text-xs font-bold text-stone-700 block">۲) اتصال دائمی داخلی (SSE) <span class="text-emerald-600 font-normal">— مثل سوکت، بدون سرویس بیرونی ✓ توصیه‌شده</span></span>
+                            <span class="text-[11px] text-stone-400 leading-5 block mt-0.5">جریان دائمی از همان دامنهٔ خودتان؛ مثل سوکت هیچ درخواست دوره‌ای زده نمی‌شود و پیام‌ها همان لحظه می‌رسند. بدون تحریم و بدون هزینه. توجه: هر اتصالِ باز یک پروسهٔ PHP اشغال می‌کند — روی هاست اشتراکی محدودیت «Entry Processes» را در نظر بگیرید (برای ده‌ها کاربر هم‌زمان کافی است).</span>
+                        </span>
+                    </label>
+                    <label class="flex items-start gap-3 cursor-pointer select-none px-4 py-3 rounded-xl border border-stone-200 hover:border-stone-300 transition-colors">
+                        <input type="radio" name="rt-method" value="pusher" data-key="realtime.method" class="mt-0.5 accent-amber-600" {{ $rtMethod === 'pusher' ? 'checked' : '' }}>
+                        <span class="flex-1">
+                            <span class="text-xs font-bold text-stone-700 block">۳) سوکت خارجی (پوشر / Soketi / Reverb)</span>
+                            <span class="text-[11px] text-stone-400 leading-5 block mt-0.5">سوکت واقعی با سرویس سازگار با پروتکل Pusher. توجه: سرویس pusher.com از ایران معمولاً بلاک/تحریم است و اگر مرورگر کاربر نتواند وصل شود، سیستم خودکار به پولینگ اضطراری برمی‌گردد. اگر VPS دارید، سرور Soketi/Reverb (خودمیزبان) را با «هاست سفارشی» زیر معرفی کنید.</span>
+                        </span>
+                    </label>
+                </div>
             </div>
 
+            {{-- ===== کارت راهنمای SSE ===== --}}
+            <div id="rt-sse-zone" class="st-sub-card {{ $rtMethod === 'sse' ? '' : 'hidden' }}" style="background:linear-gradient(135deg,rgba(16,185,129,.06),transparent)">
+                <div class="st-sub-head"><b>اتصال دائمی داخلی — چطور کار می‌کند؟</b></div>
+                <p class="st-hint leading-6">
+                    هیچ کلید و سرویسی لازم نیست — فقط بعد از ذخیره، یک بار «تست اتصال» بزنید تا سلامت جدول رویدادها تأیید شود.
+                    مرورگرها با <span dir="ltr" class="font-mono text-[10px]">EventSource</span> به مسیر <span dir="ltr" class="font-mono text-[10px]">/realtime/stream</span> همین دامنه وصل می‌شوند و تا زمان باز بودن صفحه، هر رویداد جدید همان لحظه تحویل گرفته می‌شود.
+                    اتصال هر ~۴ دقیقه به‌صورت تمیز تجدید می‌شود (بدون هیچ مداخله‌ای در صفحات).
+                </p>
+            </div>
+
+            {{-- ===== زون پوشر (فقط وقتی روش = پوشر) ===== --}}
+            <div id="rt-pusher-zone" class="{{ $rtMethod === 'pusher' ? '' : 'hidden' }}">
             <div class="st-grid-2">
                 <div class="st-field-row !mb-0">
                     <label class="lbl" for="rt-app-id">App ID <span class="text-stone-400 text-[10px]">(رقمی)</span></label>
@@ -1426,19 +1459,50 @@
                 </div>
             </div>
 
-            <div class="st-sub-card">
+            {{-- هاست سفارشی — سوکتِ خودمیزبانِ سازگار با پروتکل پوشر (اختیاری) --}}
+            <div class="st-sub-card mt-3">
+                <div class="st-sub-head"><b>هاست سفارشی <span class="text-stone-400 text-[10px]">(اختیاری — برای Soketi/Reverb روی VPS)</span></b></div>
+                <p class="st-hint leading-5 mb-2">
+                    خالی = سرویس ابری pusher.com. اگر سرور خودتان پروتکل پوشر را صحبت می‌کند (Soketi یا Laravel Reverb)، آدرسش را وارد کنید تا هم REST سرور و هم وب‌سوکت مرورگرها به همان‌جا وصل شوند.
+                </p>
+                <div class="st-grid-2">
+                    <div class="st-field-row !mb-0">
+                        <label class="lbl" for="rt-host">Host <span class="text-stone-400 text-[10px]">(بدون پروتکل)</span></label>
+                        <input id="rt-host" data-key="realtime.pusher.host" dir="ltr" class="field font-mono !text-xs" autocomplete="off"
+                               value="{{ (string) $settings->get('realtime.pusher.host') }}" placeholder="ws.example.ir">
+                    </div>
+                    <div class="st-grid-2 !gap-2 !mb-0">
+                        <div class="st-field-row !mb-0">
+                            <label class="lbl" for="rt-port">Port</label>
+                            <input id="rt-port" data-key="realtime.pusher.port" data-empty-skip dir="ltr" class="field font-mono !text-xs" inputmode="numeric" autocomplete="off"
+                                   value="{{ (string) $settings->get('realtime.pusher.port') }}" placeholder="6001">
+                        </div>
+                        <div class="st-field-row !mb-0">
+                            <label class="lbl" for="rt-scheme">Scheme</label>
+                            <select id="rt-scheme" data-key="realtime.pusher.scheme" class="field">
+                                @foreach (['https' => 'https/wss (پیش‌فرض)', 'http' => 'http/ws (فقط تست)'] as $s => $sl)
+                                    <option value="{{ $s }}" {{ (string) $settings->get('realtime.pusher.scheme', 'https') === $s ? 'selected' : '' }}>{{ $sl }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="st-sub-card mt-3">
                 <div class="st-sub-head">
                     <b>راهنمای دریافت کلیدها</b>
                 </div>
                 <p class="st-hint leading-6">
-                    ۱) در <b dir="ltr">pusher.com</b> ثبت‌نام کنید و یک App جدید بسازید (پلن رایگان Sandbox کافی است).
+                    ۱) در <b dir="ltr">pusher.com</b> ثبت‌نام کنید و یک App جدید بسازید (پلن رایگان Sandbox کافی است) یا سرور Soketi/Reverb خود را راه بیندازید.
                     ۲) در تب «App Keys» چهار مقدار <span dir="ltr" class="font-mono">app_id · key · secret · cluster</span> را کپی کنید.
                     ۳) مقادیر را اینجا وارد کنید، ذخیره کنید و با دکمهٔ «تست اتصال» صحت آن‌ها را بررسی کنید.
                 </p>
             </div>
+            </div>{{-- /rt-pusher-zone --}}
 
             <div class="st-section-foot flex flex-wrap items-center gap-3">
-                <button type="submit" class="btn-primary btn-shine ui-press !py-2.5 px-7">ذخیرهٔ تنظیمات پوشر</button>
+                <button type="submit" class="btn-primary btn-shine ui-press !py-2.5 px-7">ذخیرهٔ تنظیمات Realtime</button>
                 <button type="button" id="btn-test-pusher" class="btn-ghost ui-press !py-2.5">
                     <span class="size-4 inline-block align-middle me-1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
                     تست اتصال (پس از ذخیره)
@@ -1971,6 +2035,6 @@
 </div>
 </div>
 @push('scripts')
-<script src="{{ asset('back/assets/js/pages/admin/settings/index.js') }}?v=27"></script>
+<script src="{{ asset('back/assets/js/pages/admin/settings/index.js') }}?v=30"></script>
 @endpush
 

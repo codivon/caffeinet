@@ -60,6 +60,29 @@ Route::get('files/chat/{message}', [App\Http\Controllers\Front\App\ChatFilesCont
 Route::get('files/ticket/{message}', [App\Http\Controllers\Front\App\TicketFilesController::class, 'download'])
     ->whereNumber('message')->middleware('throttle:120,1')->name('files.ticket');
 
+/* ---------- پرداخت آنلاین (مسیر وب) — فاز ۱۲-fix ----------
+| کنترلر و سرویس از ابتدا وجود داشتند اما روت‌ها هرگز ثبت نشده بودند →
+| هنگام پرداخت آنلاین، URL::temporarySignedRoute('payment.start') استثنای
+| «Route [payment.start] not defined» می‌داد و جریان پرداخت می‌شکست.
+|   GET  /payment/start/{payment}  → صفحهٔ درگاه (لینک امضاشدهٔ موقت)
+|   POST|GET /payment/callback     → بازگشت از درگاه (CSRF-exempt — bootstrap/app.php)
+*/
+Route::get('payment/start/{payment}', [\App\Http\Controllers\Front\App\PaymentController::class, 'start'])
+    ->whereNumber('payment')->middleware('throttle:60,1')->name('payment.start');
+
+Route::match(['get', 'post'], 'payment/callback', [\App\Http\Controllers\Front\App\PaymentController::class, 'callback'])
+    ->middleware('throttle:60,1')->name('payment.callback');
+
+/* ---------- Realtime داخلی — جریان SSE (فاز ۱۲) ----------
+| «اتصال دائمی مثل سوکت» بدون سرویس بیرونی و بدون تحریم — هنگام روش
+| «SSE» در تب Realtime تنظیمات، realtime.js با EventSource به همین
+| مسیر وصل می‌شود و رویدادها (چت/اعلان/سفارش) همان لحظه می‌رسند.
+| احراز: نشست وبِ پنل‌ها یا توکن Sanctum در ‎?token=‎ (اپ مشتری).
+| بدون CSRF-مشکل (GET) و بدون کش (هدرهای no-cache در پاسخ).
+*/
+Route::get('realtime/stream', [\App\Http\Controllers\RealtimeStreamController::class, 'stream'])
+    ->name('realtime.stream');
+
 /* ---------- PWA (فاز ۱۴ — بازطراحی تفکیک‌شده) — مانیفست مستقل هر پنل ----------
 | هر بخش «اپ نصب‌شدنی» اختصاصی خودش را دارد؛ نصب از داخل همان پنل انجام
 | می‌شود و آیکون نصب‌شده مستقیماً همان پنل را باز می‌کند (نه صفحه فرود):

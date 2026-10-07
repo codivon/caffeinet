@@ -825,7 +825,9 @@
 
     function bindRealtime(rt) {
         if (rtBound) { return; }
-        if (!rt || !rt.enabled || !rt.key || !rt.channel || !window.RT) { return; }
+        /* فاز ۱۲ — SSE کلید پوشر ندارد؛ فقط کانال و رویداد لازم است */
+        if (!rt || !rt.enabled || !rt.channel || !window.RT) { return; }
+        if (String(rt.method || '') !== 'sse' && !rt.key) { return; }
 
         rtChannel = String(rt.channel);
 

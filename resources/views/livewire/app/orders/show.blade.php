@@ -484,5 +484,5 @@
 
 @push('page')
     <script src="{{ asset('front/assets/js/pages/order-detail.js') }}?v=6" defer></script>
-    <script src="{{ asset('front/assets/js/pages/order-chat.js') }}?v=23" defer></script>
+    <script src="{{ asset('front/assets/js/pages/order-chat.js') }}?v=24" defer></script>
 @endpush

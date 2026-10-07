@@ -7,7 +7,7 @@
  * لیست کافی‌نت‌ها استفاده می‌کند: PATCH /admin/coffeenets/{id}/status
  */
 /* داده‌های سرور (از #page-data) */
-const PAGE = App.pageData();
+var PAGE = App.pageData(); /* [فاز ۱۲-fix] var — اجرای دوبارهٔ اسکریپت در ناوبری SPA با const خطای «already declared» می‌داد */
 window.__referralReward = Number(PAGE.reward) || 0;
 
 (function () {

@@ -2,7 +2,7 @@
  * کافی‌نت آنلاین — اسکریپت صفحه «پروفایل کامل مشتری» (پنل مدیریت کل — درخواست بازخوردی)
  * نمودار روند سفارش + مودال ویرایش + مسدودسازی/رفع مسدودی + تنظیم دستی کیف پول
  */
-const PAGE = App.pageData();
+var PAGE = App.pageData(); /* [فاز ۱۲-fix] var — اجرای دوبارهٔ اسکریپت در ناوبری SPA با const خطای «already declared» می‌داد */
 
 (function () {
     const customerId = Number(PAGE.id) || 0;

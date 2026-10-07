@@ -1,6 +1,12 @@
 /**
  * کافی‌نت آنلاین — اسکریپت صفحه «تنظیمات» (بازطراحی درخواست بازخوردی ۶-۵)
  * فایل مستقل (Blade + jQuery) — بدون Node / بدون بیلد
+ *
+ * [فاز ۱۲-fix] سازگاری SPA (wire:navigate):
+ * این اسکریپت در هر ناوبری دوباره اجرا می‌شود (بدون data-navigate-once)؛
+ * بنابراین هیچ const/let سراسری نباید داشته باشد — اجرای دوم با
+ * «Identifier has already been declared» کل فایل را می‌کشت و هیچ‌کدام
+ * از تب‌ها کار نمی‌کرد (بعد از رفرش درست می‌شد). هر سه بلوک اکنون IIFE است.
  */
 (function () {
     /* ---------- ناوبری سکشن‌ها ---------- */
@@ -21,6 +27,29 @@
         const want = location.hash.replace('#', '');
         if (document.getElementById('sec-' + want)) activate(want);
     }
+
+    /* ---------- فاز ۱۲ — روش Realtime: نمایش/پنهان‌سازی زون‌ها ----------
+     * polling → فقط توضیح؛ sse → کارت راهنمای SSE؛ pusher → کلیدها + هاست سفارشی */
+    const rtZoneFor = (method) => ({
+        polling: { sse: false, pusher: false },
+        sse: { sse: true, pusher: false },
+        pusher: { sse: false, pusher: true },
+    }[method] || { sse: false, pusher: false });
+
+    function applyRtMethod(method) {
+        const z = rtZoneFor(method);
+        document.getElementById('rt-sse-zone')?.classList.toggle('hidden', !z.sse);
+        document.getElementById('rt-pusher-zone')?.classList.toggle('hidden', !z.pusher);
+    }
+
+    document.querySelectorAll('input[name="rt-method"][data-key="realtime.method"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            if (radio.checked) { applyRtMethod(radio.value); }
+        });
+    });
+    applyRtMethod(
+        (document.querySelector('input[name="rt-method"][data-key="realtime.method"]:checked') || {}).value || 'polling'
+    );
 
     /* ---------- v37 — اجرای دستی زمان‌بندی‌ها (کارت سلامت کرون) ---------- */
     document.getElementById('st-cron-run')?.addEventListener('click', async () => {
@@ -168,6 +197,11 @@
             form.querySelectorAll('[data-key]').forEach(input => {
                 if (input.type === 'checkbox') {
                     values[input.dataset.key] = input.checked ? '1' : '0';
+                    return;
+                }
+                // فاز ۱۲ — رادیو: فقط گزینهٔ انتخاب‌شده ارسال شود (مثل گروه rt-method)
+                if (input.type === 'radio') {
+                    if (input.checked) { values[input.dataset.key] = input.value; }
                     return;
                 }
                 const v = input.value.trim();
@@ -662,7 +696,7 @@
         }
     });
 
-    /* ---------- تست اتصال پوشر (فاز ۱۳ — Realtime) ---------- */
+    /* ---------- تست اتصال Realtime (فاز ۱۳/۱۲ — ترابورت فعال) ---------- */
     document.getElementById('btn-test-pusher')?.addEventListener('click', async () => {
         const btn = document.getElementById('btn-test-pusher');
         btn.disabled = true;
@@ -723,8 +757,11 @@
     });
 })();
 
-    /* ---------- فینوتک: تست اتصال (v40) ----------
-     * اول باید تنظیمات ذخیره شده باشد (سرویس از دیتابیس می‌خواند). */
+/* ---------- فینوتک: تست اتصال (v40) + ساعت کاری + نظرسنجی ----------
+ * [فاز ۱۲-fix] این بلوک قبلاً بیرون IIFE بود (const سراسری) → اجرای دومِ
+ * اسکریپت در ناوبری SPA با SyntaxError می‌مرد. حالا IIFE اختصاصی دارد. */
+(function () {
+    /* فینوتک — اول باید تنظیمات ذخیره شده باشد (سرویس از دیتابیس می‌خواند). */
     const finTestBtn = document.getElementById('finTestBtn');
     finTestBtn?.addEventListener('click', async () => {
         const resultEl = document.getElementById('finTestResult');
@@ -825,6 +862,7 @@
     rtModeSelect?.addEventListener('change', () => {
         if (rtModeHint) rtModeHint.textContent = MODE_HINTS[rtModeSelect.value] || '';
     });
+})();
 
 
 /* ═══════════════════════════════════════════════════════════════

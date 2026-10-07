@@ -562,9 +562,11 @@ class ChatService
             'data' => array_map(fn (Message $m) => $this->serializeMessage($m, $viewerId, $order), $messages),
             'last_id' => $messages ? (int) end($messages)->id : 0,
             'chat' => $this->chatMeta($order),
-            // Realtime (فاز ۱۳): کلاینت با این کانال پوشر، پولینگ خود را «بیدار» می‌کند
+            // Realtime (فاز ۱۳/۱۲): کلاینت با این کانال، پولینگ خود را «بیدار» می‌کند
             'rt' => $pusher->enabled() ? [
                 'enabled' => true,
+                // فاز ۱۲ — روش ترابورت: SSE کلید/کلاستر نمی‌خواهد
+                'method' => $pusher->method(),
                 'key' => (string) app(\App\Services\Settings\SettingsService::class)->get('realtime.pusher.app_key', ''),
                 'cluster' => (string) app(\App\Services\Settings\SettingsService::class)->get('realtime.pusher.cluster', 'mt1'),
                 'channel' => $pusher->chatChannel((int) $order->id),

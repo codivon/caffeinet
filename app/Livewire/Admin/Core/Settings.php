@@ -36,12 +36,18 @@ class Settings extends Component
             && trim((string) $settings->get('realtime.pusher.app_secret')) !== ''
             && trim((string) $settings->get('realtime.pusher.app_id')) !== '';
 
+        // فاز ۱۲ — روش فعلی ترابورت Realtime (polling | sse | pusher)
+        $rtMethod = \App\Services\Realtime\PusherService::isValidMethod((string) $settings->get('realtime.method', ''))
+            ? (string) $settings->get('realtime.method', '')
+            : ($pusherOn ? 'pusher' : 'polling');
+
         return view('livewire.admin.core.settings', [
             'settings' => $settings,
             'providers' => SmsManager::providers(),
             'referral' => \App\Models\ReferralSetting::current(),
             'pusherOn' => $pusherOn,
             'pusherReady' => $pusherReady,
+            'rtMethod' => $rtMethod,
             'notificationStats' => $this->notificationStats($settings),
             // v33 — خلاصهٔ وضعیت پخش هوشمند (برای hint زندهٔ تب نظرسنجی)
             'ratingSummary' => app(\App\Services\Orders\RatingDistributionService::class)->summary(),

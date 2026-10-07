@@ -80,11 +80,16 @@ class SettingsSeeder extends Seeder
             ['group' => 'staff', 'key' => 'staff.hiring.mode', 'value' => 'auto', 'cast' => 'string', 'label' => 'افزودن کارمند توسط مدیر کافی‌نت (auto = تایید خودکار | approval = نیازمند تایید مدیر کل)'],
 
             // Realtime — پوشر (فاز ۱۳) در کنار پولینگ
+            // Realtime — فاز ۱۲: انتخاب روش ترابورت + هاست سفارشی (Soketi/Reverb)
+            ['group' => 'realtime', 'key' => 'realtime.method', 'value' => 'polling', 'cast' => 'string', 'label' => 'روش Realtime (polling | sse | pusher)'],
             ['group' => 'realtime', 'key' => 'realtime.pusher.enabled', 'value' => '0', 'cast' => 'boolean', 'label' => 'فعال‌سازی Realtime پوشر'],
             ['group' => 'realtime', 'key' => 'realtime.pusher.app_id', 'value' => '', 'cast' => 'string', 'label' => 'Pusher App ID', 'is_sensitive' => true],
             ['group' => 'realtime', 'key' => 'realtime.pusher.app_key', 'value' => '', 'cast' => 'string', 'label' => 'Pusher App Key (عمومی)'],
             ['group' => 'realtime', 'key' => 'realtime.pusher.app_secret', 'value' => '', 'cast' => 'string', 'label' => 'Pusher App Secret', 'is_sensitive' => true],
             ['group' => 'realtime', 'key' => 'realtime.pusher.cluster', 'value' => 'mt1', 'cast' => 'string', 'label' => 'Pusher Cluster (mt1 | eu | ap2 | us2 …)'],
+            ['group' => 'realtime', 'key' => 'realtime.pusher.host', 'value' => '', 'cast' => 'string', 'label' => 'هاست سفارشی پوشر (Soketi/Reverb — خالی = pusher.com)'],
+            ['group' => 'realtime', 'key' => 'realtime.pusher.port', 'value' => '', 'cast' => 'string', 'label' => 'پورت هاست سفارشی پوشر (مثلاً 6001)'],
+            ['group' => 'realtime', 'key' => 'realtime.pusher.scheme', 'value' => 'https', 'cast' => 'string', 'label' => 'پروتکل هاست سفارشی پوشر (https | http)'],
 
             // اعلان‌ها — صدا (v25؛ فقط پنل‌ها، اپ مشتری صدا ندارد)
             ['group' => 'notifications', 'key' => 'notification.sound.enabled', 'value' => '1', 'cast' => 'boolean', 'label' => 'صدای اعلان جدید در پنل‌ها'],

@@ -73,9 +73,12 @@ class SettingsController extends Controller
             'finnotech.verify_cards',
         ],
         'realtime' => [
+            // فاز ۱۲ — روش ترابورت: polling | sse | pusher (+ هاست سفارشی سازگار با پروتکل پوشر)
+            'realtime.method',
             'realtime.pusher.enabled', 'realtime.pusher.app_id',
             'realtime.pusher.app_key', 'realtime.pusher.app_secret',
             'realtime.pusher.cluster',
+            'realtime.pusher.host', 'realtime.pusher.port', 'realtime.pusher.scheme',
         ],
         'notifications' => [
             'notification.sound.enabled',
@@ -107,12 +110,18 @@ class SettingsController extends Controller
             && trim((string) $settings->get('realtime.pusher.app_secret')) !== ''
             && trim((string) $settings->get('realtime.pusher.app_id')) !== '';
 
+        // فاز ۱۲ — روش فعلی ترابورت Realtime (polling | sse | pusher)
+        $rtMethod = \App\Services\Realtime\PusherService::isValidMethod((string) $settings->get('realtime.method', ''))
+            ? (string) $settings->get('realtime.method', '')
+            : ($pusherOn ? 'pusher' : 'polling');
+
         return view('back.admin.settings.index', [
             'settings' => $settings,
             'providers' => SmsManager::providers(),
             'referral' => \App\Models\ReferralSetting::current(),
             'pusherOn' => $pusherOn,
             'pusherReady' => $pusherReady,
+            'rtMethod' => $rtMethod,
             'notificationStats' => $this->notificationStats($settings),
             // v33 — خلاصهٔ وضعیت پخش هوشمند (برای hint زندهٔ تب نظرسنجی)
             'ratingSummary' => app(\App\Services\Orders\RatingDistributionService::class)->summary(),
@@ -268,7 +277,6 @@ class SettingsController extends Controller
             && ! in_array($pairs['ratings.routing_mode'], ['filter', 'priority', 'hybrid'], true)) {
             return response()->json(['message' => 'سیاست پخش هوشمند معتبر نیست.'], 422);
         }
-
         if (isset($pairs['ratings.routing_min_rating'])) {
             $pairs['ratings.routing_min_rating'] = (string) max(1, min(5, (int) $pairs['ratings.routing_min_rating']));
         }
@@ -312,9 +320,26 @@ class SettingsController extends Controller
             }
         }
 
+        /* فاز ۱۲ — اعتبارسنجی روش Realtime + همگام‌سازی کلید قدیمی پوشر
+           (PusherService برای سازگاری هنوز realtime.pusher.enabled را هم می‌خواند) */
+        if (isset($pairs['realtime.method'])) {
+            if (! \App\Services\Realtime\PusherService::isValidMethod((string) $pairs['realtime.method'])) {
+                return response()->json(['message' => 'روش Realtime معتبر نیست.'], 422);
+            }
+
+            // هاست/پورت سفارشی فقط وقتی معنا دارد که روش، پوشر باشد
+            if ($pairs['realtime.method'] !== 'pusher') {
+                unset($pairs['realtime.pusher.host'], $pairs['realtime.pusher.port'], $pairs['realtime.pusher.scheme']);
+            }
+        }
+
         $old = collect($settings->all())->only(array_keys($pairs))->all();
 
         $count = $settings->updateMany($pairs);
+
+        if (isset($pairs['realtime.method'])) {
+            $settings->set('realtime.pusher.enabled', $pairs['realtime.method'] === 'pusher' ? '1' : '');
+        }
 
         // v26 — سرویس پیش‌فرض: کلیدهای VAPID خودکار ساخته می‌شوند
         $webpushGenerated = false;
@@ -376,18 +401,19 @@ class SettingsController extends Controller
         ]);
     }
 
-    /** تست اتصال پوشر (AJAX — اعتبارسنجی اعتبارنامه‌ها + رویداد آزمایشی) */
+    /** تست اتصال Realtime (AJAX — ترابورت فعال: SSE یا پوشر + رویداد آزمایشی) */
     public function testPusher(Request $request, \App\Services\Realtime\PusherService $pusher): JsonResponse
     {
-        $result = $pusher->test();
+        // فاز ۱۲ — تست ترابورتِ «فعال»: SSE → سلامت جدول رویدادها؛ پوشر → REST پوشر
+        $result = $pusher->testActiveTransport();
 
-        if ($result['ok']) {
+        if ($result['ok'] && ! $pusher->sse->enabled()) {
             $event = $pusher->sendTestEvent();
             $result['message'] .= ' · '.$event['message'];
         }
 
         AuditLogger::log('settings.pusher_test', null, null, ['ok' => $result['ok']],
-            'تست اتصال Pusher از پنل تنظیمات — '.($result['ok'] ? 'موفق' : 'ناموفق'));
+            'تست اتصال Realtime از پنل تنظیمات — '.($result['ok'] ? 'موفق' : 'ناموفق'));
 
         return response()->json([
             'ok' => $result['ok'],
