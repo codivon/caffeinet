@@ -44,4 +44,4 @@
 <meta name="application-name" content="{{ $pwaTitle }}">
 
 {{-- ران‌تایم PWA: ثبت SW + مودال نصب سمت مشتری + اعلان به‌روزرسانی --}}
-<script src="{{ asset('assets/js/pwa.js') }}?v=4" defer></script>
+<script src="{{ asset('assets/js/pwa.js') }}?v=5" defer></script>

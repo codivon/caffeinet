@@ -15,6 +15,9 @@ window.CN = (function () {
         port = new URLSearchParams(window.location.search).get(PORT_PARAM) || '';
     } catch (e) { port = ''; }
 
+    /* v41 — قفل ضدتکرار ۴۰۱: در هر بارگذاری صفحه فقط یک پیام/یک ریدایرکت */
+    var authRedirectPending = false;
+
     /** افزودن پارامتر گیت‌وی به مسیر داخلی */
     function withPort(url) {
         if (!port) { return url; }
@@ -120,6 +123,8 @@ window.CN = (function () {
 
         netBusyBegin(); /* معادل ajaxStart — نگه‌داشتن state دکمهٔ busy */
 
+        var hadToken = !!token(); /* v41 — آیا این درخواست اصلاً توکن داشت؟ */
+
         var xhr = new XMLHttpRequest();
         xhr.open(method, apiUrl(path), true);
         xhr.timeout = opts.timeout || 20000; /* v40 — هیچ درخواستی بی‌مهلت نیست */
@@ -152,13 +157,24 @@ window.CN = (function () {
 
             var message = extractMessage(xhr);
 
+            /* v41 — ضد «حلقهٔ نشست منقضی»:
+               علت باگ: اسکریپت‌های مشترک لایه (مثل initRealtime اعلان‌ها) روی
+               صفحهٔ ورود هم بدون توکن /realtime/config را می‌زدند → ۴۰۱ →
+               پیام «منقضی شد» + ریدایرکت به /app/auth → همان صفحه دوباره ۴۰۱…
+               حلقهٔ بی‌نهایت رفرش تا سقف throttle سرور (≈۱ دقیقه).
+               حالا: ۴۰۱ِ بی‌توکن یا ۴۰۱ روی خود صفحهٔ ورود بی‌صدا است و از
+               بین چند ۴۰۱ همزمان فقط اولی پیام/ریدایرکت می‌سازد. */
             if (status === 401) {
                 netBusyEnd();
                 clearSession();
-                toast('نشست شما منقضی شده؛ دوباره وارد شوید.', 'error');
-                window.setTimeout(function () {
-                    window.location.replace(withPort('/app/auth'));
-                }, 1100);
+                var onAuthPage = /^\/app\/auth\b/.test(window.location.pathname);
+                if (!authRedirectPending && hadToken && !onAuthPage) {
+                    authRedirectPending = true;
+                    toast('نشست شما منقضی شده؛ دوباره وارد شوید.', 'error');
+                    window.setTimeout(function () {
+                        window.location.replace(withPort('/app/auth'));
+                    }, 1100);
+                }
                 if (opts.complete) { opts.complete(xhr); }
                 return;
             }
@@ -802,6 +818,32 @@ window.CN = (function () {
             }
         });
     }
+
+    /* ---------- v41 — ارتفاع واقعی پوسته (--app-vh) ----------
+       در برخی گوشی‌ها در «حالت نصب‌شده» (PWA standalone) مقدار 100dvh
+       بزرگ‌تر از پنجرهٔ واقعی گزارش می‌شود → پوسته بلندتر از صفحه می‌شود و
+       محتوای پایین (ناوبری/دکمه‌ها) زیر لبهٔ صفحه می‌رود.
+       متغیر --app-vh با innerHeight/visualViewport به‌روز می‌شود تا همهٔ
+       صفحات (نه فقط چت) ارتفاع دقیق داشته باشند؛ CSS با fallback
+       var(--app-vh, 100dvh) از آن استفاده می‌کند. */
+    (function fitShellHeight() {
+        function apply() {
+            var h = window.innerHeight;
+            var vv = window.visualViewport;
+            if (vv && Math.abs(vv.scale - 1) < 0.02) {
+                h = Math.min(h, Math.round(vv.height));
+            }
+            if (h > 0) {
+                document.documentElement.style.setProperty('--app-vh', Math.round(h) + 'px');
+            }
+        }
+        apply();
+        window.addEventListener('resize', apply);
+        window.addEventListener('orientationchange', function () { setTimeout(apply, 250); });
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', apply);
+        }
+    })();
 
     return {
         withPort: withPort,

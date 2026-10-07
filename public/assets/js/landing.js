@@ -6,9 +6,10 @@
    [Task 8] سازگاری SPA (wire:navigate):
    • شنونده‌های سراسری (scroll/keydown/click-بیرون) فقط یک‌بار ثبت
      می‌شوند و عناصر را هر بار «تنبل» از DOM تازه می‌خوانند.
-   • اتصال‌های وابسته به محتوا (بورگر/Reveal/شمارنده/آکاردئون/لینک‌های
+   • اتصال‌های وابسته به محتوا (Reveal/شمارنده/آکاردئون/لینک‌های
      داخلی) در init() هستند — هم بار اول و هم بعد از هر ناوبری
      (livewire:navigated) چون DOM محتوا از نو جایگذاری می‌شود.
+   [v42] منوی همبرگری حذف شد → نوار چیپ‌های افقی موبایل (بدون JS).
    ============================================================ */
 (function () {
     'use strict';
@@ -27,38 +28,6 @@
         if (toTop) toTop.classList.toggle('is-visible', y > 620);
     }
     window.addEventListener('scroll', onScroll, { passive: true });
-
-    /* ---------- منوی موبایل — سراسری‌ها یک‌بار، اتصال‌ها در init ---------- */
-    function menuEls() {
-        return { burger: doc.getElementById('navBurger'), mobileNav: doc.getElementById('mobileNav') };
-    }
-
-    function closeMenu() {
-        var els = menuEls();
-        if (!els.burger || !els.mobileNav) return;
-        els.burger.setAttribute('aria-expanded', 'false');
-        els.mobileNav.classList.remove('is-open');
-    }
-
-    /* Escape + کلیک بیرون — فقط یک‌بار (خارج از init تا در SPA تکراری نشوند) */
-    var docBound = false;
-
-    function bindDocOnce() {
-        if (docBound) { return; }
-        docBound = true;
-
-        doc.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') closeMenu();
-        });
-
-        doc.addEventListener('click', function (e) {
-            var els = menuEls();
-            if (!els.mobileNav || !els.mobileNav.classList.contains('is-open')) { return; }
-            if (!els.mobileNav.contains(e.target) && !(els.burger && els.burger.contains(e.target))) {
-                closeMenu();
-            }
-        });
-    }
 
     /* ---------- دکمه بازگشت به بالا — سراسری و تنبل ---------- */
     doc.addEventListener('click', function (e) {
@@ -157,23 +126,7 @@
 
     /* ---------- init محتوا — بار اول + بعد از هر ناوبری SPA ---------- */
     function init() {
-        bindDocOnce();
         onScroll();
-
-        /* منوی موبایل (هدر در لایه است ولی بعد از هر ناوبری DOM تازه دارد) */
-        var els = menuEls();
-        if (els.burger && els.mobileNav) {
-            els.burger.addEventListener('click', function () {
-                var open = els.burger.getAttribute('aria-expanded') === 'true';
-                els.burger.setAttribute('aria-expanded', open ? 'false' : 'true');
-                els.mobileNav.classList.toggle('is-open', !open);
-            });
-
-            // بستن با کلیک روی لینک‌ها
-            els.mobileNav.querySelectorAll('a').forEach(function (a) {
-                a.addEventListener('click', closeMenu);
-            });
-        }
 
         initReveals();
         initCounters();

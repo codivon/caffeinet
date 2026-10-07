@@ -478,7 +478,7 @@
 @endsection
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('assets/css/chat.css') }}?v=20">
+    <link rel="stylesheet" href="{{ asset('assets/css/chat.css') }}?v=21">
 @endpush
 
 @push('page')

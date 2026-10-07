@@ -12,11 +12,12 @@
 
     var POLL_MS = 3000;
 
-    /* Realtime پوشر (فاز ۱۳ → v38 «پوشر کامل»):
+    /* Realtime پوشر (فاز ۱۳ → v38 «پوشر کامل» → v41 پولینگ اضطراری آرام):
        وقتی پوشر فعال و متصل است، پولینگ «کاملاً متوقف» می‌شود — فقط رویدادمحور.
-       با قطع اتصال، پولینگ اضطراری برمی‌گردد و با وصل شدن دوباره خاموش می‌شود. */
+       با قطع اتصال، پولینگ اضطراری (هر ۲۰ ثانیه) برمی‌گردد و با وصل شدن دوباره خاموش می‌شود. */
     var rtBound = false;
     var unConn = null;
+    var rtChannel = null;
 
     var lastId = 0;
     var pollTimer = null;
@@ -777,11 +778,17 @@
         }
     }
 
-    function startPolling() {
+    function startPolling(slow) {
         if (pollTimer) { return; }
+        /* v41 — بازهٔ پولینگ:
+           • پوشر فعال (RT.active) و هنوز وصل نشده → «پولینگ اضطراری» با بازهٔ
+             بلند ۲۰ ثانیه (هدف فاز ۱۳: با بالا رفتن تعداد مشتری، سرور زیر
+             بار پولینگ نرود؛ آنی بودن را وقتی پوشر وصل شد رویدادها می‌سازند).
+           • پوشر خاموش (مود پولینگ) → بازهٔ سریع ۳ ثانیه مثل قبل. */
+        var ms = slow ? 20000 : 3000;
         pollTimer = window.setInterval(function () {
             if (!document.hidden) { load(false); }
-        }, POLL_MS);
+        }, ms);
     }
 
     function stopPolling() {
@@ -804,10 +811,23 @@
     /* ---------- Realtime پوشر — حالت «پوشر کامل» (بدون پولینگ) ----------
        کانال/کلید از payload خود چت (data.rt) می‌آید؛ با رویداد message.new
        پیام‌ها همان لحظه از API خوانده می‌شوند — بدون هیچ setInterval.
-       قطع اتصال → پولینگ اضطراری؛ وصل شدن → توقف پولینگ. */
+       قطع اتصال → پولینگ اضطراری (بازهٔ بلند ۲۰ ثانیه)؛ وصل شدن → توقف پولینگ.
+       نقطهٔ وضعیت «لحظه‌ای» سربرگ هم در هر تغییر اتصال تازه می‌شود. */
+    function setRtDot(up) {
+        var dot = document.getElementById('chRtDot');
+        if (!dot) { return; }
+        dot.classList.toggle('rt-on', !!up);
+        dot.classList.toggle('rt-off', !up);
+        dot.title = up
+            ? 'اتصال لحظه‌ای (پوشر) فعال است'
+            : 'اتصال لحظه‌ای برقرار نیست — دریافت دوره‌ای هر ۲۰ ثانیه';
+    }
+
     function bindRealtime(rt) {
         if (rtBound) { return; }
         if (!rt || !rt.enabled || !rt.key || !rt.channel || !window.RT) { return; }
+
+        rtChannel = String(rt.channel);
 
         var ok = RT.on(rt.channel, rt.event || 'message.new', function () {
             if (document.hidden) { return; }
@@ -817,20 +837,27 @@
         if (ok) {
             rtBound = true;
 
-            /* پاک‌سازی هنگام خروج از صفحه (ناوبری SPA) — ضد زامبی */
+            /* پاک‌سازی هنگام خروج از صفحه (ناوبری SPA) — ضد زامبی:
+               کانال پوشرِ سفارش قبلی ترک می‌شود تا رویدادش صفحهٔ دیگری را بیدار نکند */
             document.addEventListener('livewire:navigate', function () {
                 stopPolling();
                 if (unConn) { unConn(); unConn = null; }
+                if (rtChannel && window.RT && RT.leave) { RT.leave(rtChannel); }
+                rtChannel = null;
             }, { once: true });
 
             /* fallback اتصال: قطع → پولینگ اضطراری، وصل → توقف پولینگ */
             unConn = RT.onConnection(function (up) {
+                setRtDot(up);
                 if (up) { stopPolling(); if (!document.hidden) { load(false); } }
-                else { startPolling(); }
+                else { startPolling(true); }
             });
 
             if (RT.connected()) {
+                setRtDot(true);
                 stopPolling(); // پوشر متصل — بدون پولینگ
+            } else {
+                setRtDot(false);
             }
         }
     }
@@ -841,5 +868,7 @@
     bindStick();
     autoGrow();
     load(true);
-    startPolling();
+    /* v41 — پوشر فعال است؟ منتظر اتصالش می‌مانیم (پولینگ اضطراری بلند)؛
+       خاموش است؟ پولینگ سریعِ مود پولینگ. */
+    startPolling(!!(window.RT && RT.active()));
 })();

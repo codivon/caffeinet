@@ -49,7 +49,22 @@
         try { sessionStorage.setItem(VISIT_KEY, '1'); } catch (e) {}
     }
 
-    /* ---------- استایل (prefix: cnvpn-) ---------- */
+    /* ---------- استایل (prefix: cnvpn-) ----------
+       v41 — تمام رنگ‌ها از متغیرهای پالتِ همان پنل (--brand-* اپ/لندینگ و
+       --color-brand-* پنل‌های پشتی) خوانده می‌شوند؛ با تغییر پالت در
+       «تنظیمات ← ظاهر و رنگ‌بندی» این مودال هم همان رنگ را می‌گیرد.
+       ورودی‌های نهایی رنگ، مقادیر قهوه‌ایِ قبل‌اند (fallback بدون متغیر). */
+    var B50  = 'var(--brand-50,  var(--color-brand-50,  #fffbeb))';
+    var B100 = 'var(--brand-100, var(--color-brand-100, #fef3c7))';
+    var B200 = 'var(--brand-200, var(--color-brand-200, #fde68a))';
+    var B300 = 'var(--brand-300, var(--color-brand-300, #fcd34d))';
+    var B400 = 'var(--brand-400, var(--color-brand-400, #fbbf24))';
+    var B500 = 'var(--brand-500, var(--color-brand-500, #f59e0b))';
+    var B600 = 'var(--brand-600, var(--color-brand-600, #d97706))';
+    var B700 = 'var(--brand-700, var(--color-brand-700, #b45309))';
+    var B800 = 'var(--brand-800, var(--color-brand-800, #92400e))';
+    var B900 = 'var(--brand-900, var(--color-brand-900, #78350f))';
+    var B950 = 'var(--brand-950, var(--color-brand-950, #451a03))';
 
     var STYLE_ADDED = false;
     function ensureStyle() {
@@ -59,65 +74,68 @@
             '.cnvpn-root *{box-sizing:border-box;font-family:Vazirmatn,Tahoma,-apple-system,"Segoe UI",sans-serif}',
 
             '.cnvpn-modal{position:fixed;inset:0;z-index:99998;display:flex;align-items:flex-end;justify-content:center;',
-            'background:rgba(15,9,3,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);',
+            'background:rgba(15,12,9,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);',
             'opacity:0;pointer-events:none;transition:opacity .32s ease;direction:rtl}',
             '.cnvpn-modal.cnvpn-show{opacity:1;pointer-events:auto}',
             '.cnvpn-sheet{width:100%;max-width:460px;margin:0 12px 14px;position:relative;text-align:center;',
-            'padding:28px 22px calc(18px + env(safe-area-inset-bottom));border-radius:30px;color:#f7ead9;',
+            'padding:28px 22px calc(18px + env(safe-area-inset-bottom));border-radius:30px;color:#f7f4ef;',
             'transform:translateY(90px);transition:transform .42s cubic-bezier(.2,.9,.25,1.12);',
-            'background:linear-gradient(168deg,#2e1c0a 0%,#241608 55%,#1d1206 100%);',
-            'border:1px solid rgba(226,186,133,.26);box-shadow:0 -22px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(226,186,133,.1)}',
+            'background:linear-gradient(168deg,'+
+                'color-mix(in srgb,'+B900+' 72%,#15151f) 0%,'+
+                'color-mix(in srgb,'+B950+' 82%,#14121a) 100%);',
+            'border:1px solid color-mix(in srgb,'+B300+' 26%,transparent);',
+            'box-shadow:0 -22px 70px rgba(0,0,0,.55),inset 0 1px 0 color-mix(in srgb,'+B300+' 12%,transparent)}',
             '.cnvpn-modal.cnvpn-show .cnvpn-sheet{transform:translateY(0)}',
-            '.cnvpn-sheet .cnvpn-grip{width:42px;height:4.5px;border-radius:99px;background:rgba(226,186,133,.25);margin:0 auto 14px}',
+            '.cnvpn-sheet .cnvpn-grip{width:42px;height:4.5px;border-radius:99px;background:color-mix(in srgb,'+B300+' 26%,transparent);margin:0 auto 14px}',
             '.cnvpn-sheet .cnvpn-x{position:absolute;top:16px;left:16px;appearance:none;background:transparent;border:0;cursor:pointer;',
-            'width:36px;height:36px;border-radius:12px;display:grid;place-items:center;color:rgba(247,234,217,.5);',
+            'width:36px;height:36px;border-radius:12px;display:grid;place-items:center;color:color-mix(in srgb,'+B100+' 55%,transparent);',
             'transition:background .2s ease,color .2s ease}',
-            '.cnvpn-sheet .cnvpn-x:hover{background:rgba(247,234,217,.09);color:#f7ead9}',
+            '.cnvpn-sheet .cnvpn-x:hover{background:color-mix(in srgb,'+B100+' 10%,transparent);color:'+B100+'}',
 
             /* آیکون هشدار */
             '.cnvpn-ico{width:74px;height:74px;border-radius:24px;margin:0 auto 14px;display:grid;place-items:center;',
-            'background:linear-gradient(135deg,rgba(196,127,61,.32),rgba(168,101,46,.32));color:#e2ba85;',
-            'box-shadow:0 14px 34px rgba(0,0,0,.45),0 0 0 6px rgba(226,186,133,.08),0 0 0 1px rgba(226,186,133,.28)}',
-            '.cnvpn-sheet h3{margin:0 0 7px;font-size:16.5px;font-weight:800;color:#fdf8f3;letter-spacing:-.01em}',
-            '.cnvpn-sheet .cnvpn-sub{margin:0 auto 16px;font-size:12.5px;font-weight:400;line-height:2;color:rgba(247,234,217,.66);max-width:340px}',
+            'background:linear-gradient(135deg,color-mix(in srgb,'+B400+' 30%,transparent),color-mix(in srgb,'+B600+' 30%,transparent));color:'+B300+';',
+            'box-shadow:0 14px 34px rgba(0,0,0,.45),0 0 0 6px color-mix(in srgb,'+B300+' 9%,transparent),0 0 0 1px color-mix(in srgb,'+B300+' 28%,transparent)}',
+            '.cnvpn-sheet h3{margin:0 0 7px;font-size:16.5px;font-weight:800;color:'+B50+';letter-spacing:-.01em}',
+            '.cnvpn-sheet .cnvpn-sub{margin:0 auto 16px;font-size:12.5px;font-weight:400;line-height:2;color:color-mix(in srgb,'+B100+' 66%,transparent);max-width:340px}',
 
             /* چیپ کشور اتصال */
             '.cnvpn-chip{display:flex;align-items:center;justify-content:center;gap:8px;width:fit-content;margin:0 auto 18px;',
-            'padding:7px 14px;border-radius:99px;background:rgba(226,186,133,.1);border:1px solid rgba(226,186,133,.22);',
-            'font-size:11.5px;font-weight:700;color:#e2ba85}',
-            '.cnvpn-chip .cnvpn-dot{width:8px;height:8px;border-radius:99px;background:#f0b45a;flex:none;',
-            'box-shadow:0 0 0 3px rgba(240,180,90,.18)}',
+            'padding:7px 14px;border-radius:99px;background:color-mix(in srgb,'+B300+' 11%,transparent);border:1px solid color-mix(in srgb,'+B300+' 24%,transparent);',
+            'font-size:11.5px;font-weight:700;color:'+B300+'}',
+            '.cnvpn-chip .cnvpn-dot{width:8px;height:8px;border-radius:99px;background:'+B400+';flex:none;',
+            'box-shadow:0 0 0 3px color-mix(in srgb,'+B400+' 20%,transparent)}',
 
             /* ردیف مزایا */
             '.cnvpn-feats{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:9px;text-align:right}',
             '.cnvpn-feats li{display:flex;align-items:center;gap:11px;padding:10px 13px;border-radius:15px;',
-            'background:rgba(247,234,217,.05);border:1px solid rgba(226,186,133,.13)}',
+            'background:color-mix(in srgb,'+B100+' 5%,transparent);border:1px solid color-mix(in srgb,'+B300+' 14%,transparent)}',
             '.cnvpn-feats .cnvpn-fico{width:32px;height:32px;border-radius:10px;flex:none;display:grid;place-items:center;',
-            'background:linear-gradient(135deg,rgba(196,127,61,.3),rgba(168,101,46,.3));color:#e2ba85}',
-            '.cnvpn-feats p{margin:0;font-size:12px;font-weight:600;color:rgba(247,234,217,.88);line-height:1.8}',
-            '.cnvpn-feats p small{display:block;font-size:10.5px;font-weight:400;color:rgba(247,234,217,.45)}',
+            'background:linear-gradient(135deg,color-mix(in srgb,'+B500+' 28%,transparent),color-mix(in srgb,'+B700+' 28%,transparent));color:'+B300+'}',
+            '.cnvpn-feats p{margin:0;font-size:12px;font-weight:600;color:color-mix(in srgb,'+B100+' 88%,transparent);line-height:1.8}',
+            '.cnvpn-feats p small{display:block;font-size:10.5px;font-weight:400;color:color-mix(in srgb,'+B100+' 46%,transparent)}',
 
             /* دکمه */
             '.cnvpn-btn{appearance:none;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;',
             'width:100%;padding:15px 20px;border-radius:16px;font:inherit;font-size:14px;font-weight:800;color:#fff;',
-            'background:linear-gradient(90deg,#c47f3d,#a8652e);box-shadow:0 12px 30px rgba(168,101,46,.45);',
+            'background:linear-gradient(90deg,'+B500+','+B700+');box-shadow:0 12px 30px color-mix(in srgb,'+B700+' 45%,transparent);',
             'transition:transform .22s ease,box-shadow .22s ease}',
-            '.cnvpn-btn:hover{transform:translateY(-1px);box-shadow:0 16px 38px rgba(168,101,46,.58)}',
+            '.cnvpn-btn:hover{transform:translateY(-1px);box-shadow:0 16px 38px color-mix(in srgb,'+B700+' 58%,transparent)}',
             '.cnvpn-btn:active{transform:translateY(0)}',
 
             /* چک‌باکس «دیگه نمایش نده» */
             '.cnvpn-check{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:14px;',
             'cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}',
             '.cnvpn-check input{appearance:none;-webkit-appearance:none;width:19px;height:19px;flex:none;cursor:pointer;',
-            'border-radius:7px;border:1.6px solid rgba(226,186,133,.5);background:rgba(247,234,217,.06);',
+            'border-radius:7px;border:1.6px solid color-mix(in srgb,'+B300+' 50%,transparent);background:color-mix(in srgb,'+B100+' 6%,transparent);',
             'display:grid;place-items:center;margin:0;transition:background .2s ease,border-color .2s ease}',
-            '.cnvpn-check input:checked{background:linear-gradient(135deg,#c47f3d,#a8652e);border-color:#c47f3d}',
+            '.cnvpn-check input:checked{background:linear-gradient(135deg,'+B500+','+B700+');border-color:'+B600+'}',
             '.cnvpn-check input:checked::after{content:"";width:5px;height:9px;margin-top:-2px;',
             'border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}',
-            '.cnvpn-check span{font-size:11.5px;font-weight:500;color:rgba(247,234,217,.58)}',
+            '.cnvpn-check span{font-size:11.5px;font-weight:500;color:color-mix(in srgb,'+B100+' 60%,transparent)}',
 
             /* نکتهٔ پایانی */
-            '.cnvpn-hint{margin:12px 0 0;font-size:10.5px;font-weight:400;color:rgba(247,234,217,.4);line-height:1.9}'
+            '.cnvpn-hint{margin:12px 0 0;font-size:10.5px;font-weight:400;color:color-mix(in srgb,'+B100+' 42%,transparent);line-height:1.9}'
         ].join('');
         var st = document.createElement('style');
         st.id = 'cnvpn-style';

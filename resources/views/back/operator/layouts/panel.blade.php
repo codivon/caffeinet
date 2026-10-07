@@ -202,12 +202,12 @@
 </div>
 
 {{-- استایل گفتگو (فاز ۷ — مشترک پنل و اپ) --}}
-<link rel="stylesheet" href="{{ asset('assets/css/chat.css') }}?v=20">
+<link rel="stylesheet" href="{{ asset('assets/css/chat.css') }}?v=21">
 
 {{-- اسکریپت‌های پایه پنل (فایل‌های جدا — بدون Node) --}}
 {{-- [Task 2-a] data-navigate-once: اسکریپت‌های مشترک در هر ناوبری دوباره اجرا نشوند --}}
 <script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1" data-navigate-once></script>
-<script src="{{ asset('assets/js/realtime.js') }}?v=3" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(auth()->user()))'></script>
+<script src="{{ asset('assets/js/realtime.js') }}?v=4" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(auth()->user()))'></script>
 <script src="{{ asset('back/assets/js/core.js') }}?v=15" data-navigate-once></script>
 <script src="{{ asset('back/assets/js/ui.js') }}?v=12" data-navigate-once></script>
 <script src="{{ asset('back/assets/js/pages/layout.js') }}?v=14" data-navigate-once></script>

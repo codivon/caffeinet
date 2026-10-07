@@ -98,6 +98,8 @@ a { color: var(--brand-600); text-decoration: none; }
     margin-inline: auto;
     min-height: 100vh;
     min-height: 100dvh;
+    /* v41 — ارتفاع واقعی پنجره (PWA standalone: 100dvh بعضی‌جا بزرگ‌تر گزارش می‌شود) */
+    min-height: var(--app-vh, 100dvh);
     display: flex;
     flex-direction: column;
     background: var(--paper);

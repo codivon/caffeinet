@@ -1285,6 +1285,9 @@ html.dark .dz-inner { color: #60a5fa; }
 .app-shell.chat-shell {
     height: 100dvh;
     min-height: 100dvh;
+    /* v41 — ارتفاع واقعی پنجره (PWA standalone: 100dvh بعضی‌جا بزرگ‌تر گزارش می‌شود) */
+    height: var(--app-vh, 100dvh);
+    min-height: var(--app-vh, 100dvh);
     overflow: hidden; /* تنها .cnchat-pane اسکرول می‌شود */
 }
 
@@ -1293,6 +1296,19 @@ html.dark .dz-inner { color: #60a5fa; }
     display: flex;
     flex-direction: column;
     padding: 0;
+    min-height: 0;
+    min-width: 0;
+}
+
+/* v41 — فیکس «اسکرول نمی‌خورد»: ریشهٔ کامپوننت Livewire یک <div> بدون‌استایل
+   بین app-main و chatpage است؛ min-height پیش‌فرض flex item (auto) باعث می‌شد
+   با محتوای بلند (پیام‌ها/کارت‌های وضعیت) کل زنجیره کش بیاید، پوسته overflow:hidden
+   پایین را می‌بُرید و هیچ اسکرولی کار نمی‌کرد. این قانون زنجیرهٔ min-height:0
+   را از app-main تا chatpage کامل می‌کند → تنها .cnchat-pane اسکرول می‌گیرد. */
+.app-shell.chat-shell .app-main > * {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     min-height: 0;
     min-width: 0;
 }
@@ -1332,6 +1348,30 @@ html.dark .dz-inner { color: #60a5fa; }
     font-size: 9.5px;
     padding: 3px 8px;
     white-space: nowrap;
+}
+
+/* v41 — نقطهٔ وضعیت اتصال لحظه‌ای (پوشر) */
+.ch-rt {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 99px;
+    background: #94a3b8;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, .18);
+    transition: background .3s ease, box-shadow .3s ease;
+}
+.ch-rt.rt-on {
+    background: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, .16);
+    animation: rt-pulse 2.4s ease-in-out infinite;
+}
+.ch-rt.rt-off {
+    background: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, .16);
+}
+@keyframes rt-pulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(34, 197, 94, .16); }
+    50% { box-shadow: 0 0 0 5px rgba(34, 197, 94, .06); }
 }
 
 /* دکمهٔ اطلاعات سفارش (ⓘ) */

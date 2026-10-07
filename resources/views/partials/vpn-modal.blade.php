@@ -7,4 +7,4 @@
 | نمایش: حداکثر یک بار در هر مراجعه (sessionStorage)؛ بستنِ ساده
 | چیزی ذخیره نمی‌کند — در مراجعهٔ بعدی دوباره نمایش؛ چک‌باکس
 | «دیگه نمایش نده» → localStorage (دیگر هرگز). --}}
-<script src="{{ asset('assets/js/vpn-check.js') }}?v=2" defer></script>
+<script src="{{ asset('assets/js/vpn-check.js') }}?v=3" defer></script>

@@ -18,6 +18,8 @@
                 <strong class="ch-name" id="chName">گفتگو با اپراتور</strong>
                 <span class="ch-sub" id="chSub">در انتظار اتصال اپراتور…</span>
             </div>
+            {{-- v41 — نقطهٔ وضعیت اتصال لحظه‌ای (پوشر وصل/قطع) — با order-chat.js تازه می‌شود --}}
+            <span class="ch-rt rt-off" id="chRtDot" role="status" aria-label="وضعیت اتصال لحظه‌ای" title="اتصال لحظه‌ای"></span>
             <span class="badge badge-stone" id="chatStatusBadge">…</span>
             <button type="button" class="ch-info-btn" id="orderInfoBtn" title="اطلاعات سفارش" aria-label="اطلاعات سفارش" aria-haspopup="dialog" aria-expanded="false">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
@@ -477,10 +479,10 @@
 </div>
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('assets/css/chat.css') }}?v=20">
+    <link rel="stylesheet" href="{{ asset('assets/css/chat.css') }}?v=21">
 @endpush
 
 @push('page')
     <script src="{{ asset('front/assets/js/pages/order-detail.js') }}?v=6" defer></script>
-    <script src="{{ asset('front/assets/js/pages/order-chat.js') }}?v=22" defer></script>
+    <script src="{{ asset('front/assets/js/pages/order-chat.js') }}?v=23" defer></script>
 @endpush

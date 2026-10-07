@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap">
 
     {{-- استایل مستقل صفحه فرود --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/landing.css') }}?v=6">
+    <link rel="stylesheet" href="{{ asset('assets/css/landing.css') }}?v=8">
 
     {{-- اسکیمای SEO (JSON-LD) --}}
     <script type="application/ld+json">{!! json_encode([
@@ -77,21 +77,17 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/></svg>
                 ورود / ثبت‌نام
             </a>
-            <button class="burger" id="navBurger" type="button" aria-expanded="false" aria-controls="mobileNav" aria-label="باز و بسته کردن منو">
-                <span></span><span></span><span></span>
-            </button>
         </div>
     </div>
 
-    {{-- منوی موبایل --}}
-    <nav class="mobile-nav" id="mobileNav" aria-label="ناوبری موبایل">
-        <div class="nav-wrap container">
-            <a href="#services">خدمات کافی‌نت</a>
+    {{-- منوی موبایل — v42: نوار چیپ‌های افقی (جایگزین همبرگر) --}}
+    <nav class="mobile-chipnav" id="mobileNav" aria-label="ناوبری موبایل">
+        <div class="chipnav-scroll container">
+            <a href="#services">خدمات</a>
             <a href="#how">مراحل سفارش</a>
-            <a href="#features">چرا کافی‌نت آنلاین؟</a>
+            <a href="#features">چرا ما؟</a>
             <a href="#pwa">نصب اپلیکیشن</a>
             <a href="#faq">سوالات متداول</a>
-            <a href="{{ route('app.auth') }}" class="btn btn-gold nav-cta">ورود / ثبت‌نام مشتری</a>
         </div>
     </nav>
 </header>
@@ -670,6 +666,6 @@
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>
 </button>
 
-<script src="{{ asset('assets/js/landing.js') }}?v=4" defer></script>
+<script src="{{ asset('assets/js/landing.js') }}?v=6" defer></script>
 </body>
 </html>

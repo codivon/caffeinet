@@ -67,7 +67,19 @@
         return /^\/app(\/|$)/i.test(window.location.pathname);
     }
 
-    /* ---------- استایل سراسری این ماژول ---------- */
+    /* ---------- استایل سراسری این ماژول ----------
+       v41 — پالت از متغیرهای همان پنل (--brand-* اپ مشتری / --color-brand-* پنل‌های پشتی)
+       خوانده می‌شود؛ با تغییر پالت در «تنظیمات ← ظاهر و رنگ‌بندی» مودال نصب هم
+       همان رنگ را می‌گیرد. مقادیر نهایی fallback، رنگ‌های قهوه‌ای قبل‌اند. */
+    var B50  = 'var(--brand-50,  var(--color-brand-50,  #fffbeb))';
+    var B100 = 'var(--brand-100, var(--color-brand-100, #fef3c7))';
+    var B300 = 'var(--brand-300, var(--color-brand-300, #fcd34d))';
+    var B400 = 'var(--brand-400, var(--color-brand-400, #fbbf24))';
+    var B500 = 'var(--brand-500, var(--color-brand-500, #f59e0b))';
+    var B600 = 'var(--brand-600, var(--color-brand-600, #d97706))';
+    var B700 = 'var(--brand-700, var(--color-brand-700, #b45309))';
+    var B900 = 'var(--brand-900, var(--color-brand-900, #78350f))';
+    var B950 = 'var(--brand-950, var(--color-brand-950, #451a03))';
 
     var STYLE_ADDED = false;
     function ensureStyle() {
@@ -78,37 +90,39 @@
 
             /* ---- مودال نصب (از پایین) ---- */
             '.cnpwa-modal{position:fixed;inset:0;z-index:99998;display:flex;align-items:flex-end;justify-content:center;',
-            'background:rgba(15,9,3,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);',
+            'background:rgba(15,12,9,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);',
             'opacity:0;pointer-events:none;transition:opacity .32s ease;direction:rtl}',
             '.cnpwa-modal.cnpwa-show{opacity:1;pointer-events:auto}',
             '.cnpwa-isheet{width:100%;max-width:460px;margin:0 12px 14px;position:relative;text-align:center;',
-            'padding:30px 22px calc(18px + env(safe-area-inset-bottom));border-radius:30px;color:#f7ead9;',
+            'padding:30px 22px calc(18px + env(safe-area-inset-bottom));border-radius:30px;color:#f7f4ef;',
             'transform:translateY(90px);transition:transform .42s cubic-bezier(.2,.9,.25,1.12);',
-            'background:linear-gradient(168deg,#2e1c0a 0%,#241608 55%,#1d1206 100%);',
-            'border:1px solid rgba(226,186,133,.26);box-shadow:0 -22px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(226,186,133,.1)}',
+            'background:linear-gradient(168deg,'+
+                'color-mix(in srgb,'+B900+' 72%,#15151f) 0%,'+
+                'color-mix(in srgb,'+B950+' 82%,#14121a) 100%);',
+            'border:1px solid color-mix(in srgb,'+B300+' 26%,transparent);box-shadow:0 -22px 70px rgba(0,0,0,.55),inset 0 1px 0 color-mix(in srgb,'+B300+' 12%,transparent)}',
             '.cnpwa-modal.cnpwa-show .cnpwa-isheet{transform:translateY(0)}',
-            '.cnpwa-isheet .cnpwa-grip{width:42px;height:4.5px;border-radius:99px;background:rgba(226,186,133,.25);margin:0 auto 16px}',
+            '.cnpwa-isheet .cnpwa-grip{width:42px;height:4.5px;border-radius:99px;background:color-mix(in srgb,'+B300+' 26%,transparent);margin:0 auto 16px}',
             '.cnpwa-isheet .cnpwa-x{position:absolute;top:16px;left:16px;appearance:none;background:transparent;border:0;cursor:pointer;',
-            'width:36px;height:36px;border-radius:12px;display:grid;place-items:center;color:rgba(247,234,217,.5);',
+            'width:36px;height:36px;border-radius:12px;display:grid;place-items:center;color:color-mix(in srgb,'+B100+' 55%,transparent);',
             'transition:background .2s ease,color .2s ease}',
-            '.cnpwa-isheet .cnpwa-x:hover{background:rgba(247,234,217,.09);color:#f7ead9}',
+            '.cnpwa-isheet .cnpwa-x:hover{background:color-mix(in srgb,'+B100+' 10%,transparent);color:'+B100+'}',
             '.cnpwa-isheet .cnpwa-appicon{width:72px;height:72px;border-radius:22px;margin:0 auto 14px;display:block;',
-            'box-shadow:0 14px 34px rgba(0,0,0,.45),0 0 0 6px rgba(226,186,133,.09),0 0 0 1px rgba(226,186,133,.3)}',
-            '.cnpwa-isheet h3{margin:0 0 7px;font-size:16.5px;font-weight:800;color:#fdf8f3;letter-spacing:-.01em}',
-            '.cnpwa-isheet .cnpwa-sub{margin:0 auto 18px;font-size:12px;font-weight:400;line-height:2;color:rgba(247,234,217,.6);max-width:330px}',
+            'box-shadow:0 14px 34px rgba(0,0,0,.45),0 0 0 6px color-mix(in srgb,'+B300+' 9%,transparent),0 0 0 1px color-mix(in srgb,'+B300+' 28%,transparent)}',
+            '.cnpwa-isheet h3{margin:0 0 7px;font-size:16.5px;font-weight:800;color:'+B50+';letter-spacing:-.01em}',
+            '.cnpwa-isheet .cnpwa-sub{margin:0 auto 18px;font-size:12px;font-weight:400;line-height:2;color:color-mix(in srgb,'+B100+' 62%,transparent);max-width:330px}',
             '.cnpwa-feats{list-style:none;margin:0 0 20px;padding:0;display:grid;gap:9px;text-align:right}',
             '.cnpwa-feats li{display:flex;align-items:center;gap:11px;padding:10px 13px;border-radius:15px;',
-            'background:rgba(247,234,217,.05);border:1px solid rgba(226,186,133,.13)}',
+            'background:color-mix(in srgb,'+B100+' 5%,transparent);border:1px solid color-mix(in srgb,'+B300+' 14%,transparent)}',
             '.cnpwa-feats .cnpwa-fico{width:32px;height:32px;border-radius:10px;flex:none;display:grid;place-items:center;',
-            'background:linear-gradient(135deg,rgba(196,127,61,.3),rgba(168,101,46,.3));color:#e2ba85}',
-            '.cnpwa-feats p{margin:0;font-size:12px;font-weight:600;color:rgba(247,234,217,.88);line-height:1.8}',
-            '.cnpwa-feats p small{display:block;font-size:10.5px;font-weight:400;color:rgba(247,234,217,.45)}',
+            'background:linear-gradient(135deg,color-mix(in srgb,'+B500+' 28%,transparent),color-mix(in srgb,'+B700+' 28%,transparent));color:'+B300+'}',
+            '.cnpwa-feats p{margin:0;font-size:12px;font-weight:600;color:color-mix(in srgb,'+B100+' 88%,transparent);line-height:1.8}',
+            '.cnpwa-feats p small{display:block;font-size:10.5px;font-weight:400;color:color-mix(in srgb,'+B100+' 46%,transparent)}',
             '.cnpwa-btn{appearance:none;border:0;cursor:pointer;flex:none;',
             'display:inline-flex;align-items:center;justify-content:center;gap:8px;',
             'padding:13px 20px;border-radius:16px;font:inherit;font-size:13px;font-weight:800;color:#fff;',
-            'background:linear-gradient(90deg,#c47f3d,#a8652e);box-shadow:0 12px 30px rgba(168,101,46,.45);',
+            'background:linear-gradient(90deg,'+B500+','+B700+');box-shadow:0 12px 30px color-mix(in srgb,'+B700+' 45%,transparent);',
             'transition:transform .22s ease,box-shadow .22s ease}',
-            '.cnpwa-btn:hover{transform:translateY(-1px);box-shadow:0 16px 38px rgba(168,101,46,.58)}',
+            '.cnpwa-btn:hover{transform:translateY(-1px);box-shadow:0 16px 38px color-mix(in srgb,'+B700+' 58%,transparent)}',
             '.cnpwa-btn:active{transform:translateY(0)}',
             '.cnpwa-btn:disabled{opacity:.55;cursor:wait;transform:none}',
             '.cnpwa-isheet .cnpwa-install{width:100%;padding:15px 20px;font-size:14px}',
@@ -116,43 +130,43 @@
             '.cnpwa-check{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:14px;',
             'cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}',
             '.cnpwa-check input{appearance:none;-webkit-appearance:none;width:19px;height:19px;flex:none;cursor:pointer;',
-            'border-radius:7px;border:1.6px solid rgba(226,186,133,.5);background:rgba(247,234,217,.06);',
+            'border-radius:7px;border:1.6px solid color-mix(in srgb,'+B300+' 50%,transparent);background:color-mix(in srgb,'+B100+' 6%,transparent);',
             'display:grid;place-items:center;margin:0;transition:background .2s ease,border-color .2s ease}',
-            '.cnpwa-check input:checked{background:linear-gradient(135deg,#c47f3d,#a8652e);border-color:#c47f3d}',
+            '.cnpwa-check input:checked{background:linear-gradient(135deg,'+B500+','+B700+');border-color:'+B600+'}',
             '.cnpwa-check input:checked::after{content:"";width:5px;height:9px;margin-top:-2px;',
             'border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}',
-            '.cnpwa-check span{font-size:11.5px;font-weight:500;color:rgba(247,234,217,.58)}',
+            '.cnpwa-check span{font-size:11.5px;font-weight:500;color:color-mix(in srgb,'+B100+' 60%,transparent)}',
 
             /* ---- شیت مراحل iOS ---- */
             '.cnpwa-steps{position:fixed;inset:0;z-index:99999;display:flex;align-items:flex-end;justify-content:center;',
-            'background:rgba(15,9,3,.6);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .3s ease;direction:rtl}',
+            'background:rgba(15,12,9,.6);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .3s ease;direction:rtl}',
             '.cnpwa-steps.cnpwa-show{opacity:1;pointer-events:auto}',
             '.cnpwa-sheet{width:100%;max-width:480px;margin:0 12px 14px;padding:24px 20px calc(24px + env(safe-area-inset-bottom));',
-            'border-radius:26px;color:#f7ead9;transform:translateY(60px);transition:transform .35s cubic-bezier(.2,.9,.25,1.15);',
-            'background:linear-gradient(165deg,rgba(46,28,10,.98),rgba(29,18,6,.99));',
-            'border:1px solid rgba(226,186,133,.25);box-shadow:0 -20px 60px rgba(0,0,0,.55)}',
+            'border-radius:26px;color:#f7f4ef;transform:translateY(60px);transition:transform .35s cubic-bezier(.2,.9,.25,1.15);',
+            'background:linear-gradient(165deg,color-mix(in srgb,'+B900+' 74%,#15151f),color-mix(in srgb,'+B950+' 86%,#131118));',
+            'border:1px solid color-mix(in srgb,'+B300+' 25%,transparent);box-shadow:0 -20px 60px rgba(0,0,0,.55)}',
             '.cnpwa-steps.cnpwa-show .cnpwa-sheet{transform:translateY(0)}',
-            '.cnpwa-sheet h3{margin:0 0 4px;font-size:15px;font-weight:800;color:#fdf8f3}',
-            '.cnpwa-sheet .cnpwa-hint{margin:0 0 18px;font-size:11.5px;color:rgba(247,234,217,.55);font-weight:400}',
+            '.cnpwa-sheet h3{margin:0 0 4px;font-size:15px;font-weight:800;color:'+B50+'}',
+            '.cnpwa-sheet .cnpwa-hint{margin:0 0 18px;font-size:11.5px;color:color-mix(in srgb,'+B100+' 56%,transparent);font-weight:400}',
             '.cnpwa-step{display:flex;align-items:center;gap:13px;padding:12px 14px;border-radius:16px;margin-bottom:10px;',
-            'background:rgba(247,234,217,.055);border:1px solid rgba(226,186,133,.14)}',
+            'background:color-mix(in srgb,'+B100+' 6%,transparent);border:1px solid color-mix(in srgb,'+B300+' 15%,transparent)}',
             '.cnpwa-step .n{width:30px;height:30px;border-radius:10px;flex:none;display:grid;place-items:center;',
-            'background:linear-gradient(135deg,rgba(196,127,61,.35),rgba(168,101,46,.35));color:#e2ba85;',
+            'background:linear-gradient(135deg,color-mix(in srgb,'+B500+' 32%,transparent),color-mix(in srgb,'+B700+' 32%,transparent));color:'+B300+';',
             'font-size:13px;font-weight:800}',
-            '.cnpwa-step p{margin:0;font-size:12.5px;font-weight:600;color:rgba(247,234,217,.9);line-height:1.9}',
-            '.cnpwa-step p small{display:block;font-weight:400;font-size:10.5px;color:rgba(247,234,217,.5)}',
+            '.cnpwa-step p{margin:0;font-size:12.5px;font-weight:600;color:color-mix(in srgb,'+B100+' 90%,transparent);line-height:1.9}',
+            '.cnpwa-step p small{display:block;font-weight:400;font-size:10.5px;color:color-mix(in srgb,'+B100+' 52%,transparent)}',
             '.cnpwa-sheet .cnpwa-btn{width:100%;margin-top:10px}',
 
             /* ---- توست ---- */
             '.cnpwa-toast{position:fixed;top:14px;left:50%;transform:translate(-50%,-90px);z-index:99999;',
             'direction:rtl;display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:16px;max-width:min(92vw,430px);',
-            'background:linear-gradient(155deg,rgba(46,28,10,.97),rgba(29,18,6,.98));color:#f7ead9;',
-            'border:1px solid rgba(226,186,133,.3);box-shadow:0 18px 48px rgba(0,0,0,.45);',
+            'background:linear-gradient(155deg,color-mix(in srgb,'+B900+' 76%,#15151f),color-mix(in srgb,'+B950+' 86%,#131118));color:#f7f4ef;',
+            'border:1px solid color-mix(in srgb,'+B300+' 30%,transparent);box-shadow:0 18px 48px rgba(0,0,0,.45);',
             'opacity:0;transition:transform .4s cubic-bezier(.2,.9,.25,1.2),opacity .4s ease}',
             '.cnpwa-toast.cnpwa-show{transform:translate(-50%,0);opacity:1}',
             '.cnpwa-toast .cnpwa-tico{width:34px;height:34px;border-radius:11px;flex:none;display:grid;place-items:center;',
             'background:rgba(52,211,153,.16);color:#6ee7b7}',
-            '.cnpwa-toast p{margin:0;font-size:12.5px;font-weight:700;color:#fdf8f3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+            '.cnpwa-toast p{margin:0;font-size:12.5px;font-weight:700;color:'+B50+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
             '.cnpwa-toast .cnpwa-btn{padding:9px 15px;font-size:11.5px;border-radius:11px;white-space:nowrap}'
         ].join('');
         var st = document.createElement('style');

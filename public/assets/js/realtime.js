@@ -103,6 +103,29 @@
         }
     }
 
+    /**
+     * v41 — ترک کانال (ضد زامبی در SPA):
+     * صفحات Livewire در هر ناوبری دوباره اجرا می‌شوند؛ اگر اشتراک چتِ سفارشِ
+     * قبلی نماند، رویدادش باز هم صفحهٔ قبلی را «بیدار» می‌کرد (درخواست API
+     * برای سفارشی که دیگر روی صفحه نیست). با ترک کانال، کالبدهایش هم پاک
+     * و کانال از پوشر unsubscribe می‌شود.
+     */
+    function leave(channel) {
+        if (!channel) { return; }
+        var prefix = channel + '::';
+        for (var key in boundChannels) {
+            if (Object.prototype.hasOwnProperty.call(boundChannels, key) && key.indexOf(prefix) === 0) {
+                delete boundChannels[key];
+            }
+        }
+        try {
+            if (client && client.channel) {
+                client.channel(String(channel)).unbind_all();
+                client.unsubscribe(String(channel));
+            }
+        } catch (e) { /* noop */ }
+    }
+
     /** کانال اعلان کاربر جاری (اگر پیکربندی شده) */
     function bindUser(event, cb) {
         if (!cfg.channel) { return false; }
@@ -120,6 +143,7 @@
     /* ---------- رابط عمومی ---------- */
     window.RT = {
         on: on,
+        leave: leave,
         bindUser: bindUser,
         active: active,
         connected: connectedNow,
@@ -136,9 +160,13 @@
                 if (i > -1) { stateCbs.splice(i, 1); }
             };
         },
-        /** برای اپ مشتری: پر کردن/ترکیب پیکربندی (مثلاً کانال از API) */
+        /** برای اپ مشتری: پر کردن/ترکیب پیکربندی (مثلاً کانال از API) — v41: ادغام امن */
         setup: function (newCfg) {
-            cfg = newCfg || {};
+            if (!newCfg) { return active(); }
+            var merged = {};
+            for (var k in cfg) { if (Object.prototype.hasOwnProperty.call(cfg, k)) { merged[k] = cfg[k]; } }
+            for (var k2 in newCfg) { if (Object.prototype.hasOwnProperty.call(newCfg, k2)) { merged[k2] = newCfg[k2]; } }
+            cfg = merged;
             return active();
         }
     };
