@@ -13,10 +13,11 @@ use App\Http\Controllers\Back\Admin\TrashController as TrashCtrl;
 */
 
 Route::middleware(['admin.access'])->group(function () {
-        Route::get('/', [App\Http\Controllers\Back\Admin\DashboardController::class, 'index'])
+        /* [Task 3-b] داشبورد → کامپوننت Livewire (منطق DashboardController@index منتقل شده) */
+        Route::get('/', \App\Livewire\Admin\Core\Dashboard::class)
             ->name('dashboard');
-        /* تنظیمات (AJAX) */
-        Route::get('settings', [App\Http\Controllers\Back\Admin\SettingsController::class, 'edit'])
+        /* تنظیمات (AJAX) — [Task 3-b] فرم/تب‌ها → Livewire؛ ذخیره و تست‌ها همان کنترلر */
+        Route::get('settings', \App\Livewire\Admin\Core\Settings::class)
             ->name('settings.edit');
         Route::put('settings', [App\Http\Controllers\Back\Admin\SettingsController::class, 'save'])
             ->name('settings.save');
@@ -49,8 +50,8 @@ Route::middleware(['admin.access'])->group(function () {
         Route::post('settings/notification/webpush-keys', [App\Http\Controllers\Back\Admin\SettingsController::class, 'regenerateWebpushKeys'])
             ->name('settings.notif-webpush.regenerate');
 
-        /* v38 — نمایشگر لاگ سیستمی لاراول (تنظیمات ← لاگ سیستمی) */
-        Route::get('settings/logs', [App\Http\Controllers\Back\Admin\SystemLogsController::class, 'index'])
+        /* v38 — نمایشگر لاگ سیستمی لاراول (تنظیمات ← لاگ سیستمی) — [Task 3-b] صفحه → Livewire */
+        Route::get('settings/logs', \App\Livewire\Admin\Core\SystemLogs::class)
             ->name('settings.logs');
         Route::get('settings/logs/data', [App\Http\Controllers\Back\Admin\SystemLogsController::class, 'data'])
             ->name('settings.logs.data');
@@ -65,8 +66,8 @@ Route::middleware(['admin.access'])->group(function () {
         Route::post('announcements/{announcement}/read', [App\Http\Controllers\Back\Shared\PanelAnnouncementsController::class, 'read'])
             ->whereNumber('announcement')->name('announcements.read');
 
-        /* اطلاعیه‌های سامانه (فاز ۱۵ — AJAX) */
-        Route::get('announcements', [App\Http\Controllers\Back\Admin\AnnouncementsController::class, 'index'])
+        /* اطلاعیه‌های سامانه (فاز ۱۵ — AJAX) — [Task 3-b] صفحه → Livewire shell */
+        Route::get('announcements', \App\Livewire\Admin\Core\Announcements::class)
             ->name('announcements.index');
         Route::get('announcements/data', [App\Http\Controllers\Back\Admin\AnnouncementsController::class, 'data'])
             ->name('announcements.data');
@@ -82,8 +83,8 @@ Route::middleware(['admin.access'])->group(function () {
             ->whereNumber('announcement')->name('announcements.destroy');
 
 
-        /* لاگ فعالیت (AJAX) */
-        Route::get('audit-logs', [App\Http\Controllers\Back\Admin\AuditLogsController::class, 'index'])
+        /* لاگ فعالیت (AJAX) — [Task 3-b] صفحه → Livewire (رندر سمت سرور) */
+        Route::get('audit-logs', \App\Livewire\Admin\Core\AuditLogs::class)
             ->name('audit.index');
         Route::get('audit-logs/data', [App\Http\Controllers\Back\Admin\AuditLogsController::class, 'data'])
             ->name('audit.data');
@@ -91,8 +92,8 @@ Route::middleware(['admin.access'])->group(function () {
         /* جغرافیا (مشترک پنل‌ها — سلکت آبشاری) */
         Route::get('geo/cities', [App\Http\Controllers\Back\GeoController::class, 'cities'])
             ->name('geo.cities');
-        /* ---------- فاز ۱۰ — قالب‌های پیامک ---------- */
-        Route::get('sms-templates', [App\Http\Controllers\Back\Admin\SmsTemplatesController::class, 'index'])
+        /* ---------- فاز ۱۰ — قالب‌های پیامک — [Task 3-b] صفحه → Livewire shell ---------- */
+        Route::get('sms-templates', \App\Livewire\Admin\Core\SmsTemplates::class)
             ->name('sms-templates.index');
         Route::get('sms-templates/data', [App\Http\Controllers\Back\Admin\SmsTemplatesController::class, 'data'])
             ->name('sms-templates.data');
@@ -103,8 +104,8 @@ Route::middleware(['admin.access'])->group(function () {
         Route::post('sms-templates/{template}/test', [App\Http\Controllers\Back\Admin\SmsTemplatesController::class, 'test'])
             ->whereNumber('template')->name('sms-templates.test');
 
-        /* ---------- v16 — لاگ پیامک‌های ارسال‌شده ---------- */
-        Route::get('sms-logs', [App\Http\Controllers\Back\Admin\SmsLogsController::class, 'index'])
+        /* ---------- v16 — لاگ پیامک‌های ارسال‌شده — [Task 3-b] صفحه → Livewire (رندر سمت سرور) ---------- */
+        Route::get('sms-logs', \App\Livewire\Admin\Core\SmsLogs::class)
             ->name('sms-logs.index');
         Route::get('sms-logs/data', [App\Http\Controllers\Back\Admin\SmsLogsController::class, 'data'])
             ->name('sms-logs.data');
@@ -122,14 +123,14 @@ Route::middleware(['admin.access'])->group(function () {
         Route::delete('push/token', [App\Http\Controllers\Back\PushTokenController::class, 'destroy'])
             ->name('push.token.destroy');
 
-        /* ---------- فاز ۱۳ — آموزش پنل (راهنماهای مدیر کل) ---------- */
-        Route::get('guide', [App\Http\Controllers\Back\Shared\GuideController::class, 'index'])
+        /* ---------- فاز ۱۳ — آموزش پنل (راهنماهای مدیر کل) — [Task 3-b] → Livewire ---------- */
+        Route::get('guide', \App\Livewire\Admin\Core\GuideIndex::class)
             ->name('guide.index')->defaults('guide_role', 'super_admin');
-        Route::get('guide/{slug}', [App\Http\Controllers\Back\Shared\GuideController::class, 'show'])
+        Route::get('guide/{slug}', \App\Livewire\Admin\Core\GuideShow::class)
             ->name('guide.show')->defaults('guide_role', 'super_admin');
 
-        /* ---------- فاز ۱۱ — وضعیت سیستم و مستندات API ---------- */
-        Route::get('system', [App\Http\Controllers\Back\Admin\SystemController::class, 'index'])
+        /* ---------- فاز ۱۱ — وضعیت سیستم و مستندات API — [Task 3-b] صفحه → Livewire ---------- */
+        Route::get('system', \App\Livewire\Admin\Core\System::class)
             ->name('system.index');
         Route::post('system/cleanup', [App\Http\Controllers\Back\Admin\SystemController::class, 'runCleanup'])
             ->name('system.cleanup');
@@ -137,6 +138,6 @@ Route::middleware(['admin.access'])->group(function () {
             ->name('system.retention');
         Route::post('system/encrypt', [App\Http\Controllers\Back\Admin\SystemController::class, 'encryptFiles'])
             ->name('system.encrypt');
-        Route::get('api-docs', [App\Http\Controllers\Back\Admin\ApiDocsController::class, 'index'])
+        Route::get('api-docs', \App\Livewire\Admin\Core\ApiDocs::class)
             ->name('api-docs.index');
     });

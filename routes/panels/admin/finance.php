@@ -13,8 +13,10 @@ use App\Http\Controllers\Back\Admin\TrashController as TrashCtrl;
 */
 
 Route::middleware(['admin.access'])->group(function () {
-        /* مدیریت برداشت‌ها (AJAX) */
-        Route::get('withdrawals', [App\Http\Controllers\Back\Admin\WithdrawalsController::class, 'index'])
+        /* مدیریت برداشت‌ها
+           [Task 3-e] صفحهٔ لیست = کامپوننت Livewire (admin.withdrawals.index)؛
+           data (AJAX قدیمی) و review (PATCH) همان کنترلر باقی می‌مانند */
+        Route::get('withdrawals', App\Livewire\Admin\Withdrawals\Index::class)
             ->name('withdrawals.index');
         Route::get('withdrawals/data', [App\Http\Controllers\Back\Admin\WithdrawalsController::class, 'data'])
             ->name('withdrawals.data');
@@ -22,8 +24,9 @@ Route::middleware(['admin.access'])->group(function () {
             ->name('withdrawals.review');
         /* ---------- فاز ۸ — مالی و کمیسیون ---------- */
 
-        /* قواعد کمیسیون (سراسری + اختصاصی خدمت) */
-        Route::get('commissions', [App\Http\Controllers\Back\Admin\CommissionRulesController::class, 'index'])
+        /* قواعد کمیسیون (سراسری + اختصاصی خدمت)
+           [Task 3-e] صفحهٔ لیست = کامپوننت Livewire؛ CRUD همان کنترلر */
+        Route::get('commissions', App\Livewire\Admin\Commissions\Index::class)
             ->name('commissions.index');
         Route::put('commissions/global', [App\Http\Controllers\Back\Admin\CommissionRulesController::class, 'saveGlobal'])
             ->name('commissions.global');
@@ -38,8 +41,9 @@ Route::middleware(['admin.access'])->group(function () {
         Route::delete('commissions/{commission}', [App\Http\Controllers\Back\Admin\CommissionRulesController::class, 'destroy'])
             ->whereNumber('commission')->name('commissions.destroy');
 
-        /* تسویه‌های کمیسیون */
-        Route::get('settlements', [App\Http\Controllers\Back\Admin\SettlementsController::class, 'index'])
+        /* تسویه‌های کمیسیون
+           [Task 3-e] صفحهٔ لیست = کامپوننت Livewire؛ order/retry همان کنترلر */
+        Route::get('settlements', App\Livewire\Admin\Settlements\Index::class)
             ->name('settlements.index');
         Route::get('settlements/data', [App\Http\Controllers\Back\Admin\SettlementsController::class, 'data'])
             ->name('settlements.data');
@@ -48,15 +52,17 @@ Route::middleware(['admin.access'])->group(function () {
         Route::post('settlements/order/{order}/retry', [App\Http\Controllers\Back\Admin\SettlementsController::class, 'retry'])
             ->whereNumber('order')->name('settlements.retry');
 
-        /* گزارش مالی جامع */
-        Route::get('finance', [App\Http\Controllers\Back\Admin\FinanceController::class, 'index'])
+        /* گزارش مالی جامع
+           [Task 3-e] صفحه = کامپوننت Livewire؛ data/export همان کنترلر */
+        Route::get('finance', App\Livewire\Admin\Finance\Index::class)
             ->name('finance.index');
         Route::get('finance/data', [App\Http\Controllers\Back\Admin\FinanceController::class, 'data'])
             ->name('finance.data');
         Route::get('finance/export', [App\Http\Controllers\Back\Admin\FinanceController::class, 'export'])
             ->name('finance.export');
         /* ---------- فاز ۹ — گزارش تحلیلی و نمودارها ---------- */
-        Route::get('analytics', [App\Http\Controllers\Back\Admin\AnalyticsController::class, 'index'])
+        /* [Task 3-e] صفحه = کامپوننت Livewire؛ data/export همان کنترلر */
+        Route::get('analytics', App\Livewire\Admin\Analytics\Index::class)
             ->name('analytics.index');
         Route::get('analytics/data', [App\Http\Controllers\Back\Admin\AnalyticsController::class, 'data'])
             ->name('analytics.data');
@@ -64,7 +70,8 @@ Route::middleware(['admin.access'])->group(function () {
             ->name('analytics.export');
 
         /* ---------- فاز ۱۰ — تیکت‌های پشتیبانی ---------- */
-        Route::get('tickets', [App\Http\Controllers\Back\Admin\TicketsController::class, 'index'])
+        /* [Task 3-e] صفحهٔ لیست = کامپوننت Livewire؛ data و trash همان کنترلر/TrashController */
+        Route::get('tickets', App\Livewire\Admin\Tickets\Index::class)
             ->name('tickets.index');
         Route::get('tickets/data', [App\Http\Controllers\Back\Admin\TicketsController::class, 'data'])
             ->name('tickets.data');
@@ -75,7 +82,9 @@ Route::middleware(['admin.access'])->group(function () {
         Route::post('tickets/{id}/restore', [TrashCtrl::class, 'restore'])->defaults('section', 'tickets')->whereNumber('id')->name('tickets.restore');
         Route::delete('tickets/{id}/purge', [TrashCtrl::class, 'purge'])->defaults('section', 'tickets')->whereNumber('id')->name('tickets.purge');
 
-        Route::get('tickets/{ticket}', [App\Http\Controllers\Back\Admin\TicketsController::class, 'show'])
+        /* [Task 3-e] صفحهٔ گفتگو = کامپوننت Livewire (shell) — reply/messages/status/
+           priority/assign همان کنترلر؛ سه عمل سادهٔ وضعیت/اولویت/ارجاع با متد Livewire */
+        Route::get('tickets/{ticket}', App\Livewire\Admin\Tickets\Show::class)
             ->whereNumber('ticket')->name('tickets.show');
         Route::post('tickets/{ticket}/reply', [App\Http\Controllers\Back\Admin\TicketsController::class, 'reply'])
             ->whereNumber('ticket')->name('tickets.reply');

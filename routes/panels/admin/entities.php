@@ -53,8 +53,8 @@ Route::middleware(['admin.access'])->group(function () {
         Route::get('organizations/{organization}', [App\Http\Controllers\Back\Admin\OrganizationsController::class, 'show'])
             ->name('organizations.show');
 
-        /* مدیریت کافی‌نت‌ها (AJAX) */
-        Route::get('coffeenets', [App\Http\Controllers\Back\Admin\CoffeenetsController::class, 'index'])
+        /* مدیریت کافی‌نت‌ها — [Task 3-d] صفحات GET → Livewire؛ data/store/update/status همان AJAX کنترلر */
+        Route::get('coffeenets', App\Livewire\Admin\Entities\CoffeenetsIndex::class)
             ->name('coffeenets.index');
         Route::get('coffeenets/data', [App\Http\Controllers\Back\Admin\CoffeenetsController::class, 'data'])
             ->name('coffeenets.data');
@@ -71,7 +71,7 @@ Route::middleware(['admin.access'])->group(function () {
             ->name('coffeenets.update');
         Route::patch('coffeenets/{coffeenet}/status', [App\Http\Controllers\Back\Admin\CoffeenetsController::class, 'status'])
             ->name('coffeenets.status');
-        Route::get('coffeenets/{coffeenet}', [App\Http\Controllers\Back\Admin\CoffeenetsController::class, 'show'])
+        Route::get('coffeenets/{coffeenet}', App\Livewire\Admin\Entities\CoffeenetsShow::class)
             ->name('coffeenets.show');
 
         /* روند کاری کافی‌نت (درخواست بازخوردی ۶-۲ — چارت بازه‌ای) */

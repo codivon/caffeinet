@@ -13,8 +13,10 @@ use App\Http\Controllers\Back\Admin\TrashController as TrashCtrl;
 */
 
 Route::middleware(['admin.access'])->group(function () {
-        /* ---------- مدیریت سفارش‌ها و موتور تخصیص (فاز ۶) ---------- */
-        Route::get('orders', [App\Http\Controllers\Back\Admin\OrdersController::class, 'index'])
+        /* ---------- مدیریت سفارش‌ها و موتور تخصیص (فاز ۶) ----------
+         * [Task 3-c] GET صفحه‌سازها → کامپوننت‌های Livewire 4 (با همان نام روت)؛
+         * endpointهای AJAX/POST/PATCH کنترلر حفظ شده‌اند تا JSهای فعلی نشکنند. */
+        Route::get('orders', App\Livewire\Admin\Orders\Index::class)
             ->name('orders.index');
         Route::get('orders/data', [App\Http\Controllers\Back\Admin\OrdersController::class, 'data'])
             ->name('orders.data');
@@ -31,7 +33,7 @@ Route::middleware(['admin.access'])->group(function () {
             ->name('orders.coffeenets');
         Route::get('orders/{order}', [App\Http\Controllers\Back\Admin\OrdersController::class, 'show'])
             ->whereNumber('order')->name('orders.show');
-        Route::get('orders/{order}/view', [App\Http\Controllers\Back\Admin\OrdersController::class, 'view'])
+        Route::get('orders/{order}/view', App\Livewire\Admin\Orders\View::class)
             ->whereNumber('order')->name('orders.view');
         Route::get('orders/{order}/operators', [App\Http\Controllers\Back\Admin\OrdersController::class, 'operators'])
             ->whereNumber('order')->name('orders.operators');
@@ -46,20 +48,25 @@ Route::middleware(['admin.access'])->group(function () {
         Route::patch('orders/{order}/cancel', [App\Http\Controllers\Back\Admin\OrdersController::class, 'cancel'])
             ->whereNumber('order')->name('orders.cancel');
 
-        /* ---------- گفتگوهای سفارش (مدیر کل — درخواست بازخوردی) ---------- */
-        Route::get('chats', [App\Http\Controllers\Back\Shared\OrderChatController::class, 'adminIndex'])
+        /* ---------- گفتگوهای سفارش (مدیر کل — درخواست بازخوردی) ----------
+         * [Task 3-c] فهرست گفتگوها Livewire کامل؛ صفحهٔ چت shell Livewire است
+         * و موتور polling/push قبلی (operator/chat/show.js) با endpointهای
+         * data/send/status حفظ شده است. */
+        Route::get('chats', App\Livewire\Admin\Chats\Index::class)
             ->name('chats.index');
         Route::get('chats/data', [App\Http\Controllers\Back\Shared\OrderChatController::class, 'adminData'])
             ->name('chats.data');
-        Route::get('orders/{order}/chat', [App\Http\Controllers\Back\Shared\OrderChatController::class, 'adminShow'])
+        Route::get('orders/{order}/chat', App\Livewire\Admin\Chats\Conversation::class)
             ->whereNumber('order')->name('orders.chat');
         Route::get('orders/{order}/chat/data', [App\Http\Controllers\Back\Shared\OrderChatController::class, 'adminMessages'])
             ->whereNumber('order')->name('orders.chat.data');
         Route::post('orders/{order}/chat/send', [App\Http\Controllers\Back\Shared\OrderChatController::class, 'adminSend'])
             ->whereNumber('order')->name('orders.chat.send');
 
-        /* ---------- نظرسنجی‌ها و امتیازها (v33 — مدیر کل) ---------- */
-        Route::get('ratings', [App\Http\Controllers\Back\Admin\RatingsController::class, 'index'])
+        /* ---------- نظرسنجی‌ها و امتیازها (v33 — مدیر کل) ----------
+         * [Task 3-c] صفحهٔ نظرسنجی → Livewire کامل (آمار + جدول + مدیریت گزینه‌ها)؛
+         * endpointهای data/stats/options کنترلر حفظ شده‌اند. */
+        Route::get('ratings', App\Livewire\Admin\Ratings\Index::class)
             ->name('ratings.index');
         Route::get('ratings/data', [App\Http\Controllers\Back\Admin\RatingsController::class, 'data'])
             ->name('ratings.data');
