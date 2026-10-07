@@ -254,6 +254,17 @@
         setTheme(currentTheme() === 'dark' ? 'light' : 'dark');
     });
 
+    /* [Task 8-fix] اعمال دوبارهٔ تم بعد از هر ناوبری SPA —
+       Livewire در هر ناوبری attributeهای <html> را با نسخهٔ سرور-رندر
+       (بدون کلاس dark) جایگزین می‌کند و تم می‌پرد. */
+    window.addEventListener('livewire:navigated', function () {
+        var stored = null;
+        try { stored = localStorage.getItem(THEME_KEY); } catch (e) { /* noop */ }
+        var dark = stored === 'dark' || (!stored && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.toggle('dark', dark);
+        syncToggleButtons();
+    });
+
     window.PanelUI = window.PanelUI || {};
     window.PanelUI.theme = {
         get: currentTheme,

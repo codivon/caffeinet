@@ -21,7 +21,8 @@ use Illuminate\Support\Facades\Route;
 
 
 
-Route::get('/', [LandingController::class, 'index'])->name('front.landing');
+/* [Task 8] صفحه فرود → کامپوننت Livewire (منطق عین LandingController::index) */
+Route::get('/', \App\Livewire\Front\Landing::class)->name('front.landing');
 
 /* ---------- v37 — بیکن حضور: «برنامه بسته شد» (pagehide) ----------
 | push-client.js روی همهٔ لایه‌ها با sendBeacon این مسیر را صدا می‌زند تا

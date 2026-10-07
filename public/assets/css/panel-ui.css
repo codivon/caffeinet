@@ -651,3 +651,93 @@ html.dark .presence-seen { color: #2563eb; }
     70%  { box-shadow: 0 0 0 0.5rem rgba(16, 185, 129, 0); }
     100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
+
+/* ============================================================
+   [Task 8] امضای برند «سافایر-ایریس» + بازخورد SPA
+   ============================================================ */
+:root {
+    --ui-brand-grad: linear-gradient(135deg, #2b6bff 0%, #6d4aff 100%);
+    --ui-ring: rgba(59, 99, 246, .3);
+}
+
+/* دکمهٔ اصلی پنل‌ها — گرادیان مدرن با گلو (روی تعریف کامپایل‌شده می‌نشیند) */
+.btn-primary {
+    background-image: var(--ui-brand-grad);
+    box-shadow: 0 6px 20px var(--ui-ring), inset 0 1px 0 rgba(255, 255, 255, .2);
+}
+.btn-primary:hover { box-shadow: 0 10px 26px rgba(59, 99, 246, .4), inset 0 1px 0 rgba(255, 255, 255, .2); }
+
+/* ---------- نوار پیشرفت ناوبری SPA ---------- */
+.spa-progress {
+    position: fixed;
+    top: 0;
+    inset-inline: 0;
+    z-index: 9999;
+    height: 3px;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(90deg, #2b6bff, #6d4aff, #38bdf8);
+    background-size: 220% 100%;
+    transform-origin: right; /* RTL */
+    border-start-end-radius: 999px;
+}
+.spa-progress--active {
+    opacity: 1;
+    animation: spaBarGrow 1.6s cubic-bezier(.2, .7, .3, 1) forwards,
+               spaBarFlow 1.1s linear infinite;
+}
+.spa-progress--done { animation: spaBarDone .38s ease-in forwards; }
+@keyframes spaBarGrow {
+    0%   { width: 0; }
+    22%  { width: 34%; }
+    55%  { width: 62%; }
+    82%  { width: 86%; }
+    100% { width: 94%; }
+}
+@keyframes spaBarFlow { 0% { background-position: 0% 0; } 100% { background-position: -220% 0; } }
+@keyframes spaBarDone {
+    0%   { width: 94%; opacity: 1; }
+    100% { width: 100%; opacity: 0; }
+}
+
+/* ---------- لودینگ روی دکمه‌ها تا پایان پردازش ---------- */
+.is-busy {
+    position: relative;
+    pointer-events: none;
+    opacity: .82;
+    padding-inline-end: calc(0.9rem + 20px) !important;
+}
+.is-busy::after {
+    content: '';
+    position: absolute;
+    inset-inline-end: .9rem;
+    top: 50%;
+    width: 15px;
+    height: 15px;
+    margin-top: -7.5px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    opacity: .95;
+    animation: cnBusySpin .65s linear infinite;
+}
+.is-busy.btn-block::after,
+.is-busy.w-full::after {
+    inset-inline-start: 50%;
+    inset-inline-end: auto;
+    margin-inline-start: -7.5px;
+}
+@keyframes cnBusySpin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+    .spa-progress--active,
+    .spa-progress--done { animation-duration: .01ms; animation-iteration-count: 1; }
+    .is-busy::after { animation-duration: 1.4s; }
+}
+
+/* دکمهٔ برند لاگین پنل‌ها — همان امضای گرادیان */
+.brand-btn {
+    background-image: var(--ui-brand-grad);
+    box-shadow: 0 8px 22px var(--ui-ring), inset 0 1px 0 rgba(255, 255, 255, .2);
+}
+.brand-btn:hover { box-shadow: 0 12px 28px rgba(59, 99, 246, .4), inset 0 1px 0 rgba(255, 255, 255, .2); }

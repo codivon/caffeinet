@@ -201,3 +201,74 @@ window.App.onNavigate(() => {
 
 // اعلان آماده‌سازی (این فایل به‌صورت classic script پیش از اسکریپت‌های صفحه اجرا می‌شود)
 window.dispatchEvent(new Event('app:ready'));
+
+/* ============================================================
+   [Task 8] بازخورد SPA در پنل‌ها — نوار پیشرفت ناوبری + لودینگ دکمه‌ها
+   ============================================================ */
+
+/* ---------- ۱) نوار پیشرفت بالای صفحه هنگام ناوبری ---------- */
+(function () {
+    let bar = null, hideTimer = null;
+
+    function start() {
+        if (!bar) {
+            bar = document.createElement('div');
+            bar.className = 'spa-progress';
+            bar.setAttribute('aria-hidden', 'true');
+            (document.body || document.documentElement).appendChild(bar);
+        }
+        clearTimeout(hideTimer);
+        bar.classList.remove('spa-progress--done');
+        bar.classList.remove('spa-progress--active');
+        void bar.offsetWidth; // ری‌استارت انیمیشن
+        bar.classList.add('spa-progress--active');
+    }
+
+    function done() {
+        if (!bar || !bar.classList.contains('spa-progress--active')) { return; }
+        bar.classList.add('spa-progress--done');
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => { if (bar) { bar.classList.remove('spa-progress--active', 'spa-progress--done'); } }, 420);
+    }
+
+    window.addEventListener('livewire:navigate', start);
+    window.addEventListener('alpine:navigate', start);
+    window.addEventListener('livewire:navigated', done);
+})();
+
+/* ---------- ۲) لودینگ روی دکمه‌ها تا پایان پردازش ----------
+   • درخواست jQuery (ajaxStart..ajaxStop) → کلاس is-busy تا پایان
+   • اکشن فوری (مودال/تب) → آزادسازی بعد از ۳۵۰ms بدون چشمک
+   • مستثناها: data-no-loading، سوییچ تم، زنگ اعلان، چیپ‌های فیلتر */
+(function () {
+    let busyBtn = null, busyTimer = null, busyAjax = 0;
+
+    function release() {
+        clearTimeout(busyTimer);
+        if (busyBtn) {
+            busyBtn.classList.remove('is-busy');
+            busyBtn.removeAttribute('aria-busy');
+            busyBtn = null;
+        }
+    }
+
+    document.addEventListener('click', (e) => {
+        const el = e.target.closest('button, [role="button"], .btn, a[class*="btn-"], a.ln');
+        if (!el || el.disabled) { return; }
+        if (el.hasAttribute('data-no-loading') || el.hasAttribute('data-theme-toggle') || el.hasAttribute('data-nb-toggle')) { return; }
+        if (el.classList.contains('chip') || el.classList.contains('ui-tab')) { return; }
+        if (el.tagName === 'A' && el.getAttribute('wire:navigate') !== null) { return; }
+        if (el.classList.contains('is-busy')) { return; }
+        release();
+        busyBtn = el;
+        el.classList.add('is-busy');
+        el.setAttribute('aria-busy', 'true');
+        clearTimeout(busyTimer);
+        busyTimer = setTimeout(() => { if (busyAjax === 0) { release(); } }, 350);
+    }, true);
+
+    if (window.jQuery) {
+        window.jQuery(document).ajaxStart(() => { busyAjax++; clearTimeout(busyTimer); });
+        window.jQuery(document).ajaxStop(() => { busyAjax = 0; if (busyBtn) { release(); } });
+    }
+})();

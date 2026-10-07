@@ -512,6 +512,94 @@ window.CN = (function ($) {
         navQueue.forEach(function (fn) { runOnNavigate(fn); });
     });
 
+    /* ---------- [Task 8] بازخورد ناوبری SPA ----------
+       ۱) نوار پیشرفت بالای صفحه از شروع واکشی (livewire:navigate) تا جایگذینی
+       ۲) اعمال دوبارهٔ تم — Livewire در هر ناوبری attributeهای <html> را با
+          نسخهٔ سرور-رندر (بدون کلاس dark) جایگزین می‌کند و تم می‌پرد؛
+          بعد از هر ناوبری تم از localStorage/سیستم دوباره اعمال می‌شود. */
+    var spaBar = null, spaHideTimer = null;
+
+    function spaProgressStart() {
+        if (!spaBar) {
+            spaBar = document.createElement('div');
+            spaBar.className = 'spa-progress';
+            spaBar.setAttribute('aria-hidden', 'true');
+            (document.body || document.documentElement).appendChild(spaBar);
+        }
+        window.clearTimeout(spaHideTimer);
+        spaBar.classList.remove('spa-progress--done');
+        spaBar.classList.remove('spa-progress--active');
+        void spaBar.offsetWidth; /* ری‌استارت انیمیشن */
+        spaBar.classList.add('spa-progress--active');
+    }
+
+    function spaProgressDone() {
+        if (!spaBar || !spaBar.classList.contains('spa-progress--active')) { return; }
+        spaBar.classList.add('spa-progress--done');
+        window.clearTimeout(spaHideTimer);
+        spaHideTimer = window.setTimeout(function () {
+            if (spaBar) { spaBar.classList.remove('spa-progress--active', 'spa-progress--done'); }
+        }, 420);
+    }
+
+    window.addEventListener('livewire:navigate', spaProgressStart);
+    window.addEventListener('alpine:navigate', spaProgressStart);
+    window.addEventListener('livewire:navigated', spaProgressDone);
+
+    function reapplyThemeAfterNavigation() {
+        var stored = null;
+        try { stored = window.localStorage.getItem(THEME_KEY); } catch (e) { /* noop */ }
+        var dark = stored === 'dark' || (!stored && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.toggle('dark', dark);
+    }
+
+    window.addEventListener('livewire:navigated', function () {
+        reapplyThemeAfterNavigation();
+        syncThemeButtons();
+    });
+
+    /* ---------- [Task 8] لودینگ روی دکمه‌ها تا پایان پردازش ----------
+       هر دکمهٔ کلیک‌شده کلاس is-busy می‌گیرد:
+       • اگر درخواست AJAX واقعی شروع شود (CN.api همه jQuery است) تا ajaxStop می‌ماند
+       • اگر اکشن فوری باشد (بازکردن مودال/تب) بعد از ۳۵۰ms آزاد می‌شود تا چشمک زنده نگیرد
+       • لینک‌های wire:navigate و سوییچ‌های فوری (تم/زنگ/چیپ) مستثنا هستند */
+    var busyBtn = null, busyTimer = null, busyAjax = 0;
+
+    function busyRelease() {
+        window.clearTimeout(busyTimer);
+        if (busyBtn) {
+            busyBtn.classList.remove('is-busy');
+            busyBtn.removeAttribute('aria-busy');
+            busyBtn = null;
+        }
+    }
+
+    $(document).on('click', 'button, [role="button"], .btn, a[class*="btn-"]', function () {
+        var el = this;
+        if (!el || el.disabled) { return; }
+        if (el.hasAttribute('data-no-loading') || el.hasAttribute('data-theme-toggle') || el.id === 'appBell') { return; }
+        if (el.classList.contains('chip') || el.classList.contains('ns-item') || el.classList.contains('ns-markall')) { return; }
+        if (el.tagName === 'A' && el.getAttribute('wire:navigate') !== null) { return; }
+        if (el.classList.contains('is-busy')) { return; }
+        busyRelease();
+        busyBtn = el;
+        el.classList.add('is-busy');
+        el.setAttribute('aria-busy', 'true');
+        window.clearTimeout(busyTimer);
+        busyTimer = window.setTimeout(function () {
+            if (busyAjax === 0) { busyRelease(); } /* اکشن فوری — بدون AJAX */
+        }, 350);
+    });
+
+    $(document).ajaxStart(function () {
+        busyAjax++;
+        window.clearTimeout(busyTimer);
+    });
+    $(document).ajaxStop(function () {
+        busyAjax = 0;
+        if (busyBtn) { busyRelease(); }
+    });
+
     /* [Task 2-a] آیتم فعال ناوبری پایین بعد از هر ناوبری تازه شود
        (bottom-nav با @persist حفظ می‌شود و کلاس active سروری کهنه می‌ماند) */
     function refreshBottomNavActive() {

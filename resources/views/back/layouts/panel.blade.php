@@ -20,7 +20,7 @@
 
     {{-- استایل و اسکریپت — کاملاً بدون Node / بدون بیلد --}}
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v=14">
-    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=16">
+    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=17">
     <link rel="stylesheet" href="{{ asset('assets/css/pages/admin.css') }}?v=24">
     {{-- زنگ اعلان (فاز ۱۰) — قبل از theme --}}
     <link rel="stylesheet" href="{{ asset('assets/css/notifications.css') }}?v=14">
@@ -229,8 +229,8 @@
 <script src="{{ asset('assets/js/vendor/jquery.min.js') }}?v=10" data-navigate-once></script>
 <script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1" data-navigate-once></script>
 <script src="{{ asset('assets/js/realtime.js') }}?v=2" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(auth()->user()))'></script>
-<script src="{{ asset('back/assets/js/core.js') }}?v=13" data-navigate-once></script>
-<script src="{{ asset('back/assets/js/ui.js') }}?v=10" data-navigate-once></script>
+<script src="{{ asset('back/assets/js/core.js') }}?v=14" data-navigate-once></script>
+<script src="{{ asset('back/assets/js/ui.js') }}?v=11" data-navigate-once></script>
 <script src="{{ asset('back/assets/js/pages/layout.js') }}?v=13" data-navigate-once></script>
 {{-- اطلاعیه‌های پنل (فاز ۱۵) — بدون once (ری‌ران امن؛ بدون interval) --}}
 <script src="{{ asset('back/assets/js/pages/panel-announcements.js') }}?v=15"></script>

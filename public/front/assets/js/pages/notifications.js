@@ -1,21 +1,24 @@
 /* اپ مشتری — زنگ اعلان‌ها (فاز ۱۰)
    پولینگ بج هر ۲۵ ثانیه + شیت پایین اعلان‌ها + علامت‌گذاری خوانده‌شده
-   global CN, jQuery */
+   global CN, jQuery
+
+   [Task 8-fix] سازگاری SPA (wire:navigate):
+   • اسکریپت data-navigate-once است و فقط یک‌بار اجرا می‌شود؛ پس عناصر
+     «کش» نمی‌شوند — هر بار از DOM تازه خوانده می‌شوند (شیت/لیست در هر
+     ناوبری از نو رندر می‌شوند و نسخهٔ کش‌شده از DOM جدا می‌شد = شیت مرده).
+   • همهٔ رویدادها delegate روی document هستند تا با تعویض نودها زنده بمانند
+     (دکمهٔ زنگ داخل @persist و شیت خارج آن است).
+   • بعد از هر ناوبری بج بلافاصله تازه می‌شود. */
 (function ($) {
     'use strict';
 
     var POLL_MS = 25000;
-    var $btn = $('#appBell');
-    var $badge = $('#appBellBadge');
-    var $sheet = $('#appNotifSheet');
-    var $overlay = $('#appNotifOverlay');
-    var $list = $('#appNotifList');
-    var $count = $('#appNotifCount');
-    var $markAll = $('#appNotifMarkAll');
     var isOpen = false;
     var loading = false;
 
-    if (!$btn.length || !CN.token()) { return; }
+    /* ---------- عناصر — همیشه تازه از DOM (بدون کش) ---------- */
+    function el(id) { return document.getElementById(id); }
+    function $el(id) { return $('#' + id); }
 
     var ICONS = {
         order: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>',
@@ -27,6 +30,8 @@
 
     function setBadge(count) {
         count = Math.max(0, count | 0);
+        var $badge = $el('appBellBadge');
+        if (!$badge.length) { return; }
         if (count > 0) {
             $badge.text(count > 99 ? '۹۹+' : CN.toFaDigits(count));
             $badge.addClass('on');
@@ -49,27 +54,39 @@
         if (!document.hidden) { poll(); }
     });
 
+    /* [Task 8-fix] بعد از هر ناوبری SPA بج تازه شود */
+    window.addEventListener('livewire:navigated', function () {
+        isOpen = false; // شیت صفحهٔ تازه هنوز بسته است
+        loading = false;
+        poll();
+    });
+
     /* ---------- شیت ---------- */
     function openSheet() {
+        var $sheet = $el('appNotifSheet'), $overlay = $el('appNotifOverlay'), $btn = $el('appBell');
+        if (!$sheet.length) { return; }
         isOpen = true;
         $sheet.addClass('open');
         $overlay.addClass('show');
-        $btn.attr('aria-expanded', 'true');
+        if ($btn.length) { $btn.attr('aria-expanded', 'true'); }
         loadList();
+        bindDeviceBtn(); // دکمهٔ پوش داخل شیت است — در هر بازشدن اتصال تازه چک شود
     }
 
     function closeSheet() {
+        var $sheet = $el('appNotifSheet'), $overlay = $el('appNotifOverlay'), $btn = $el('appBell');
         isOpen = false;
         $sheet.removeClass('open');
         $overlay.removeClass('show');
-        $btn.attr('aria-expanded', 'false');
+        if ($btn.length) { $btn.attr('aria-expanded', 'false'); }
     }
 
-    $btn.on('click', function () {
+    /* ---------- رویدادها — delegate (ضد نودِ مرده در SPA) ---------- */
+    $(document).on('click', '#appBell', function () {
         if (isOpen) { closeSheet(); } else { openSheet(); }
     });
 
-    $overlay.on('click', closeSheet);
+    $(document).on('click', '#appNotifOverlay', closeSheet);
 
     $(document).on('keydown.appNotif', function (e) {
         if (e.key === 'Escape' && isOpen) { closeSheet(); }
@@ -93,6 +110,7 @@
     function loadList() {
         if (loading) { return; }
         loading = true;
+        var $list = $el('appNotifList'), $count = $el('appNotifCount'), $markAll = $el('appNotifMarkAll');
         $list.html('<div class="ns-loading"><span class="spinner"></span></div>');
 
         CN.api('/notifications', {
@@ -114,25 +132,6 @@
                 $list.html(rows.map(itemHtml).join(''));
                 $count.text(unread ? CN.toFaDigits(unread) + ' جدید' : '');
                 $markAll.prop('disabled', unread === 0);
-
-                $list.find('.ns-item').on('click', function () {
-                    var $item = $(this);
-                    var id = $item.data('id');
-                    var url = $item.data('url');
-
-                    CN.api('/notifications/read', {
-                        method: 'POST',
-                        data: { id: id },
-                        success: function () { /* noop */ }
-                    });
-
-                    if (url) {
-                        window.location.href = CN.withPort(url);
-                    } else {
-                        $item.removeClass('unread');
-                        poll();
-                    }
-                });
             },
             error: function () {
                 loading = false;
@@ -141,8 +140,34 @@
         });
     }
 
-    $markAll.on('click', function () {
-        $(this).prop('disabled', true);
+    /* کلیک آیتم‌ها — delegate روی لیست (برای محتوای داینامیک) */
+    $(document).on('click', '#appNotifList .ns-item', function () {
+        var $item = $(this);
+        var id = $item.data('id');
+        var url = $item.data('url');
+
+        CN.api('/notifications/read', {
+            method: 'POST',
+            data: { id: id },
+            success: function () { /* noop */ }
+        });
+
+        if (url) {
+            // [Task 8-fix] ناوبری SPA اگر در دسترس است، وگرنه هدایت کامل
+            if (window.Livewire && typeof window.Livewire.navigate === 'function') {
+                window.Livewire.navigate(CN.withPort(url));
+            } else {
+                window.location.href = CN.withPort(url);
+            }
+        } else {
+            $item.removeClass('unread');
+            poll();
+        }
+    });
+
+    $(document).on('click', '#appNotifMarkAll', function () {
+        var $btn = $(this);
+        $btn.prop('disabled', true);
         CN.api('/notifications/read', {
             method: 'POST',
             data: {},
@@ -160,19 +185,15 @@
     document.addEventListener('cn:push', function () { poll(); });
 
     /* ---------- v25: دکمهٔ «نوتیف دستگاه» (Web Push) ----------
-       CNPush از push-client.js (defer) می‌آید — با readyState چک می‌کنیم. */
+       CNPush از push-client.js (defer) می‌آید — [Task 8-fix] اتصال تنبل:
+       شیت در هر ناوبری از نو ساخته می‌شود، پس در هر بازشدنِ شیت دوباره
+       بررسی می‌شود (با گارد data-bound تا دوباره اتصال نزند). */
     function bindDeviceBtn() {
-        var $btn = $('#appPushBtn');
-        if (!$btn.length || !window.CNPush) { return; }
-        CNPush.bindButton($btn[0]);
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function () {
-            setTimeout(bindDeviceBtn, 60); // بعد از اسکریپت‌های defer
-        });
-    } else {
-        setTimeout(bindDeviceBtn, 60);
+        var btn = el('appPushBtn');
+        if (!btn || !window.CNPush) { return; }
+        if (btn.getAttribute('data-bound') === '1') { return; }
+        btn.setAttribute('data-bound', '1');
+        CNPush.bindButton(btn);
     }
 
     /* ---------- Realtime پوشر (فاز ۱۳) — بیدارباش زنگ ----------

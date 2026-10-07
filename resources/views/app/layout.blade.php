@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap">
 
     {{-- استایل مستقل (بدون نیاز به بیلد Node) --}}
-    <link rel="stylesheet" href="{{ asset('front/assets/css/app.css') }}?v=23">
+    <link rel="stylesheet" href="{{ asset('front/assets/css/app.css') }}?v=25">
     {{-- تقویم/دیت‌پیکر شمسی (CNJdp) --}}
     <link rel="stylesheet" href="{{ asset('assets/css/jalali-datepicker.css') }}?v=3">
     {{-- Livewire [Task 2-a] — SPA (wire:navigate) --}}
@@ -133,11 +133,11 @@
 <script src="{{ asset('assets/js/vendor/jquery.min.js') }}" data-navigate-once></script>
 <script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1" data-navigate-once></script>
 <script src="{{ asset('assets/js/realtime.js') }}?v=2" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(null))'></script>
-<script src="{{ asset('front/assets/js/core.js') }}?v=6" data-navigate-once defer></script>
+<script src="{{ asset('front/assets/js/core.js') }}?v=7" data-navigate-once defer></script>
 <script src="{{ asset('assets/js/jalali-datepicker.js') }}?v=3" defer></script>
 {{-- نوتیف دستگاه (v26: پیش‌فرض/پوشر/فایربیس) — پیکربندی از PushManager؛ اپ مشتری از CN.api برای ثبت استفاده می‌کند --}}
 <script src="{{ asset('assets/js/push/push-client.js') }}?v=7" defer data-push-config='@json(app(\App\Services\Push\PushManager::class)->clientConfig(auth()->user()))'></script>
-<script src="{{ asset('front/assets/js/pages/notifications.js') }}?v=4" data-navigate-once defer></script>
+<script src="{{ asset('front/assets/js/pages/notifications.js') }}?v=5" data-navigate-once defer></script>
 <script src="{{ asset('front/assets/js/pages/announcements.js') }}?v=15" defer></script>
 
 {{-- Livewire [Task 2-a] --}}
