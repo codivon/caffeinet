@@ -4,11 +4,16 @@
 |--------------------------------------------------------------------------
 | پنل کافی‌نت (/coffeenet)
 |--------------------------------------------------------------------------
+| [فاز ۴ — مهاجرت Livewire] صفحات GET به کامپوننت‌های Livewire تبدیل شدند
+| (کامنت [Task 4])؛ نام‌ها و مسیرهای روت بدون تغییر مانده‌اند. endpointهای
+| POST/PATCH/PUT/DELETE و GETهای data/badge/messages کنترلر دست‌نخورده‌اند.
 */
 
 Route::prefix('coffeenet')->name('coffeenet.')->group(function () {
 
-    Route::get('login', [App\Http\Controllers\Back\Coffeenet\AuthController::class, 'showLogin'])
+    /* [Task 4] فرم ورود → کامپوننت Livewire (منطق AuthController@showLogin/login منتقل شده)؛
+       POST fallback همان‌جا می‌ماند. */
+    Route::get('login', \App\Livewire\Coffeenet\Auth\Login::class)
         ->name('login');
     Route::post('login', [App\Http\Controllers\Back\Coffeenet\AuthController::class, 'login'])
         ->name('login.attempt');
@@ -30,11 +35,12 @@ Route::prefix('coffeenet')->name('coffeenet.')->group(function () {
             return redirect()->route('coffeenet.dashboard', ['coffeenet' => $current]);
         })->name('home');
 
-        Route::get('{coffeenet}/dashboard', [App\Http\Controllers\Back\Coffeenet\DashboardController::class, 'index'])
+        /* [Task 4] داشبورد → کامپوننت Livewire (منطق DashboardController@index منتقل شده) */
+        Route::get('{coffeenet}/dashboard', \App\Livewire\Coffeenet\Core\Dashboard::class)
             ->name('dashboard');
 
-        /* کارمندان (AJAX) */
-        Route::get('{coffeenet}/staff', [App\Http\Controllers\Back\Coffeenet\StaffController::class, 'index'])
+        /* کارمندان (AJAX) — [Task 4] فرم/لیست → Livewire؛ ذخیره/ویرایش/فعال‌سازی همان کنترلر */
+        Route::get('{coffeenet}/staff', \App\Livewire\Coffeenet\Staff\Index::class)
             ->name('staff.index');
         Route::get('{coffeenet}/staff/data', [App\Http\Controllers\Back\Coffeenet\StaffController::class, 'data'])
             ->name('staff.data');
@@ -45,24 +51,25 @@ Route::prefix('coffeenet')->name('coffeenet.')->group(function () {
         Route::patch('{coffeenet}/staff/{assignment}/toggle', [App\Http\Controllers\Back\Coffeenet\StaffController::class, 'toggle'])
             ->name('staff.toggle');
 
-        /* حقوق و دستمزد (AJAX) */
-        Route::get('{coffeenet}/salaries', [App\Http\Controllers\Back\Coffeenet\SalariesController::class, 'index'])
+        /* حقوق و دستمزد (AJAX) — [Task 4] لیست → Livewire؛ ثبت همان کنترلر */
+        Route::get('{coffeenet}/salaries', \App\Livewire\Coffeenet\Salaries\Index::class)
             ->name('salaries.index');
         Route::get('{coffeenet}/salaries/data', [App\Http\Controllers\Back\Coffeenet\SalariesController::class, 'data'])
             ->name('salaries.data');
         Route::post('{coffeenet}/salaries', [App\Http\Controllers\Back\Coffeenet\SalariesController::class, 'store'])
             ->name('salaries.store');
 
-        /* تنظیمات کافی‌نت (AJAX) */
-        Route::get('{coffeenet}/settings', [App\Http\Controllers\Back\Coffeenet\SettingsController::class, 'index'])
+        /* تنظیمات کافی‌نت (AJAX) — [Task 4] فرم/تب‌ها → Livewire؛ ذخیره همان کنترلر */
+        Route::get('{coffeenet}/settings', \App\Livewire\Coffeenet\Settings\Index::class)
             ->name('settings.index');
         Route::put('{coffeenet}/settings', [App\Http\Controllers\Back\Coffeenet\SettingsController::class, 'update'])
             ->name('settings.update');
         Route::put('{coffeenet}/settings/password', [App\Http\Controllers\Back\Coffeenet\SettingsController::class, 'password'])
             ->name('settings.password');
 
-        /* سفارش‌ها و پخش زنده (فاز ۶) */
-        Route::get('{coffeenet}/orders', [App\Http\Controllers\Back\Coffeenet\OrdersController::class, 'index'])
+        /* سفارش‌ها و پخش زنده (فاز ۶) — [Task 4] صفحه → Livewire (فیلتر/جدول server-side)؛
+           برد پخش زنده همان JS + endpointهای قبلی */
+        Route::get('{coffeenet}/orders', \App\Livewire\Coffeenet\Orders\Index::class)
             ->name('orders.index');
         Route::get('{coffeenet}/orders/broadcast/data', [App\Http\Controllers\Back\Coffeenet\OrdersController::class, 'broadcastData'])
             ->name('orders.broadcast.data');
@@ -78,11 +85,13 @@ Route::prefix('coffeenet')->name('coffeenet.')->group(function () {
             ->whereNumber('order')->name('orders.status');
 
         /* ---------- گفتگوهای سفارش (مدیر کافی‌نت — درخواست بازخوردی) ---------- */
-        Route::get('{coffeenet}/chats', [App\Http\Controllers\Back\Shared\OrderChatController::class, 'coffeenetIndex'])
+        /* [Task 4] فهرست گفتگوها → Livewire؛ data/send همان کنترلر */
+        Route::get('{coffeenet}/chats', \App\Livewire\Coffeenet\Chats\Index::class)
             ->name('chats.index');
         Route::get('{coffeenet}/chats/data', [App\Http\Controllers\Back\Shared\OrderChatController::class, 'coffeenetData'])
             ->name('chats.data');
-        Route::get('{coffeenet}/orders/{order}/chat', [App\Http\Controllers\Back\Shared\OrderChatController::class, 'coffeenetShow'])
+        /* [Task 4] صفحهٔ گفتگو → Shell Livewire + موتور chat قبلی (منطق coffeenetShow منتقل شده) */
+        Route::get('{coffeenet}/orders/{order}/chat', \App\Livewire\Coffeenet\Chats\Conversation::class)
             ->whereNumber('order')->name('orders.chat');
         Route::get('{coffeenet}/orders/{order}/chat/data', [App\Http\Controllers\Back\Shared\OrderChatController::class, 'coffeenetMessages'])
             ->whereNumber('order')->name('orders.chat.data');
@@ -90,7 +99,8 @@ Route::prefix('coffeenet')->name('coffeenet.')->group(function () {
             ->whereNumber('order')->name('orders.chat.send');
 
         /* ---------- نظرسنجی‌های کافی‌net (v33 — فقط دیدن نظرات خودش) ---------- */
-        Route::get('{coffeenet}/ratings', [App\Http\Controllers\Back\Admin\RatingsController::class, 'coffeenetIndex'])
+        /* [Task 4] فهرست نظرسنجی‌ها → Livewire؛ data/stats همان کنترلر */
+        Route::get('{coffeenet}/ratings', \App\Livewire\Coffeenet\Ratings\Index::class)
             ->name('ratings.index');
         Route::get('{coffeenet}/ratings/data', [App\Http\Controllers\Back\Admin\RatingsController::class, 'data'])
             ->name('ratings.data');
@@ -102,12 +112,14 @@ Route::prefix('coffeenet')->name('coffeenet.')->group(function () {
             ->name('geo.cities');
 
         /* ---------- فاز ۸ — کیف پول و برداشت کافی‌نت ---------- */
-        Route::get('{coffeenet}/wallet', [App\Http\Controllers\Back\Coffeenet\WalletController::class, 'index'])
+        /* [Task 4] کیف پول → Livewire؛ data همان کنترلر */
+        Route::get('{coffeenet}/wallet', \App\Livewire\Coffeenet\Wallet\Index::class)
             ->name('wallet.index');
         Route::get('{coffeenet}/wallet/data', [App\Http\Controllers\Back\Coffeenet\WalletController::class, 'data'])
             ->name('wallet.data');
 
-        Route::get('{coffeenet}/withdrawals', [App\Http\Controllers\Back\Coffeenet\WithdrawalsController::class, 'index'])
+        /* [Task 4] برداشت‌ها → Livewire؛ data/store همان کنترلر */
+        Route::get('{coffeenet}/withdrawals', \App\Livewire\Coffeenet\Withdrawals\Index::class)
             ->name('withdrawals.index');
         Route::get('{coffeenet}/withdrawals/data', [App\Http\Controllers\Back\Coffeenet\WithdrawalsController::class, 'data'])
             ->name('withdrawals.data');
@@ -115,11 +127,12 @@ Route::prefix('coffeenet')->name('coffeenet.')->group(function () {
             ->name('withdrawals.store');
 
         /* ---------- فاز ۱۰ — تیکت‌های پشتیبانی کافی‌نت ---------- */
-        Route::get('{coffeenet}/tickets', [App\Http\Controllers\Back\Coffeenet\TicketsController::class, 'index'])
+        /* [Task 4] فهرست و گفتگو → Livewire؛ data/reply/messages/status همان کنترلر */
+        Route::get('{coffeenet}/tickets', \App\Livewire\Coffeenet\Tickets\Index::class)
             ->name('tickets.index');
         Route::get('{coffeenet}/tickets/data', [App\Http\Controllers\Back\Coffeenet\TicketsController::class, 'data'])
             ->name('tickets.data');
-        Route::get('{coffeenet}/tickets/{ticket}', [App\Http\Controllers\Back\Coffeenet\TicketsController::class, 'show'])
+        Route::get('{coffeenet}/tickets/{ticket}', \App\Livewire\Coffeenet\Tickets\Show::class)
             ->whereNumber('ticket')->name('tickets.show');
         Route::post('{coffeenet}/tickets/{ticket}/reply', [App\Http\Controllers\Back\Coffeenet\TicketsController::class, 'reply'])
             ->whereNumber('ticket')->name('tickets.reply');
@@ -129,8 +142,9 @@ Route::prefix('coffeenet')->name('coffeenet.')->group(function () {
             ->whereNumber('ticket')->name('tickets.status');
 
         /* ---------- v39 — کارت‌های بانکی مدیر کافی‌نت ---------- */
-        Route::get('{coffeenet}/bank-cards', [App\Http\Controllers\Back\Shared\BankCardsController::class, 'index'])
-            ->defaults('view', 'back.coffeenet.bank-cards.index')->name('bank-cards.index');
+        /* [Task 4] صفحه → Shell Livewire + UI مشترک سه پنل؛ CRUD همان کنترلر */
+        Route::get('{coffeenet}/bank-cards', \App\Livewire\Coffeenet\BankCards\Index::class)
+            ->name('bank-cards.index');
         Route::get('{coffeenet}/bank-cards/data', [App\Http\Controllers\Back\Shared\BankCardsController::class, 'data'])
             ->name('bank-cards.data');
         Route::post('{coffeenet}/bank-cards', [App\Http\Controllers\Back\Shared\BankCardsController::class, 'store'])
@@ -161,7 +175,6 @@ Route::prefix('coffeenet')->name('coffeenet.')->group(function () {
             ->name('announcements.pending');
         Route::post('announcements/{announcement}/read', [App\Http\Controllers\Back\Shared\PanelAnnouncementsController::class, 'read'])
             ->whereNumber('announcement')->name('announcements.read');
-        /* ---------- فاز ۱۳ — آموزش پنل (راهنماهای مدیر کافی‌نت) ---------- */
         /* ---------- فاز ۱۳ — آموزش پنل (راهنماهای مدیر کافی‌نت) ---------- */
         Route::get('{coffeenet}/guide', [App\Http\Controllers\Back\Shared\GuideController::class, 'index'])
             ->whereNumber('coffeenet')->name('guide.index')->defaults('guide_role', 'coffeenet');

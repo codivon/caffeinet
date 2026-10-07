@@ -8,7 +8,8 @@
 
 Route::prefix('organization')->name('org.')->group(function () {
 
-    Route::get('login', [App\Http\Controllers\Back\Org\AuthController::class, 'showLogin'])
+    /* [Task 6] ورود → کامپوننت Livewire (منطق showLogin/login AuthController منتقل شده؛ POST attempt همان کنترلر) */
+    Route::get('login', \App\Livewire\Org\Auth\Login::class)
         ->name('login');
     Route::post('login', [App\Http\Controllers\Back\Org\AuthController::class, 'login'])
         ->name('login.attempt');
@@ -22,25 +23,26 @@ Route::prefix('organization')->name('org.')->group(function () {
         Route::post('select', [App\Http\Controllers\Back\Org\AuthController::class, 'select'])
             ->name('select');
 
-        Route::get('/', [App\Http\Controllers\Back\Org\DashboardController::class, 'index'])
+        /* [Task 6] داشبورد → کامپوننت Livewire (منطق DashboardController@index منتقل شده) */
+        Route::get('/', \App\Livewire\Org\Core\Dashboard::class)
             ->name('dashboard');
 
-        /* کیف پول */
-        Route::get('wallet', [App\Http\Controllers\Back\Org\WalletController::class, 'index'])
+        /* کیف پول — [Task 6] صفحه → Livewire (منطق index/data منتقل شده؛ data همان کنترلر) */
+        Route::get('wallet', \App\Livewire\Org\Wallet\Index::class)
             ->name('wallet.index');
         Route::get('wallet/data', [App\Http\Controllers\Back\Org\WalletController::class, 'data'])
             ->name('wallet.data');
 
-        /* برداشت‌ها */
-        Route::get('withdrawals', [App\Http\Controllers\Back\Org\WithdrawalsController::class, 'index'])
+        /* برداشت‌ها — [Task 6] صفحه → Livewire (منطق index/data منتقل شده؛ store همان کنترلر) */
+        Route::get('withdrawals', \App\Livewire\Org\Withdrawals\Index::class)
             ->name('withdrawals.index');
         Route::get('withdrawals/data', [App\Http\Controllers\Back\Org\WithdrawalsController::class, 'data'])
             ->name('withdrawals.data');
         Route::post('withdrawals', [App\Http\Controllers\Back\Org\WithdrawalsController::class, 'store'])
             ->name('withdrawals.store');
 
-        /* کافی‌نت‌های زیرمجموعه + معرفی جدید */
-        Route::get('coffeenets', [App\Http\Controllers\Back\Org\CoffeenetsController::class, 'index'])
+        /* کافی‌نت‌های زیرمجموعه + معرفی جدید — [Task 6] صفحه → Livewire (منطق index/data منتقل شده؛ store همان کنترلر) */
+        Route::get('coffeenets', \App\Livewire\Org\Coffeenets\Index::class)
             ->name('coffeenets.index');
         Route::get('coffeenets/data', [App\Http\Controllers\Back\Org\CoffeenetsController::class, 'data'])
             ->name('coffeenets.data');
@@ -51,9 +53,10 @@ Route::prefix('organization')->name('org.')->group(function () {
         Route::get('geo/cities', [App\Http\Controllers\Back\GeoController::class, 'cities'])
             ->name('geo.cities');
 
-        /* ---------- v39 — کارت‌های بانکی مدیر سازمان ---------- */
-        Route::get('bank-cards', [App\Http\Controllers\Back\Shared\BankCardsController::class, 'index'])
-            ->defaults('view', 'back.org.bank-cards.index')->name('bank-cards.index');
+        /* ---------- v39 — کارت‌های بانکی مدیر سازمان — [Task 6] صفحه → Livewire
+           (پارشیال مشترک + CRUD store/update/default/destroy و data همان کنترلر) ---------- */
+        Route::get('bank-cards', \App\Livewire\Org\BankCards\Index::class)
+            ->name('bank-cards.index');
         Route::get('bank-cards/data', [App\Http\Controllers\Back\Shared\BankCardsController::class, 'data'])
             ->name('bank-cards.data');
         Route::post('bank-cards', [App\Http\Controllers\Back\Shared\BankCardsController::class, 'store'])

@@ -8,7 +8,8 @@
     {{-- تم ذخیره‌شده قبل از رندر اعمال می‌شود (ضد-FOUC) --}}
     <script src="{{ asset('assets/js/theme-boot.js') }}?v=1"></script>
 
-    <title>@yield('title', 'پنل کافی‌نت') — {{ config('app.name') }}</title>
+    {{-- [Task 4] $htmlTitle از layoutData کامپوننت‌های Livewire (fallback سبک back/layouts/panel) --}}
+    <title>@yield('title', $htmlTitle ?? 'پنل کافی‌نت') — {{ config('app.name') }}</title>
 
     {{-- PWA: مانیفست + آیکون‌ها + ثبت Service Worker (فاز ۱۴) --}}
     @include('partials.pwa', ['panel' => 'coffeenet'])
@@ -144,8 +145,9 @@
                         <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
                     </button>
                     <div class="min-w-0">
-                        <h1 class="p-page-title text-base font-extrabold tracking-tight truncate">@yield('page-title', 'داشبورد')</h1>
-                        <nav class="p-crumb mt-0.5" aria-label="مسیر">@yield('breadcrumb', 'پنل کافی‌نت')</nav>
+                        {{-- [Task 4] fallback $pageTitle/$breadcrumb از layoutData کامپوننت‌های Livewire --}}
+                        <h1 class="p-page-title text-base font-extrabold tracking-tight truncate">@yield('page-title', $pageTitle ?? 'داشبورد')</h1>
+                        <nav class="p-crumb mt-0.5" aria-label="مسیر">@yield('breadcrumb', $breadcrumb ?? 'پنل کافی‌نت')</nav>
                     </div>
                 </div>
 
