@@ -1,7 +1,8 @@
 /* اپ مشتری — جزئیات سفارش + پرداخت */
 /* فاز ۳۲ — برازش ارتفاع پوستهٔ گفتگو با viewport واقعی (حالت نصب PWA) */
-/* global CN, jQuery */
-(function ($) {
+/* [Task 9] Vanilla JS — بدون jQuery */
+/* global CN */
+(function () {
     'use strict';
 
     if (!CN.requireCompleteProfile()) { return; }
@@ -62,18 +63,21 @@
     }
 
     function load() {
-        $('#orderLoader').removeClass('hidden');
+        var loaderEl = document.getElementById('orderLoader');
+        if (loaderEl) { loaderEl.classList.remove('hidden'); }
 
         CN.api('/orders/' + orderId, {
             success: function (resp) {
-                $('#orderLoader').addClass('hidden');
+                if (loaderEl) { loaderEl.classList.add('hidden'); }
                 order = resp.data;
                 render();
             },
             error: function (xhr, message) {
-                $('#orderLoader').addClass('hidden');
-                $('#orderNumber').text('—');
-                $('#orderService').text(message);
+                if (loaderEl) { loaderEl.classList.add('hidden'); }
+                var orderNumberEl = document.getElementById('orderNumber');
+                if (orderNumberEl) { orderNumberEl.textContent = '—'; }
+                var orderServiceEl = document.getElementById('orderService');
+                if (orderServiceEl) { orderServiceEl.textContent = message; }
             }
         });
     }
@@ -92,7 +96,8 @@
                 // هم‌گام‌سازی ثانیهٔ شمارش معکوس
                 if (resp.data.status === 'broadcasting') {
                     var s = parseInt(resp.data.broadcast_seconds_left, 10) || 0;
-                    $('#broadcastCard').data('seconds', s);
+                    var bcCardSync = document.getElementById('broadcastCard');
+                    if (bcCardSync) { bcCardSync.dataset.seconds = String(s); }
                 }
             }
         });
@@ -116,14 +121,18 @@
 
     /* شمارش معکوس محلی هر ثانیه */
     function tickBroadcast() {
-        var card = $('#broadcastCard');
-        if (card.hasClass('hidden')) { return; }
+        var card = document.getElementById('broadcastCard');
+        if (card && card.classList.contains('hidden')) { return; }
 
         /* v39 — ثانیه‌شمار به تصمیم مدیر خاموش است → فقط poll وضعیت کافی است */
-        if ($('#broadcastTimer').hasClass('hidden')) { return; }
+        var bcTimerHidden = document.getElementById('broadcastTimer');
+        if (bcTimerHidden && bcTimerHidden.classList.contains('hidden')) { return; }
 
-        var s = parseInt(String(card.data('seconds') || '0'), 10);
-        if (s > 0) { s -= 1; card.data('seconds', s); }
+        var s = parseInt(String((card && card.dataset.seconds) || '0'), 10);
+        if (s > 0) {
+            s -= 1;
+            if (card) { card.dataset.seconds = String(s); }
+        }
 
         var numEl = document.getElementById('broadcastSeconds');
         var ring = document.getElementById('broadcastRing');
@@ -147,11 +156,23 @@
         var o = order;
 
         /* سربرگ */
-        $('#orderNumber').text(o.order_number);
-        $('#orderStatusBadge').replaceWith(CN.statusBadge(o.status, o.status_label).replace('<span class="badge', '<span id="orderStatusBadge" class="badge'));
-        $('#orderIcon').text(o.service ? o.service.icon || '📄' : '📄');
-        $('#orderService').text(o.service ? o.service.name : '—');
-        $('#orderDate').text(o.created_at_fa || '');
+        var orderNumberEl = document.getElementById('orderNumber');
+        if (orderNumberEl) { orderNumberEl.textContent = o.order_number; }
+
+        var badgeEl = document.getElementById('orderStatusBadge');
+        if (badgeEl) {
+            var tmpBadge = document.createElement('div');
+            tmpBadge.innerHTML = CN.statusBadge(o.status, o.status_label).replace('<span class="badge', '<span id="orderStatusBadge" class="badge');
+            var newBadge = tmpBadge.firstElementChild;
+            if (newBadge && badgeEl.parentNode) { badgeEl.parentNode.replaceChild(newBadge, badgeEl); }
+        }
+
+        var orderIconEl = document.getElementById('orderIcon');
+        if (orderIconEl) { orderIconEl.textContent = o.service ? o.service.icon || '📄' : '📄'; }
+        var orderServiceEl = document.getElementById('orderService');
+        if (orderServiceEl) { orderServiceEl.textContent = o.service ? o.service.name : '—'; }
+        var orderDateEl = document.getElementById('orderDate');
+        if (orderDateEl) { orderDateEl.textContent = o.created_at_fa || ''; }
 
         /* کارت پرداخت — فاز ۱۲: accepted = فاکتور داخل چت؛ legacy pending_payment = کارت جدا */
         renderPayment();
@@ -195,7 +216,8 @@
         if (!timeline.length) {
             timeline = '<div class="tl-item current"><div class="tl-title">' + CN.esc(o.status_label) + '</div></div>';
         }
-        $('#timeline').html(timeline);
+        var timelineEl = document.getElementById('timeline');
+        if (timelineEl) { timelineEl.innerHTML = timeline; }
 
         /* خلاصه هزینه */
         var rows = '<div class="price-row"><span class="pr-title">💰 کارمزد خدمت</span><span class="pr-amount">' + CN.faMoney(o.price) + ' تومان</span></div>';
@@ -203,39 +225,47 @@
             rows += '<div class="price-row"><span class="pr-title">📦 هزینه‌های جانبی</span><span class="pr-amount">' + CN.faMoney(o.expenses) + ' تومان</span></div>';
         }
         rows += '<div class="price-row total"><span class="pr-title">مبلغ کل</span><span class="pr-amount">' + CN.faMoney(o.total_amount) + ' تومان</span></div>';
-        $('#orderCostRows').html(rows);
+        var costRowsEl = document.getElementById('orderCostRows');
+        if (costRowsEl) { costRowsEl.innerHTML = rows; }
 
         /* داده‌های فرم */
         var fdHtml = '';
         (o.form_data_display || []).forEach(function (row) {
             fdHtml += '<div class="data-row"><span class="data-key">' + CN.esc(row.label) + '</span><span class="data-val">' + CN.esc(row.value) + '</span></div>';
         });
-        $('#orderFormData').html(fdHtml || '<p class="text-faint tiny">فرمی ثبت نشده است.</p>');
+        var formDataEl = document.getElementById('orderFormData');
+        if (formDataEl) { formDataEl.innerHTML = fdHtml || '<p class="text-faint tiny">فرمی ثبت نشده است.</p>'; }
 
         /* دلیل لغو */
-        $('#cancelReasonBox').toggleClass('hidden', !o.cancel_reason);
-        $('#cancelReasonText').text(o.cancel_reason || '');
+        var cancelReasonBoxEl = document.getElementById('cancelReasonBox');
+        if (cancelReasonBoxEl) { cancelReasonBoxEl.classList.toggle('hidden', !o.cancel_reason); }
+        var cancelReasonTextEl = document.getElementById('cancelReasonText');
+        if (cancelReasonTextEl) { cancelReasonTextEl.textContent = o.cancel_reason || ''; }
 
         /* مدارک */
         var files = o.files || [];
-        $('#filesCard').toggleClass('hidden', !files.length);
+        var filesCardEl = document.getElementById('filesCard');
+        if (filesCardEl) { filesCardEl.classList.toggle('hidden', !files.length); }
         var fHtml = '';
         files.forEach(function (f) {
             fHtml += '<a class="btn btn-outline btn-sm btn-block" href="' + CN.esc(f.url) + '" target="_blank" rel="noopener">' +
                 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>' +
                 CN.esc(f.original_name) + ' <span class="tiny text-faint">(' + CN.toFaDigits(f.size_kb) + 'KB)</span></a>';
         });
-        $('#filesList').html(fHtml);
+        var filesListEl = document.getElementById('filesList');
+        if (filesListEl) { filesListEl.innerHTML = fHtml; }
 
         /* پرداخت‌ها */
         var payments = o.payments || [];
-        $('#paymentsCard').toggleClass('hidden', !payments.length);
+        var paymentsCardEl = document.getElementById('paymentsCard');
+        if (paymentsCardEl) { paymentsCardEl.classList.toggle('hidden', !payments.length); }
         var pHtml = '';
         payments.forEach(function (p) {
             pHtml += '<div class="data-row"><span class="data-key">' + CN.esc(p.driver_label) + (p.ref_id ? ' — ' + CN.esc(p.ref_id) : '') + '</span>' +
                 '<span class="data-val">' + CN.faMoney(p.amount) + ' تومان · ' + CN.esc(p.status_label) + (p.paid_at_fa ? ' · ' + CN.esc(p.paid_at_fa) : '') + '</span></div>';
         });
-        $('#paymentsList').html(pHtml);
+        var paymentsListEl = document.getElementById('paymentsList');
+        if (paymentsListEl) { paymentsListEl.innerHTML = pHtml; }
     }
 
     /* ---------- نظرسنجی سفارش (پس از تحویل/تکمیل) — v33 کامل ---------- */
@@ -253,71 +283,92 @@
         5: 'عالی بود! 🤩'
     };
 
+    /* [Task 9] $.Deferred → Promise بومی — همان نیم‌راخت surveyOptionsCache */
     function ratingOptions() {
         if (surveyOptionsCache !== null) {
-            return $.Deferred().resolve(surveyOptionsCache);
+            return Promise.resolve(surveyOptionsCache);
         }
-        var dfd = $.Deferred();
-        CN.api('/rating-options', {
-            success: function (resp) {
-                surveyOptionsCache = (resp && resp.data) || [];
-                dfd.resolve(surveyOptionsCache);
-            },
-            error: function () {
-                surveyOptionsCache = [];
-                dfd.resolve([]);
-            }
+        return new Promise(function (resolve) {
+            CN.api('/rating-options', {
+                success: function (resp) {
+                    surveyOptionsCache = (resp && resp.data) || [];
+                    resolve(surveyOptionsCache);
+                },
+                error: function () {
+                    surveyOptionsCache = [];
+                    resolve([]);
+                }
+            });
         });
-        return dfd;
     }
 
     function renderSurvey(o) {
         var done = ['delivered', 'completed'].indexOf(o.status) !== -1;
         var rated = !!(o.rating && o.rating.rating);
 
-        $('#surveyCard').toggleClass('hidden', !done);
+        var surveyCardEl = document.getElementById('surveyCard');
+        if (surveyCardEl) { surveyCardEl.classList.toggle('hidden', !done); }
         if (!done) { return; }
 
         var hasOperator = !!(o.operator && o.operator.id);
-        $('#surveyOpBox').toggleClass('hidden', !hasOperator);
+        var surveyOpBoxEl = document.getElementById('surveyOpBox');
+        if (surveyOpBoxEl) { surveyOpBoxEl.classList.toggle('hidden', !hasOperator); }
         if (!hasOperator) { surveyOpValue = 0; }
 
+        var surveyFormBoxEl = document.getElementById('surveyFormBox');
+        var surveyDoneBoxEl = document.getElementById('surveyDoneBox');
+
         if (rated) {
-            $('#surveyFormBox').addClass('hidden');
-            $('#surveyDoneBox').removeClass('hidden');
+            if (surveyFormBoxEl) { surveyFormBoxEl.classList.add('hidden'); }
+            if (surveyDoneBoxEl) { surveyDoneBoxEl.classList.remove('hidden'); }
 
             var stars = '';
             for (var i = 1; i <= 5; i++) {
                 stars += '<svg class="s-done' + (i <= o.rating.rating ? '' : ' s-off') + '" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.26L21.5 9.27l-5 4.87 1.18 6.88L12 17.77l-5.68 3.25 1.18-6.88-5-4.87 6.6-3.01Z"/></svg>';
             }
-            $('#surveyDoneStars').html(stars);
+            var doneStarsEl = document.getElementById('surveyDoneStars');
+            if (doneStarsEl) { doneStarsEl.innerHTML = stars; }
 
             // امتیاز اپراتور
+            var doneOpStarsEl = document.getElementById('surveyDoneOpStars');
             if (o.rating.operator_rating) {
                 var opStars = '';
                 for (var j = 1; j <= 5; j++) {
                     opStars += '<svg class="s-done' + (j <= o.rating.operator_rating ? '' : ' s-off') + '" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.26L21.5 9.27l-5 4.87 1.18 6.88L12 17.77l-5.68 3.25 1.18-6.88-5-4.87 6.6-3.01Z"/></svg>';
                 }
-                $('#surveyDoneOpStars').html('<span class="s-done-label">اپراتور</span>' + opStars).removeClass('hidden');
+                if (doneOpStarsEl) {
+                    doneOpStarsEl.innerHTML = '<span class="s-done-label">اپراتور</span>' + opStars;
+                    doneOpStarsEl.classList.remove('hidden');
+                }
             } else {
-                $('#surveyDoneOpStars').addClass('hidden').html('');
+                if (doneOpStarsEl) {
+                    doneOpStarsEl.classList.add('hidden');
+                    doneOpStarsEl.innerHTML = '';
+                }
             }
 
             // دلایل انتخابی (اسنپ‌شات)
             var opts = o.rating.options || [];
-            $('#surveyDoneOptions').html(opts.length
-                ? opts.map(function (op) {
-                    return '<span class="s-done-chip' + (op.type === 'neg' ? ' s-done-chip--neg' : '') + '">' + escapeHtmlFa(op.title) + '</span>';
-                }).join('')
-                : '');
+            var doneOptionsEl = document.getElementById('surveyDoneOptions');
+            if (doneOptionsEl) {
+                doneOptionsEl.innerHTML = opts.length
+                    ? opts.map(function (op) {
+                        return '<span class="s-done-chip' + (op.type === 'neg' ? ' s-done-chip--neg' : '') + '">' + escapeHtmlFa(op.title) + '</span>';
+                    }).join('')
+                    : '';
+            }
 
-            $('#surveyDoneComment').text(o.rating.comment ? '«' + o.rating.comment + '»' : (o.rating.rated_at_fa ? 'ثبت‌شده در ' + o.rating.rated_at_fa : ''));
+            var doneCommentEl = document.getElementById('surveyDoneComment');
+            if (doneCommentEl) { doneCommentEl.textContent = o.rating.comment ? '«' + o.rating.comment + '»' : (o.rating.rated_at_fa ? 'ثبت‌شده در ' + o.rating.rated_at_fa : ''); }
         } else {
-            $('#surveyFormBox').removeClass('hidden');
-            $('#surveyDoneBox').addClass('hidden');
-            $('#surveyIntro').text(o.status === 'delivered'
-                ? 'سفارش شما تحویل شد! از تجربه‌تان چه امتیازی می‌دهید؟'
-                : 'سفارش شما تکمیل شد! از تجربه‌تان چه امتیازی می‌دهید؟');
+            if (surveyFormBoxEl) { surveyFormBoxEl.classList.remove('hidden'); }
+            if (surveyDoneBoxEl) { surveyDoneBoxEl.classList.add('hidden'); }
+            var surveyIntroEl = document.getElementById('surveyIntro');
+            if (surveyIntroEl) {
+                surveyIntroEl.textContent = o.status === 'delivered'
+                    ? 'سفارش شما تحویل شد! از تجربه‌تان چه امتیازی می‌دهید؟'
+                    : 'سفارش شما تکمیل شد! از تجربه‌تان چه امتیازی می‌دهید؟';
+            }
 
             // گزینه‌های دلایل را از قبل بارگذاری کن تا با اولین تیک آماده باشد
             ratingOptions();
@@ -326,17 +377,17 @@
 
     function setSurveyStars(value) {
         surveyValue = value;
-        $('#surveyStars .s-star').each(function () {
-            var v = parseInt(this.dataset.value, 10) || 0;
+        Array.prototype.forEach.call(document.querySelectorAll('#surveyStars .s-star'), function (star) {
+            var v = parseInt(star.dataset.value, 10) || 0;
             var on = v <= value;
-            $(this).toggleClass('on', on);
-            this.setAttribute('aria-checked', on && v === value ? 'true' : 'false');
+            star.classList.toggle('on', on);
+            star.setAttribute('aria-checked', on && v === value ? 'true' : 'false');
         });
-        var hint = $('#surveyRatingHint');
+        var hint = document.getElementById('surveyRatingHint');
         if (value > 0) {
-            hint.text(RATING_HINTS[value] || '').addClass('hint-on');
+            if (hint) { hint.textContent = RATING_HINTS[value] || ''; hint.classList.add('hint-on'); }
         } else {
-            hint.text('امتیاز خود را انتخاب کنید').removeClass('hint-on');
+            if (hint) { hint.textContent = 'امتیاز خود را انتخاب کنید'; hint.classList.remove('hint-on'); }
         }
         updateSurveyOptions();
         updateSurveySubmit();
@@ -344,11 +395,11 @@
 
     function setSurveyOpStars(value) {
         surveyOpValue = value;
-        $('#surveyOpStars .s-star').each(function () {
-            var v = parseInt(this.dataset.value, 10) || 0;
+        Array.prototype.forEach.call(document.querySelectorAll('#surveyOpStars .s-star'), function (star) {
+            var v = parseInt(star.dataset.value, 10) || 0;
             var on = v <= value;
-            $(this).toggleClass('on', on);
-            this.setAttribute('aria-checked', on && v === value ? 'true' : 'false');
+            star.classList.toggle('on', on);
+            star.setAttribute('aria-checked', on && v === value ? 'true' : 'false');
         });
         updateSurveySubmit();
     }
@@ -362,17 +413,17 @@
     }
 
     function updateSurveyOptions() {
-        var box = $('#surveyOptionsBox');
+        var box = document.getElementById('surveyOptionsBox');
         var types = surveyWantedTypes();
 
         if (!types.length) {
-            box.addClass('hidden');
+            if (box) { box.classList.add('hidden'); }
             surveySelected = {};
             renderSurveyOptionsList([]);
             return;
         }
 
-        ratingOptions().done(function (options) {
+        ratingOptions().then(function (options) {
             var filtered = (options || []).filter(function (o) {
                 return types.indexOf(o.type) !== -1;
             });
@@ -382,104 +433,134 @@
             filtered.forEach(function (o) { if (surveySelected[o.id]) { keep[o.id] = true; } });
             surveySelected = keep;
 
-            box.removeClass('hidden');
-            $('#surveyOptionsTitle').text(
-                surveyValue >= 4 ? 'چه چیزهایی خوب بود؟ (اختیاری)'
-                    : (surveyValue <= 2 ? 'چه چیزهایی ضعیف بود؟ (اختیاری)'
-                        : 'چه چیزهایی را بیشتر دوست داشتید یا نبود؟ (اختیاری)')
-            );
+            if (box) { box.classList.remove('hidden'); }
+            var titleEl = document.getElementById('surveyOptionsTitle');
+            if (titleEl) {
+                titleEl.textContent =
+                    surveyValue >= 4 ? 'چه چیزهایی خوب بود؟ (اختیاری)'
+                        : (surveyValue <= 2 ? 'چه چیزهایی ضعیف بود؟ (اختیاری)'
+                            : 'چه چیزهایی را بیشتر دوست داشتید یا نبود؟ (اختیاری)');
+            }
             renderSurveyOptionsList(filtered);
         });
     }
 
     function renderSurveyOptionsList(options) {
-        var box = $('#surveyOptions');
+        var box = document.getElementById('surveyOptions');
+        if (!box) { return; }
         if (!options.length) {
-            box.html('<p class="tiny text-faint text-center" style="padding:6px 0">گزینه‌ای برای این امتیاز ثبت نشده است.</p>');
+            box.innerHTML = '<p class="tiny text-faint text-center" style="padding:6px 0">گزینه‌ای برای این امتیاز ثبت نشده است.</p>';
             return;
         }
-        box.html(options.map(function (o) {
+        box.innerHTML = options.map(function (o) {
             var checked = !!surveySelected[o.id];
             return '<button type="button" class="s-opt' + (checked ? ' on' : '') + (o.type === 'neg' ? ' s-opt--neg' : '') + '" data-id="' + o.id + '" role="checkbox" aria-checked="' + (checked ? 'true' : 'false') + '">' +
                 '<span class="s-opt-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>' +
                 '<span class="s-opt-title">' + escapeHtmlFa(o.title) + '</span>' +
                 '</button>';
-        }).join(''));
+        }).join('');
     }
 
-    $('#surveyOptions').on('click', '.s-opt', function () {
-        var id = parseInt(this.dataset.id, 10) || 0;
-        if (!id) { return; }
-        if (surveySelected[id]) {
-            delete surveySelected[id];
-        } else {
-            surveySelected[id] = true;
-        }
-        $(this).toggleClass('on', !!surveySelected[id]);
-        this.setAttribute('aria-checked', surveySelected[id] ? 'true' : 'false');
-    });
+    var surveyOptionsEl = document.getElementById('surveyOptions');
+    if (surveyOptionsEl) {
+        surveyOptionsEl.addEventListener('click', function (e) {
+            var opt = e.target.closest('.s-opt');
+            if (!opt) { return; }
+            var id = parseInt(opt.dataset.id, 10) || 0;
+            if (!id) { return; }
+            if (surveySelected[id]) {
+                delete surveySelected[id];
+            } else {
+                surveySelected[id] = true;
+            }
+            opt.classList.toggle('on', !!surveySelected[id]);
+            opt.setAttribute('aria-checked', surveySelected[id] ? 'true' : 'false');
+        });
+    }
 
     function updateSurveySubmit() {
-        $('#surveySubmitBtn').prop('disabled', surveyValue === 0);
+        var submitBtn = document.getElementById('surveySubmitBtn');
+        if (submitBtn) { submitBtn.disabled = surveyValue === 0; }
     }
 
-    $('#surveyStars').on('click', '.s-star', function () {
-        setSurveyStars(parseInt(this.dataset.value, 10) || 0);
-    });
+    var surveyStarsEl = document.getElementById('surveyStars');
+    if (surveyStarsEl) {
+        surveyStarsEl.addEventListener('click', function (e) {
+            var star = e.target.closest('.s-star');
+            if (!star) { return; }
+            setSurveyStars(parseInt(star.dataset.value, 10) || 0);
+        });
+    }
 
-    $('#surveyStars .s-star').on('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            setSurveyStars(parseInt(this.dataset.value, 10) || 0);
-        }
-    });
-
-    $('#surveyOpStars').on('click', '.s-star', function () {
-        // کلیک دوباره روی همان ستاره = حذف امتیاز اپراتور (اختیاری)
-        var v = parseInt(this.dataset.value, 10) || 0;
-        setSurveyOpStars(surveyOpValue === v ? 0 : v);
-    });
-
-    $('#surveyOpStars .s-star').on('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            var v = parseInt(this.dataset.value, 10) || 0;
-            setSurveyOpStars(surveyOpValue === v ? 0 : v);
-        }
-    });
-
-    $('#surveySubmitBtn').on('click', function () {
-        if (!surveyValue || surveySubmitting) { return; }
-
-        surveySubmitting = true;
-        var $btn = $(this);
-        $btn.prop('disabled', true).text('در حال ثبت…');
-        $('#surveyError').text('');
-
-        var selectedIds = Object.keys(surveySelected).map(function (k) { return parseInt(k, 10); });
-        var payload = {
-            rating: surveyValue,
-            comment: ($('#surveyComment').val() || '').trim() || null
-        };
-        if (surveyOpValue > 0) { payload.operator_rating = surveyOpValue; }
-        if (selectedIds.length) { payload.options = selectedIds; }
-
-        CN.api('/orders/' + orderId + '/rating', {
-            method: 'POST',
-            data: payload,
-            success: function (resp) {
-                surveySubmitting = false;
-                CN.toast(resp.message || 'از بازخورد شما سپاسگزاریم.', 'success');
-                order = resp.data || order;
-                render();
-            },
-            error: function (xhr, message) {
-                surveySubmitting = false;
-                $btn.prop('disabled', false).text('ثبت نظرسنجی');
-                $('#surveyError').text(message || 'ثبت نظرسنجی ناموفق بود.');
+    Array.prototype.forEach.call(document.querySelectorAll('#surveyStars .s-star'), function (star) {
+        star.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setSurveyStars(parseInt(star.dataset.value, 10) || 0);
             }
         });
     });
+
+    var surveyOpStarsEl = document.getElementById('surveyOpStars');
+    if (surveyOpStarsEl) {
+        surveyOpStarsEl.addEventListener('click', function (e) {
+            var star = e.target.closest('.s-star');
+            if (!star) { return; }
+            // کلیک دوباره روی همان ستاره = حذف امتیاز اپراتور (اختیاری)
+            var v = parseInt(star.dataset.value, 10) || 0;
+            setSurveyOpStars(surveyOpValue === v ? 0 : v);
+        });
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll('#surveyOpStars .s-star'), function (star) {
+        star.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                var v = parseInt(star.dataset.value, 10) || 0;
+                setSurveyOpStars(surveyOpValue === v ? 0 : v);
+            }
+        });
+    });
+
+    var surveySubmitBtnEl = document.getElementById('surveySubmitBtn');
+    if (surveySubmitBtnEl) {
+        surveySubmitBtnEl.addEventListener('click', function () {
+            if (!surveyValue || surveySubmitting) { return; }
+
+            surveySubmitting = true;
+            var btn = surveySubmitBtnEl;
+            btn.disabled = true;
+            btn.textContent = 'در حال ثبت…';
+            var surveyErrorEl = document.getElementById('surveyError');
+            if (surveyErrorEl) { surveyErrorEl.textContent = ''; }
+
+            var selectedIds = Object.keys(surveySelected).map(function (k) { return parseInt(k, 10); });
+            var commentEl = document.getElementById('surveyComment');
+            var payload = {
+                rating: surveyValue,
+                comment: ((commentEl && commentEl.value) || '').trim() || null
+            };
+            if (surveyOpValue > 0) { payload.operator_rating = surveyOpValue; }
+            if (selectedIds.length) { payload.options = selectedIds; }
+
+            CN.api('/orders/' + orderId + '/rating', {
+                method: 'POST',
+                data: payload,
+                success: function (resp) {
+                    surveySubmitting = false;
+                    CN.toast(resp.message || 'از بازخورد شما سپاسگزاریم.', 'success');
+                    order = resp.data || order;
+                    render();
+                },
+                error: function (xhr, message) {
+                    surveySubmitting = false;
+                    btn.disabled = false;
+                    btn.textContent = 'ثبت نظرسنجی';
+                    if (surveyErrorEl) { surveyErrorEl.textContent = message || 'ثبت نظرسنجی ناموفق بود.'; }
+                }
+            });
+        });
+    }
 
     function escapeHtmlFa(str) {
         return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
@@ -526,9 +607,11 @@
 
     /** آیا دکمهٔ ثبت باید فعال باشد؟ (تماس تیک‌خورده یا چت انتخاب‌شده) */
     function cprefSelection() {
+        var callChk = document.getElementById('cprefCallChk');
+        var activeItem = document.querySelector('#contactPrefGrid .cpref-item.active');
         return {
-            call: $('#cprefCallChk').prop('checked'),
-            chat: $('#contactPrefGrid .cpref-item.active').data('pref') || null
+            call: !!(callChk && callChk.checked),
+            chat: (activeItem && activeItem.dataset.pref) || null
         };
     }
 
@@ -537,14 +620,19 @@
         var changed = !savedPreference
             || parsePreference(savedPreference).call !== sel.call
             || parsePreference(savedPreference).chat !== sel.chat;
-        $('#contactPrefSave').prop('disabled', !(sel.call || sel.chat) || !changed);
-        $('#contactPrefError').removeClass('show').text('');
+        var saveBtnEl = document.getElementById('contactPrefSave');
+        if (saveBtnEl) { saveBtnEl.disabled = !(sel.call || sel.chat) || !changed; }
+        var cprefErrorEl = document.getElementById('contactPrefError');
+        if (cprefErrorEl) {
+            cprefErrorEl.classList.remove('show');
+            cprefErrorEl.textContent = '';
+        }
     }
 
     function renderContactPrefs(selected) {
-        var $box = $('#contactPrefBox');
-        var $grid = $('#contactPrefGrid');
-        var $saved = $('#contactPrefSaved');
+        var box = document.getElementById('contactPrefBox');
+        var grid = document.getElementById('contactPrefGrid');
+        var savedEl = document.getElementById('contactPrefSaved');
 
         if (selected) { savedPreference = selected; }
 
@@ -554,8 +642,12 @@
         /* بدون انتخاب ثبت‌شده → تماس تلفنی به‌صورت پیش‌فرض تیک‌خورده است
            (کاربر می‌تواند تیکش را بردارد — درخواست مالک v40) */
         var callChecked = savedPreference ? parsed.call : true;
-        $('#cprefCallChk').prop('checked', callChecked);
-        $('#cprefCallChk').closest('.cpref-call').toggleClass('is-checked', callChecked);
+        var callChk = document.getElementById('cprefCallChk');
+        if (callChk) {
+            callChk.checked = callChecked;
+            var callWrap = callChk.closest('.cpref-call');
+            if (callWrap) { callWrap.classList.toggle('is-checked', callChecked); }
+        }
 
         var html = '';
         CHAT_PREFS.forEach(function (p) {
@@ -567,7 +659,7 @@
                 (active ? '<span class="cpref-check" aria-hidden="true">✓</span>' : '') +
                 '</button>';
         });
-        $grid.html(html);
+        if (grid) { grid.innerHTML = html; }
 
         if (savedPreference) {
             var parts = [];
@@ -576,83 +668,128 @@
                 var meta = chatLabel(parsed.chat);
                 parts.push((meta ? meta.icon + ' ' + meta.label : parsed.chat));
             }
-            $saved.removeClass('hidden').text('✓ راه ارتباطی شما: ' + parts.join(' + ') + ' — کارشناسان ما از همین راه با شما در تماس می‌شوند.');
+            if (savedEl) {
+                savedEl.classList.remove('hidden');
+                savedEl.textContent = '✓ راه ارتباطی شما: ' + parts.join(' + ') + ' — کارشناسان ما از همین راه با شما در تماس می‌شوند.';
+            }
         } else {
-            $saved.addClass('hidden').text('');
+            if (savedEl) {
+                savedEl.classList.add('hidden');
+                savedEl.textContent = '';
+            }
         }
 
-        $box.removeAttr('hidden');
+        if (box) { box.removeAttribute('hidden'); }
         updateCprefSaveBtn();
     }
 
-    /* تیک تماس تلفنی */
-    $(document).off('change', '#cprefCallChk').on('change', '#cprefCallChk', function () {
-        $(this).closest('.cpref-call').toggleClass('is-checked', $(this).prop('checked'));
-        updateCprefSaveBtn();
-    });
+    /* تیک تماس تلفنی
+       [Task 9] جی‌کوئری با off().on() از دوباره‌بایندشدن در ناوبری SPA جلوگیری
+       می‌کرد؛ بایند مستقیم روی عنصر صفحه همان اثر را دارد (با DOM صفحه می‌میرد). */
+    var cprefCallChkEl = document.getElementById('cprefCallChk');
+    if (cprefCallChkEl) {
+        cprefCallChkEl.addEventListener('change', function () {
+            var callWrap = cprefCallChkEl.closest('.cpref-call');
+            if (callWrap) { callWrap.classList.toggle('is-checked', cprefCallChkEl.checked); }
+            updateCprefSaveBtn();
+        });
+    }
 
-    /* انتخاب یکی از راه‌های چت (رادیو) */
-    $(document).off('click', '#contactPrefGrid .cpref-item').on('click', '#contactPrefGrid .cpref-item', function () {
-        $('#contactPrefGrid .cpref-item').removeClass('active').attr('aria-checked', 'false');
-        $('#contactPrefGrid .cpref-item .cpref-check').remove();
-        $(this).addClass('active').attr('aria-checked', 'true').append('<span class="cpref-check" aria-hidden="true">✓</span>');
-        updateCprefSaveBtn();
-    });
+    /* انتخاب یکی از راه‌های چت (رادیو) — دله‌گیشن روی گرید ثابت صفحه */
+    var cprefGridEl = document.getElementById('contactPrefGrid');
+    if (cprefGridEl) {
+        cprefGridEl.addEventListener('click', function (e) {
+            var item = e.target.closest('.cpref-item');
+            if (!item) { return; }
+            Array.prototype.forEach.call(cprefGridEl.querySelectorAll('.cpref-item'), function (it) {
+                it.classList.remove('active');
+                it.setAttribute('aria-checked', 'false');
+                var check = it.querySelector('.cpref-check');
+                if (check) { check.remove(); }
+            });
+            item.classList.add('active');
+            item.setAttribute('aria-checked', 'true');
+            item.insertAdjacentHTML('beforeend', '<span class="cpref-check" aria-hidden="true">✓</span>');
+            updateCprefSaveBtn();
+        });
+    }
 
     /* ثبت انتخاب */
-    $(document).off('click', '#contactPrefSave').on('click', '#contactPrefSave', function () {
-        var sel = cprefSelection();
+    var cprefSaveEl = document.getElementById('contactPrefSave');
+    if (cprefSaveEl) {
+        cprefSaveEl.addEventListener('click', function () {
+            var sel = cprefSelection();
 
-        if (!sel.call && !sel.chat) {
-            $('#contactPrefError').addClass('show').text('حداقل «تماس تلفنی» یا یکی از راه‌های چت را انتخاب کنید.');
-            return;
-        }
-
-        var $btn = $(this);
-        $btn.prop('disabled', true).text('در حال ثبت…');
-
-        CN.api('/orders/' + orderId + '/contact-preference', {
-            method: 'POST',
-            data: { call: sel.call, chat: sel.chat },
-            success: function (resp) {
-                $btn.prop('disabled', false).text('ثبت انتخاب من');
-                savedPreference = resp.preference || null;
-                renderContactPrefs(savedPreference);
-                CN.toast(resp.message || 'انتخاب شما ثبت شد.', 'success');
-            },
-            error: function (xhr, message) {
-                $btn.prop('disabled', false).text('ثبت انتخاب من');
-                var errors = (xhr.responseJSON && xhr.responseJSON.errors) || {};
-                if (errors.chat && errors.chat.length) {
-                    $('#contactPrefError').addClass('show').text(errors.chat[0]);
-                } else if (message) {
-                    CN.toast(message, 'error');
+            if (!sel.call && !sel.chat) {
+                var cprefErrorEl = document.getElementById('contactPrefError');
+                if (cprefErrorEl) {
+                    cprefErrorEl.classList.add('show');
+                    cprefErrorEl.textContent = 'حداقل «تماس تلفنی» یا یکی از راه‌های چت را انتخاب کنید.';
                 }
+                return;
             }
+
+            var btn = cprefSaveEl;
+            btn.disabled = true;
+            btn.textContent = 'در حال ثبت…';
+
+            CN.api('/orders/' + orderId + '/contact-preference', {
+                method: 'POST',
+                data: { call: sel.call, chat: sel.chat },
+                success: function (resp) {
+                    btn.disabled = false;
+                    btn.textContent = 'ثبت انتخاب من';
+                    savedPreference = resp.preference || null;
+                    renderContactPrefs(savedPreference);
+                    CN.toast(resp.message || 'انتخاب شما ثبت شد.', 'success');
+                },
+                error: function (xhr, message) {
+                    btn.disabled = false;
+                    btn.textContent = 'ثبت انتخاب من';
+                    /* [Task 9] xhr دیگر responseJSON ندارد → پارس دستی */
+                    var body = null;
+                    try { body = JSON.parse(xhr.responseText); } catch (parseErr) { body = null; }
+                    var errors = (body && body.errors) || {};
+                    if (errors.chat && errors.chat.length) {
+                        var errEl = document.getElementById('contactPrefError');
+                        if (errEl) {
+                            errEl.classList.add('show');
+                            errEl.textContent = errors.chat[0];
+                        }
+                    } else if (message) {
+                        CN.toast(message, 'error');
+                    }
+                }
+            });
         });
-    });
+    }
 
     function renderAssignment(o) {
         var broadcasting = o.status === 'broadcasting';
         var queued = o.status === 'queued';
 
-        $('#broadcastCard').toggleClass('hidden', !broadcasting);
-        $('#queuedCard').toggleClass('hidden', !queued);
+        var bcCardEl = document.getElementById('broadcastCard');
+        if (bcCardEl) { bcCardEl.classList.toggle('hidden', !broadcasting); }
+        var qCardEl = document.getElementById('queuedCard');
+        if (qCardEl) { qCardEl.classList.toggle('hidden', !queued); }
 
         /* v39 — متن‌ها و ثانیه‌شمار از تصمیم مدیر (تنظیمات سفارش‌ها) */
         var timerEnabled = o.broadcast_timer_enabled !== false; // پیش‌فرض: روشن
-        $('#broadcastTimer').toggleClass('hidden', !timerEnabled);
+        var bcTimerEl = document.getElementById('broadcastTimer');
+        if (bcTimerEl) { bcTimerEl.classList.toggle('hidden', !timerEnabled); }
         if (o.broadcast_text) {
-            $('#broadcastDesc').html(CN.esc(o.broadcast_text).replace(/\n/g, '<br>'));
+            var bcDescEl = document.getElementById('broadcastDesc');
+            if (bcDescEl) { bcDescEl.innerHTML = CN.esc(o.broadcast_text).replace(/\n/g, '<br>'); }
         }
         if (o.queued_text) {
-            $('#queuedDesc').html(CN.esc(o.queued_text).replace(/\n/g, '<br>'));
+            var qDescEl = document.getElementById('queuedDesc');
+            if (qDescEl) { qDescEl.innerHTML = CN.esc(o.queued_text).replace(/\n/g, '<br>'); }
         }
 
         if (broadcasting) {
             var s = parseInt(o.broadcast_seconds_left, 10) || 0;
             BROADCAST_TOTAL = Math.max(15, s > 0 ? s : 60);
-            $('#broadcastCard').data('seconds', s);
+            if (bcCardEl) { bcCardEl.dataset.seconds = String(s); }
 
             var notes = [];
             if (o.broadcast_attempts > 1) {
@@ -661,8 +798,10 @@
             if (s <= 0) {
                 notes.push('در حال تعیین‌تکلیف…');
             }
-            $('#broadcastAttemptsNote').text(notes.join(' · '));
-            $('#broadcastSeconds').text(CN.toFaDigits(s));
+            var bcNoteEl = document.getElementById('broadcastAttemptsNote');
+            if (bcNoteEl) { bcNoteEl.textContent = notes.join(' · '); }
+            var bcSecondsEl = document.getElementById('broadcastSeconds');
+            if (bcSecondsEl) { bcSecondsEl.textContent = CN.toFaDigits(s); }
 
             var ring = document.getElementById('broadcastRing');
             if (ring) {
@@ -674,7 +813,8 @@
 
             startPolling();
         } else if (queued) {
-            $('#queuedAtNote').text(o.queued_at_fa ? ('در صف از ' + o.queued_at_fa) : '');
+            var qAtNoteEl = document.getElementById('queuedAtNote');
+            if (qAtNoteEl) { qAtNoteEl.textContent = o.queued_at_fa ? ('در صف از ' + o.queued_at_fa) : ''; }
 
             /* v39 — انتخاب راه ارتباطی (فقط وقتی مهلت تمام شده و اپراتوری قبول نکرده) */
             renderContactPrefs(o.contact_preference || null);
@@ -700,32 +840,43 @@
 
         /* کارت جدا: فقط legacy یا حالت نادرِ accepted بدون چت */
         var showStandalone = payLegacy || (payAccepted && !chatCardVisible);
-        $('#paymentCard').toggleClass('hidden', !showStandalone);
-        $('#payConnectNote').toggleClass('hidden', !(showStandalone && payAccepted));
+        var paymentCardEl = document.getElementById('paymentCard');
+        if (paymentCardEl) { paymentCardEl.classList.toggle('hidden', !showStandalone); }
+        var payConnectNoteEl = document.getElementById('payConnectNote');
+        if (payConnectNoteEl) { payConnectNoteEl.classList.toggle('hidden', !(showStandalone && payAccepted)); }
         if (showStandalone) {
-            $('#payTotal').text(CN.faMoneyUnit(o.total_amount));
+            var payTotalEl = document.getElementById('payTotal');
+            if (payTotalEl) { payTotalEl.textContent = CN.faMoneyUnit(o.total_amount); }
             var u = CN.user();
-            $('#walletBalanceHint').text('(موجودی: ' + CN.faMoney((u && u.wallet_balance) || 0) + ')');
+            var walletHintEl = document.getElementById('walletBalanceHint');
+            if (walletHintEl) { walletHintEl.textContent = '(موجودی: ' + CN.faMoney((u && u.wallet_balance) || 0) + ')'; }
         }
 
         /* فاکتور داخل چت */
-        var inv = $('#chatInvoice');
+        var inv = document.getElementById('chatInvoice');
         var showPaidState = o.status === 'paid' && chatCardVisible;
-        inv.toggleClass('hidden', !inChat && !showPaidState);
+        if (inv) { inv.classList.toggle('hidden', !inChat && !showPaidState); }
 
         if (inChat || showPaidState) {
-            $('#invService').text(o.service ? o.service.name : 'سفارش ' + o.order_number);
-            $('#invAmount').text(CN.faMoneyUnit(o.total_amount));
-            $('#invPaidAmount').text(CN.faMoneyUnit(o.total_amount));
+            var invServiceEl = document.getElementById('invService');
+            if (invServiceEl) { invServiceEl.textContent = o.service ? o.service.name : 'سفارش ' + o.order_number; }
+            var invAmountEl = document.getElementById('invAmount');
+            if (invAmountEl) { invAmountEl.textContent = CN.faMoneyUnit(o.total_amount); }
+            var invPaidAmountEl = document.getElementById('invPaidAmount');
+            if (invPaidAmountEl) { invPaidAmountEl.textContent = CN.faMoneyUnit(o.total_amount); }
             var uw = CN.user();
-            $('#invWalletHint').text('(موجودی: ' + CN.faMoney((uw && uw.wallet_balance) || 0) + ')');
+            var invWalletHintEl = document.getElementById('invWalletHint');
+            if (invWalletHintEl) { invWalletHintEl.textContent = '(موجودی: ' + CN.faMoney((uw && uw.wallet_balance) || 0) + ')'; }
 
             var paid = o.is_paid || showPaidState;
-            inv.toggleClass('paid', !!paid);
-            $('#invPaidAt').text(o.paid_at_fa || '');
+            if (inv) { inv.classList.toggle('paid', !!paid); }
+            var invPaidAtEl = document.getElementById('invPaidAt');
+            if (invPaidAtEl) { invPaidAtEl.textContent = o.paid_at_fa || ''; }
             if (!paid) {
-                $('#invState').text('در انتظار پرداخت');
-                $('#invNote').text('برای شروع کار اپراتور، پرداخت را تکمیل کنید.');
+                var invStateEl = document.getElementById('invState');
+                if (invStateEl) { invStateEl.textContent = 'در انتظار پرداخت'; }
+                var invNoteEl = document.getElementById('invNote');
+                if (invNoteEl) { invNoteEl.textContent = 'برای شروع کار اپراتور، پرداخت را تکمیل کنید.'; }
             }
         }
     }
@@ -736,34 +887,50 @@
        تا شنونده‌های مستقیم دکمه حفظ شوند. */
     function placeCancel(o) {
         var cancelable = ['pending_payment', 'broadcasting', 'queued', 'accepted'].indexOf(o.status) !== -1 && !o.is_paid;
-        var $card = $('#cancelCard');
+        var card = document.getElementById('cancelCard');
+        if (!card) { return; }
 
-        $card.toggleClass('hidden', !cancelable);
+        card.classList.toggle('hidden', !cancelable);
         if (!cancelable) { return; }
 
         var preChat = ['pending_payment', 'broadcasting', 'queued'].indexOf(o.status) !== -1;
-        var $target = preChat ? $('#stateActions') : $('#chatinfoActions');
-        if ($target.length && !$card.parent().is($target)) {
-            $card.appendTo($target);
+        var target = document.getElementById(preChat ? 'stateActions' : 'chatinfoActions');
+        if (target && card.parentElement !== target) {
+            target.appendChild(card);
         }
     }
 
     /* ---------- v31 — شیت «اطلاعات سفارش» (روند/خلاصه/مدارک/تاریخچه پرداخت) ---------- */
     function openInfoSheet() {
-        $('#chatinfoBackdrop').addClass('show').attr('aria-hidden', 'false');
-        $('#chatinfoSheet').addClass('open');
-        $('#orderInfoBtn').attr('aria-expanded', 'true');
+        var backdrop = document.getElementById('chatinfoBackdrop');
+        if (backdrop) {
+            backdrop.classList.add('show');
+            backdrop.setAttribute('aria-hidden', 'false');
+        }
+        var sheet = document.getElementById('chatinfoSheet');
+        if (sheet) { sheet.classList.add('open'); }
+        var infoBtn = document.getElementById('orderInfoBtn');
+        if (infoBtn) { infoBtn.setAttribute('aria-expanded', 'true'); }
     }
 
     function closeInfoSheet() {
-        $('#chatinfoBackdrop').removeClass('show').attr('aria-hidden', 'true');
-        $('#chatinfoSheet').removeClass('open');
-        $('#orderInfoBtn').attr('aria-expanded', 'false');
+        var backdrop = document.getElementById('chatinfoBackdrop');
+        if (backdrop) {
+            backdrop.classList.remove('show');
+            backdrop.setAttribute('aria-hidden', 'true');
+        }
+        var sheet = document.getElementById('chatinfoSheet');
+        if (sheet) { sheet.classList.remove('open'); }
+        var infoBtn = document.getElementById('orderInfoBtn');
+        if (infoBtn) { infoBtn.setAttribute('aria-expanded', 'false'); }
     }
 
-    $('#orderInfoBtn').on('click', openInfoSheet);
-    $('#chatinfoClose').on('click', closeInfoSheet);
-    $('#chatinfoBackdrop').on('click', closeInfoSheet);
+    var orderInfoBtnEl = document.getElementById('orderInfoBtn');
+    if (orderInfoBtnEl) { orderInfoBtnEl.addEventListener('click', openInfoSheet); }
+    var chatinfoCloseEl = document.getElementById('chatinfoClose');
+    if (chatinfoCloseEl) { chatinfoCloseEl.addEventListener('click', closeInfoSheet); }
+    var chatinfoBackdropEl = document.getElementById('chatinfoBackdrop');
+    if (chatinfoBackdropEl) { chatinfoBackdropEl.addEventListener('click', closeInfoSheet); }
 
     /* فاز ۱۲ — اطلاع از دسترس‌پذیری کارت گفتگو (order-chat.js) */
     document.addEventListener('chat:visibility', function (e) {
@@ -775,10 +942,12 @@
     });
 
     /* ---------- پرداخت آنلاین (مشترک بین کارت جدا و فاکتور چت) ---------- */
-    function payOnline($btn) {
-        CN.btnLoading($btn, true, 'در حال اتصال به درگاه…');
-        $('#payError').removeClass('show');
-        $('#invError').removeClass('show');
+    function payOnline(btn) {
+        CN.btnLoading(btn, true, 'در حال اتصال به درگاه…');
+        var payErrorEl = document.getElementById('payError');
+        if (payErrorEl) { payErrorEl.classList.remove('show'); }
+        var invErrorEl = document.getElementById('invError');
+        if (invErrorEl) { invErrorEl.classList.remove('show'); }
 
         CN.api('/orders/' + orderId + '/pay', {
             method: 'POST',
@@ -794,53 +963,59 @@
                         window.location.href = url;
                     }, 500);
                 } else {
-                    CN.btnLoading($btn, false);
+                    CN.btnLoading(btn, false);
                 }
             },
             error: function (xhr, message) {
-                CN.btnLoading($btn, false);
-                $('#payError').text(message).addClass('show');
-                $('#invError').text(message).addClass('show');
+                CN.btnLoading(btn, false);
+                if (payErrorEl) { payErrorEl.textContent = message; payErrorEl.classList.add('show'); }
+                if (invErrorEl) { invErrorEl.textContent = message; invErrorEl.classList.add('show'); }
             }
         });
     }
 
     /* ---------- پرداخت کیف پول (مشترک) ---------- */
-    function payWallet($btn) {
-        $('#payError').removeClass('show');
-        $('#invError').removeClass('show');
+    function payWallet(btn) {
+        var payErrorEl = document.getElementById('payError');
+        if (payErrorEl) { payErrorEl.classList.remove('show'); }
+        var invErrorEl = document.getElementById('invError');
+        if (invErrorEl) { invErrorEl.classList.remove('show'); }
 
         CN.confirm({
             title: 'پرداخت از کیف پول',
             desc: 'مبلغ ' + CN.faMoneyUnit(order ? order.total_amount : 0) + ' از موجودی کیف پول شما کسر می‌شود.',
             okText: 'پرداخت'
         }, function () {
-            CN.btnLoading($btn, true, 'در حال پرداخت…');
+            CN.btnLoading(btn, true, 'در حال پرداخت…');
 
             CN.api('/orders/' + orderId + '/pay', {
                 method: 'POST',
                 data: { method: 'wallet' },
                 success: function (resp) {
-                    CN.btnLoading($btn, false);
+                    CN.btnLoading(btn, false);
                     CN.toast(resp.message || 'پرداخت انجام شد.', 'success');
                     CN.refreshChrome();
                     load();
                 },
                 error: function (xhr, message) {
-                    CN.btnLoading($btn, false);
-                    $('#payError').text(message).addClass('show');
-                    $('#invError').text(message).addClass('show');
+                    CN.btnLoading(btn, false);
+                    if (payErrorEl) { payErrorEl.textContent = message; payErrorEl.classList.add('show'); }
+                    if (invErrorEl) { invErrorEl.textContent = message; invErrorEl.classList.add('show'); }
                 }
             });
         });
     }
 
-    $('#payOnlineBtn').on('click', function () { payOnline($('#payOnlineBtn')); });
-    $('#payWalletBtn').on('click', function () { payWallet($('#payWalletBtn')); });
+    var payOnlineBtnEl = document.getElementById('payOnlineBtn');
+    if (payOnlineBtnEl) { payOnlineBtnEl.addEventListener('click', function () { payOnline(payOnlineBtnEl); }); }
+    var payWalletBtnEl = document.getElementById('payWalletBtn');
+    if (payWalletBtnEl) { payWalletBtnEl.addEventListener('click', function () { payWallet(payWalletBtnEl); }); }
 
     /* فاکتور داخل چت */
-    $('#invPayOnline').on('click', function () { payOnline($('#invPayOnline')); });
-    $('#invPayWallet').on('click', function () { payWallet($('#invPayWallet')); });
+    var invPayOnlineEl = document.getElementById('invPayOnline');
+    if (invPayOnlineEl) { invPayOnlineEl.addEventListener('click', function () { payOnline(invPayOnlineEl); }); }
+    var invPayWalletEl = document.getElementById('invPayWallet');
+    if (invPayWalletEl) { invPayWalletEl.addEventListener('click', function () { payWallet(invPayWalletEl); }); }
 
     /* ---------- لغو (با دلیل اجباری — فاز ۲۳) ---------- */
     var cancelSubmitting = false;
@@ -850,32 +1025,56 @@
         closeInfoSheet(); /* v31 — شیت اطلاعات بسته شود تا دو شیت روی هم نیفتند */
 
         /* ریست وضعیت شیت */
-        $('#cancelReasonInput').val('').removeClass('invalid');
-        $('#cancelReasonInputError').removeClass('show').text('');
-        $('#cancelReasonChips .chip').removeClass('active');
-        $('#cancelConfirmBtn').prop('disabled', true);
+        var reasonInputReset = document.getElementById('cancelReasonInput');
+        if (reasonInputReset) {
+            reasonInputReset.value = '';
+            reasonInputReset.classList.remove('invalid');
+        }
+        var reasonErrorReset = document.getElementById('cancelReasonInputError');
+        if (reasonErrorReset) {
+            reasonErrorReset.classList.remove('show');
+            reasonErrorReset.textContent = '';
+        }
+        Array.prototype.forEach.call(document.querySelectorAll('#cancelReasonChips .chip'), function (chipEl) {
+            chipEl.classList.remove('active');
+        });
+        var confirmBtnReset = document.getElementById('cancelConfirmBtn');
+        if (confirmBtnReset) { confirmBtnReset.disabled = true; }
         cancelSubmitting = false;
 
-        $('#cancelBackdrop').addClass('show').attr('aria-hidden', 'false');
-        $('#cancelSheet').addClass('open');
+        var cancelBackdropEl = document.getElementById('cancelBackdrop');
+        if (cancelBackdropEl) {
+            cancelBackdropEl.classList.add('show');
+            cancelBackdropEl.setAttribute('aria-hidden', 'false');
+        }
+        var cancelSheetEl = document.getElementById('cancelSheet');
+        if (cancelSheetEl) { cancelSheetEl.classList.add('open'); }
     }
 
     function closeCancelSheet() {
-        $('#cancelBackdrop').removeClass('show').attr('aria-hidden', 'true');
-        $('#cancelSheet').removeClass('open');
+        var cancelBackdropEl = document.getElementById('cancelBackdrop');
+        if (cancelBackdropEl) {
+            cancelBackdropEl.classList.remove('show');
+            cancelBackdropEl.setAttribute('aria-hidden', 'true');
+        }
+        var cancelSheetEl = document.getElementById('cancelSheet');
+        if (cancelSheetEl) { cancelSheetEl.classList.remove('open'); }
     }
 
     function reasonValid() {
-        var v = ($('#cancelReasonInput').val() || '').trim();
+        var inputEl = document.getElementById('cancelReasonInput');
+        var v = ((inputEl && inputEl.value) || '').trim();
         return v.length >= MIN_REASON;
     }
 
     function refreshCancelState(showError) {
         var ok = reasonValid();
-        $('#cancelConfirmBtn').prop('disabled', !ok || cancelSubmitting);
+        var confirmBtnEl = document.getElementById('cancelConfirmBtn');
+        if (confirmBtnEl) { confirmBtnEl.disabled = !ok || cancelSubmitting; }
 
         if (!ok && showError) {
-            var v = ($('#cancelReasonInput').val() || '').trim();
+            var inputEl2 = document.getElementById('cancelReasonInput');
+            var v = ((inputEl2 && inputEl2.value) || '').trim();
             CN.fieldError('cancelReasonInput', v
                 ? ('دلیل لغو باید حداقل ' + CN.toFaDigits(MIN_REASON) + ' نویسه باشد.')
                 : 'انتخاب یا نوشتن دلیل لغو الزامی است.');
@@ -883,77 +1082,110 @@
         return ok;
     }
 
-    $('#cancelOrderBtn').on('click', openCancelSheet);
-    $('#cancelSheetClose').on('click', closeCancelSheet);
-    $('#cancelGiveupBtn').on('click', closeCancelSheet);
-    $('#cancelBackdrop').on('click', closeCancelSheet);
+    var cancelOrderBtnEl = document.getElementById('cancelOrderBtn');
+    if (cancelOrderBtnEl) { cancelOrderBtnEl.addEventListener('click', openCancelSheet); }
+    var cancelSheetCloseEl = document.getElementById('cancelSheetClose');
+    if (cancelSheetCloseEl) { cancelSheetCloseEl.addEventListener('click', closeCancelSheet); }
+    var cancelGiveupBtnEl = document.getElementById('cancelGiveupBtn');
+    if (cancelGiveupBtnEl) { cancelGiveupBtnEl.addEventListener('click', closeCancelSheet); }
+    var cancelBackdropClickEl = document.getElementById('cancelBackdrop');
+    if (cancelBackdropClickEl) { cancelBackdropClickEl.addEventListener('click', closeCancelSheet); }
 
     /* چیپ دلیل: انتخاب → متن داخل textarea (قابل ویرایش) */
-    $('#cancelReasonChips').on('click', '.chip', function () {
-        var $chip = $(this);
-        var wasActive = $chip.hasClass('active');
+    var cancelReasonChipsEl = document.getElementById('cancelReasonChips');
+    if (cancelReasonChipsEl) {
+        cancelReasonChipsEl.addEventListener('click', function (e) {
+            var chip = e.target.closest('.chip');
+            if (!chip) { return; }
+            var wasActive = chip.classList.contains('active');
 
-        $('#cancelReasonChips .chip').removeClass('active');
-        if (wasActive) {
-            /* کلیک دوباره = برداشتن انتخاب */
-            $('#cancelReasonInput').val('');
-        } else {
-            $chip.addClass('active');
-            $('#cancelReasonInput').val($chip.data('reason') || '');
-        }
-        $('#cancelReasonInput').removeClass('invalid');
-        $('#cancelReasonInputError').removeClass('show').text('');
-        refreshCancelState(false);
-    });
-
-    $('#cancelReasonInput').on('input', function () {
-        /* ویرایش دستی → انتخاب چیپ برداشته می‌شود */
-        var chipText = ($('#cancelReasonChips .chip.active').data('reason') || '');
-        if (chipText && $(this).val() !== chipText) {
-            $('#cancelReasonChips .chip').removeClass('active');
-        }
-        refreshCancelState(false);
-    });
-
-    $('#cancelSheet').on('submit', function (e) { e.preventDefault(); });
-
-    $('#cancelConfirmBtn').on('click', function () {
-        if (cancelSubmitting || !refreshCancelState(true)) { return; }
-
-        var reason = ($('#cancelReasonInput').val() || '').trim();
-        cancelSubmitting = true;
-        CN.btnLoading($('#cancelConfirmBtn'), true, 'در حال لغو…');
-
-        CN.api('/orders/' + orderId + '/cancel', {
-            method: 'POST',
-            data: { reason: reason },
-            success: function (resp) {
-                cancelSubmitting = false;
-                CN.btnLoading($('#cancelConfirmBtn'), false);
-                closeCancelSheet();
-                CN.toast(resp.message || 'درخواست لغو شد.', 'success');
-                load();
-            },
-            error: function (xhr, message) {
-                cancelSubmitting = false;
-                CN.btnLoading($('#cancelConfirmBtn'), false);
-                /* خطای فیلد reason روی textarea؛ بقیه روی توست */
-                var errors = (xhr.responseJSON && xhr.responseJSON.errors) || {};
-                if (errors.reason && errors.reason.length) {
-                    CN.fieldError('cancelReasonInput', errors.reason[0]);
-                } else {
-                    CN.toast(message || 'لغو سفارش ناموفق بود.', 'error');
-                }
+            Array.prototype.forEach.call(cancelReasonChipsEl.querySelectorAll('.chip'), function (chipEl) {
+                chipEl.classList.remove('active');
+            });
+            var reasonInputEl = document.getElementById('cancelReasonInput');
+            if (wasActive) {
+                /* کلیک دوباره = برداشتن انتخاب */
+                if (reasonInputEl) { reasonInputEl.value = ''; }
+            } else {
+                chip.classList.add('active');
+                if (reasonInputEl) { reasonInputEl.value = chip.dataset.reason || ''; }
             }
+            if (reasonInputEl) { reasonInputEl.classList.remove('invalid'); }
+            var reasonErrorEl = document.getElementById('cancelReasonInputError');
+            if (reasonErrorEl) {
+                reasonErrorEl.classList.remove('show');
+                reasonErrorEl.textContent = '';
+            }
+            refreshCancelState(false);
         });
-    });
+    }
+
+    var cancelReasonInputEl = document.getElementById('cancelReasonInput');
+    if (cancelReasonInputEl) {
+        cancelReasonInputEl.addEventListener('input', function () {
+            /* ویرایش دستی → انتخاب چیپ برداشته می‌شود */
+            var activeChip = document.querySelector('#cancelReasonChips .chip.active');
+            var chipText = (activeChip && activeChip.dataset.reason) || '';
+            if (chipText && cancelReasonInputEl.value !== chipText) {
+                Array.prototype.forEach.call(document.querySelectorAll('#cancelReasonChips .chip'), function (chipEl) {
+                    chipEl.classList.remove('active');
+                });
+            }
+            refreshCancelState(false);
+        });
+    }
+
+    var cancelSheetFormEl = document.getElementById('cancelSheet');
+    if (cancelSheetFormEl) {
+        cancelSheetFormEl.addEventListener('submit', function (e) { e.preventDefault(); });
+    }
+
+    var cancelConfirmBtnEl = document.getElementById('cancelConfirmBtn');
+    if (cancelConfirmBtnEl) {
+        cancelConfirmBtnEl.addEventListener('click', function () {
+            if (cancelSubmitting || !refreshCancelState(true)) { return; }
+
+            var reasonInputEl = document.getElementById('cancelReasonInput');
+            var reason = ((reasonInputEl && reasonInputEl.value) || '').trim();
+            cancelSubmitting = true;
+            CN.btnLoading(cancelConfirmBtnEl, true, 'در حال لغو…');
+
+            CN.api('/orders/' + orderId + '/cancel', {
+                method: 'POST',
+                data: { reason: reason },
+                success: function (resp) {
+                    cancelSubmitting = false;
+                    CN.btnLoading(cancelConfirmBtnEl, false);
+                    closeCancelSheet();
+                    CN.toast(resp.message || 'درخواست لغو شد.', 'success');
+                    load();
+                },
+                error: function (xhr, message) {
+                    cancelSubmitting = false;
+                    CN.btnLoading(cancelConfirmBtnEl, false);
+                    /* خطای فیلد reason روی textarea؛ بقیه روی توست
+                       [Task 9] xhr دیگر responseJSON ندارد → پارس دستی */
+                    var body = null;
+                    try { body = JSON.parse(xhr.responseText); } catch (parseErr) { body = null; }
+                    var errors = (body && body.errors) || {};
+                    if (errors.reason && errors.reason.length) {
+                        CN.fieldError('cancelReasonInput', errors.reason[0]);
+                    } else {
+                        CN.toast(message || 'لغو سفارش ناموفق بود.', 'error');
+                    }
+                }
+            });
+        });
+    }
 
     /* بستن شیت‌ها با Escape */
-    $(document).on('keydown', function (e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key !== 'Escape') { return; }
-        if ($('#cancelSheet').hasClass('open')) { closeCancelSheet(); }
-        else if ($('#chatinfoSheet').hasClass('open')) { closeInfoSheet(); }
+        var cancelSheetEsc = document.getElementById('cancelSheet');
+        var chatinfoSheetEsc = document.getElementById('chatinfoSheet');
+        if (cancelSheetEsc && cancelSheetEsc.classList.contains('open')) { closeCancelSheet(); }
+        else if (chatinfoSheetEsc && chatinfoSheetEsc.classList.contains('open')) { closeInfoSheet(); }
     });
 
     load();
-})(jQuery);
+})();

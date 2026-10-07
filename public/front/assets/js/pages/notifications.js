@@ -1,6 +1,6 @@
-/* اپ مشتری — زنگ اعلان‌ها (فاز ۱۰)
+/* اپ مشتری — زنگ اعلان‌ها (فاز ۱۰) (Vanilla JS — بدون jQuery)
    پولینگ بج هر ۲۵ ثانیه + شیت پایین اعلان‌ها + علامت‌گذاری خوانده‌شده
-   global CN, jQuery
+   global CN
 
    [Task 8-fix] سازگاری SPA (wire:navigate):
    • اسکریپت data-navigate-once است و فقط یک‌بار اجرا می‌شود؛ پس عناصر
@@ -9,7 +9,7 @@
    • همهٔ رویدادها delegate روی document هستند تا با تعویض نودها زنده بمانند
      (دکمهٔ زنگ داخل @persist و شیت خارج آن است).
    • بعد از هر ناوبری بج بلافاصله تازه می‌شود. */
-(function ($) {
+(function () {
     'use strict';
 
     var POLL_MS = 25000;
@@ -18,7 +18,6 @@
 
     /* ---------- عناصر — همیشه تازه از DOM (بدون کش) ---------- */
     function el(id) { return document.getElementById(id); }
-    function $el(id) { return $('#' + id); }
 
     var ICONS = {
         order: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>',
@@ -30,13 +29,13 @@
 
     function setBadge(count) {
         count = Math.max(0, count | 0);
-        var $badge = $el('appBellBadge');
-        if (!$badge.length) { return; }
+        var badge = el('appBellBadge');
+        if (!badge) { return; }
         if (count > 0) {
-            $badge.text(count > 99 ? '۹۹+' : CN.toFaDigits(count));
-            $badge.addClass('on');
+            badge.textContent = count > 99 ? '۹۹+' : CN.toFaDigits(count);
+            badge.classList.add('on');
         } else {
-            $badge.removeClass('on');
+            badge.classList.remove('on');
         }
     }
 
@@ -63,32 +62,37 @@
 
     /* ---------- شیت ---------- */
     function openSheet() {
-        var $sheet = $el('appNotifSheet'), $overlay = $el('appNotifOverlay'), $btn = $el('appBell');
-        if (!$sheet.length) { return; }
+        var sheet = el('appNotifSheet'), overlay = el('appNotifOverlay'), bell = el('appBell');
+        if (!sheet) { return; }
         isOpen = true;
-        $sheet.addClass('open');
-        $overlay.addClass('show');
-        if ($btn.length) { $btn.attr('aria-expanded', 'true'); }
+        sheet.classList.add('open');
+        if (overlay) { overlay.classList.add('show'); }
+        if (bell) { bell.setAttribute('aria-expanded', 'true'); }
         loadList();
         bindDeviceBtn(); // دکمهٔ پوش داخل شیت است — در هر بازشدن اتصال تازه چک شود
     }
 
     function closeSheet() {
-        var $sheet = $el('appNotifSheet'), $overlay = $el('appNotifOverlay'), $btn = $el('appBell');
+        var sheet = el('appNotifSheet'), overlay = el('appNotifOverlay'), bell = el('appBell');
         isOpen = false;
-        $sheet.removeClass('open');
-        $overlay.removeClass('show');
-        if ($btn.length) { $btn.attr('aria-expanded', 'false'); }
+        if (sheet) { sheet.classList.remove('open'); }
+        if (overlay) { overlay.classList.remove('show'); }
+        if (bell) { bell.setAttribute('aria-expanded', 'false'); }
     }
 
     /* ---------- رویدادها — delegate (ضد نودِ مرده در SPA) ---------- */
-    $(document).on('click', '#appBell', function () {
+    document.addEventListener('click', function (e) {
+        var bell = e.target.closest ? e.target.closest('#appBell') : null;
+        if (!bell) { return; }
         if (isOpen) { closeSheet(); } else { openSheet(); }
     });
 
-    $(document).on('click', '#appNotifOverlay', closeSheet);
+    document.addEventListener('click', function (e) {
+        var overlay = e.target.closest ? e.target.closest('#appNotifOverlay') : null;
+        if (overlay) { closeSheet(); }
+    });
 
-    $(document).on('keydown.appNotif', function (e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && isOpen) { closeSheet(); }
     });
 
@@ -110,8 +114,8 @@
     function loadList() {
         if (loading) { return; }
         loading = true;
-        var $list = $el('appNotifList'), $count = $el('appNotifCount'), $markAll = $el('appNotifMarkAll');
-        $list.html('<div class="ns-loading"><span class="spinner"></span></div>');
+        var list = el('appNotifList'), count = el('appNotifCount'), markAll = el('appNotifMarkAll');
+        if (list) { list.innerHTML = '<div class="ns-loading"><span class="spinner"></span></div>'; }
 
         CN.api('/notifications', {
             success: function (resp) {
@@ -120,31 +124,32 @@
                 setBadge(0);
 
                 if (!rows.length) {
-                    $list.html('<div class="ns-empty">اعلان جدیدی ندارید.</div>');
-                    $count.text('');
-                    $markAll.prop('disabled', true);
+                    if (list) { list.innerHTML = '<div class="ns-empty">اعلان جدیدی ندارید.</div>'; }
+                    if (count) { count.textContent = ''; }
+                    if (markAll) { markAll.disabled = true; }
                     return;
                 }
 
                 var unread = 0;
                 rows.forEach(function (n) { if (!n.read) { unread++; } });
 
-                $list.html(rows.map(itemHtml).join(''));
-                $count.text(unread ? CN.toFaDigits(unread) + ' جدید' : '');
-                $markAll.prop('disabled', unread === 0);
+                if (list) { list.innerHTML = rows.map(itemHtml).join(''); }
+                if (count) { count.textContent = unread ? CN.toFaDigits(unread) + ' جدید' : ''; }
+                if (markAll) { markAll.disabled = unread === 0; }
             },
             error: function () {
                 loading = false;
-                $list.html('<div class="ns-empty">خطا در دریافت اعلان‌ها.</div>');
+                if (list) { list.innerHTML = '<div class="ns-empty">خطا در دریافت اعلان‌ها.</div>'; }
             }
         });
     }
 
     /* کلیک آیتم‌ها — delegate روی لیست (برای محتوای داینامیک) */
-    $(document).on('click', '#appNotifList .ns-item', function () {
-        var $item = $(this);
-        var id = $item.data('id');
-        var url = $item.data('url');
+    document.addEventListener('click', function (e) {
+        var item = e.target.closest ? e.target.closest('#appNotifList .ns-item') : null;
+        if (!item) { return; }
+        var id = item.dataset.id;
+        var url = item.dataset.url;
 
         CN.api('/notifications/read', {
             method: 'POST',
@@ -160,14 +165,15 @@
                 window.location.href = CN.withPort(url);
             }
         } else {
-            $item.removeClass('unread');
+            item.classList.remove('unread');
             poll();
         }
     });
 
-    $(document).on('click', '#appNotifMarkAll', function () {
-        var $btn = $(this);
-        $btn.prop('disabled', true);
+    document.addEventListener('click', function (e) {
+        var markAllBtn = e.target.closest ? e.target.closest('#appNotifMarkAll') : null;
+        if (!markAllBtn) { return; }
+        markAllBtn.disabled = true;
         CN.api('/notifications/read', {
             method: 'POST',
             data: {},
@@ -226,4 +232,4 @@
             poll();
         });
     }
-})(jQuery);
+})();

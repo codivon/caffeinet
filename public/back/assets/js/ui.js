@@ -1,6 +1,10 @@
 /**
  * کافی‌نت آنلاین — کتابخانهٔ رابط کاربری پنل‌ها (Panel UI Kit)
  * فایل مستقل — بدون Node / بدون بیلد (لینک مستقیم بعد از core.js)
+ * [Task 9] بازنویسی کامل به Vanilla JS — بدون هیچ کتابخانهٔ خارجی:
+ *   • رویدادهای سفارشی دیالوگ با CustomEvent (ui:ok / ui:cancel)
+ *   • رویداد تم با CustomEvent روی document (detail = حالت)
+ *   • ساخت عناصر با DOM استاندارد (createElement/innerHTML)
  *
  * PanelUI.alert({title, desc, type, okText}, onClose)
  *   type: success | error | warn | info
@@ -13,7 +17,7 @@
  * شیت پایین در موبایل، توقف عمر توست روی هاور، حداکثر ۴ توست هم‌زمان.
  */
 
-(function (window, $) {
+(function (window) {
     'use strict';
 
     /* ---------- آیکون‌ها ---------- */
@@ -46,16 +50,16 @@
     function bindKeys() {
         if (keyHandlerBound) { return; }
         keyHandlerBound = true;
-        $(document).on('keydown.ui-dialog', function (e) {
+        document.addEventListener('keydown', function (e) {
             if (!openDialogs.length) { return; }
             var top = openDialogs[openDialogs.length - 1];
             if (e.key === 'Escape') {
                 e.stopImmediatePropagation();
-                top.$wrap.trigger('ui:cancel');
+                top.wrap.dispatchEvent(new CustomEvent('ui:cancel'));
             } else if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
                 e.preventDefault();
                 e.stopImmediatePropagation();
-                top.$wrap.trigger('ui:ok');
+                top.wrap.dispatchEvent(new CustomEvent('ui:ok'));
             }
         });
     }
@@ -83,62 +87,70 @@
             '  </div>' +
             '</div>';
 
-        var $wrap = $(html);
-        var $actions = $wrap.find('.ui-modal-actions');
+        /* پارس مارک‌آپ با DOM استاندارد — ریشه، همان .ui-modal-backdrop است */
+        var host = document.createElement('div');
+        host.innerHTML = html;
+        var wrap = host.firstElementChild;
+        var actionsEl = wrap.querySelector('.ui-modal-actions');
 
         /* دکمه‌ها — با row-reverse در RTL، دکمهٔ اصلی چپ و انصراف راست می‌افتد (قرارداد فارسی) */
-        var $ok = $('<button type="button" class="' + (tone === 'danger' ? 'ui-btn-danger' : 'btn btn-primary btn-shine') + ' ui-press">' +
-            escapeHtml(opts.okText || (kind === 'confirm' ? 'تأیید' : 'متوجه شدم')) + '</button>');
-        $actions.append($ok);
+        var okBtn = document.createElement('button');
+        okBtn.type = 'button';
+        okBtn.className = (tone === 'danger' ? 'ui-btn-danger' : 'btn btn-primary btn-shine') + ' ui-press';
+        okBtn.textContent = opts.okText || (kind === 'confirm' ? 'تأیید' : 'متوجه شدم');
+        actionsEl.appendChild(okBtn);
 
-        var $cancel = null;
+        var cancelBtn = null;
         if (kind === 'confirm') {
-            $cancel = $('<button type="button" class="btn btn-ghost ui-press">' +
-                escapeHtml(opts.cancelText || 'انصراف') + '</button>');
-            $actions.append($cancel);
+            cancelBtn = document.createElement('button');
+            cancelBtn.type = 'button';
+            cancelBtn.className = 'btn btn-ghost ui-press';
+            cancelBtn.textContent = opts.cancelText || 'انصراف';
+            actionsEl.appendChild(cancelBtn);
         }
 
         var closed = false;
         function close() {
             if (closed) { return; }
             closed = true;
-            $wrap.addClass('ui-closing');
-            $wrap.find('.ui-modal').addClass('ui-closing');
+            wrap.classList.add('ui-closing');
+            var modalEl = wrap.querySelector('.ui-modal');
+            if (modalEl) { modalEl.classList.add('ui-closing'); }
             var idx = openDialogs.indexOf(entry);
             if (idx > -1) { openDialogs.splice(idx, 1); }
             unlockScroll();
             setTimeout(function () {
-                $wrap.remove();
+                wrap.remove();
                 if (prevFocus && document.contains(prevFocus)) { try { prevFocus.focus(); } catch (e) { /* noop */ } }
             }, 230);
         }
 
-        var entry = { $wrap: $wrap, close: close };
+        var entry = { wrap: wrap, close: close };
         openDialogs.push(entry);
         lockScroll();
         bindKeys();
 
         prevFocus = document.activeElement;
-        $(document.body).append($wrap);
-        setTimeout(function () { $ok.trigger('focus'); }, 60);
+        document.body.appendChild(wrap);
+        setTimeout(function () { okBtn.focus(); }, 60);
 
-        $ok.on('click', function () { $wrap.trigger('ui:ok'); });
-        if ($cancel) { $cancel.on('click', function () { $wrap.trigger('ui:cancel'); }); }
+        okBtn.addEventListener('click', function () { wrap.dispatchEvent(new CustomEvent('ui:ok')); });
+        if (cancelBtn) { cancelBtn.addEventListener('click', function () { wrap.dispatchEvent(new CustomEvent('ui:cancel')); }); }
 
-        $wrap.on('ui:ok', function () {
+        wrap.addEventListener('ui:ok', function () {
             var proceed = true;
             if (actions && typeof actions.onOk === 'function') { proceed = actions.onOk() !== false; }
             if (proceed !== false) { close(); if (actions && typeof actions.onClosed === 'function') { actions.onClosed(); } }
         });
-        $wrap.on('ui:cancel', function () {
+        wrap.addEventListener('ui:cancel', function () {
             close();
             if (actions && typeof actions.onCancel === 'function') { actions.onCancel(); }
         });
 
         /* کلیک روی پس‌زمینه = انصراف (فقط confirm؛ alert عمداً می‌ماند) */
         if (kind === 'confirm' && !opts.static) {
-            $wrap.on('click', function (e) {
-                if (e.target === $wrap[0]) { $wrap.trigger('ui:cancel'); }
+            wrap.addEventListener('click', function (e) {
+                if (e.target === wrap) { wrap.dispatchEvent(new CustomEvent('ui:cancel')); }
             });
         }
 
@@ -153,12 +165,14 @@
 
     /* ---------- توست ---------- */
     function ensureToastWrap() {
-        var $wrap = $('#ui-toast-wrap');
-        if (!$wrap.length) {
-            $wrap = $('<div id="ui-toast-wrap" aria-live="polite"></div>');
-            $(document.body).append($wrap);
+        var wrap = document.getElementById('ui-toast-wrap');
+        if (!wrap) {
+            wrap = document.createElement('div');
+            wrap.id = 'ui-toast-wrap';
+            wrap.setAttribute('aria-live', 'polite');
+            document.body.appendChild(wrap);
         }
-        return $wrap;
+        return wrap;
     }
 
     var TOAST_ICON = {
@@ -173,43 +187,47 @@
         options = options || {};
         var duration = options.duration || 4400;
 
-        var $wrap = ensureToastWrap();
+        var wrap = ensureToastWrap();
 
-        /* حداکثر ۴ توست هم‌زمان */
-        $wrap.children('.ui-toast').slice(0, -3).each(function () { dismissToast($(this)); });
+        /* حداکثر ۴ توست هم‌زمان — قدیمی‌ترین‌ها بسته شوند (همه جز ۳ تای آخر) */
+        var kids = wrap.querySelectorAll(':scope > .ui-toast');
+        for (var i = 0; i < kids.length - 3; i++) { dismissToast(kids[i]); }
 
-        var $el = $(
+        var host = document.createElement('div');
+        host.innerHTML =
             '<div class="ui-toast" data-tone="' + type + '" role="status">' +
             '  <span class="ui-toast-icon">' + TOAST_ICON[type] + '</span>' +
             '  <span class="ui-toast-msg">' + escapeHtml(message) + '</span>' +
             '  <span class="ui-toast-bar" style="animation-duration:' + duration + 'ms"></span>' +
-            '</div>'
-        );
-        $wrap.append($el);
+            '</div>';
+        var el = host.firstElementChild;
+        wrap.appendChild(el);
 
-        var lifeTimer = setTimeout(function () { dismissToast($el); }, duration);
+        var lifeTimer = setTimeout(function () { dismissToast(el); }, duration);
 
         /* توقف عمر روی هاور + کلیک برای بستن */
-        $el.on('mouseenter', function () { $el.addClass('ui-hold'); clearTimeout(lifeTimer); });
-        $el.on('mouseleave', function () {
-            $el.removeClass('ui-hold');
+        el.addEventListener('mouseenter', function () { el.classList.add('ui-hold'); clearTimeout(lifeTimer); });
+        el.addEventListener('mouseleave', function () {
+            el.classList.remove('ui-hold');
             /* ری‌استارت نوار + عمر کوتاه‌شده */
-            var $bar = $el.find('.ui-toast-bar');
-            $bar.css('animation', 'none');
-            void $bar[0].offsetWidth;
-            $bar.css('animation', '');
-            lifeTimer = setTimeout(function () { dismissToast($el); }, 1500);
+            var bar = el.querySelector('.ui-toast-bar');
+            if (bar) {
+                bar.style.animation = 'none';
+                void bar.offsetWidth;
+                bar.style.animation = '';
+            }
+            lifeTimer = setTimeout(function () { dismissToast(el); }, 1500);
         });
-        $el.on('click', function () { clearTimeout(lifeTimer); dismissToast($el); });
+        el.addEventListener('click', function () { clearTimeout(lifeTimer); dismissToast(el); });
 
-        return $el;
+        return el;
     }
 
-    function dismissToast($el) {
-        if ($el.data('closing')) { return; }
-        $el.data('closing', true);
-        $el.addClass('ui-closing');
-        setTimeout(function () { $el.remove(); }, 260);
+    function dismissToast(el) {
+        if (el.__closing) { return; }
+        el.__closing = true;
+        el.classList.add('ui-closing');
+        setTimeout(function () { el.remove(); }, 260);
     }
 
     /* ---------- مدیریت تم (روشن/تاریک) — فاز ۱۰ ---------- */
@@ -222,27 +240,27 @@
 
     function syncToggleButtons() {
         var mode = currentTheme();
-        $('[data-theme-toggle]').each(function () {
-            this.setAttribute('aria-pressed', mode === 'dark' ? 'true' : 'false');
-            this.setAttribute('title', mode === 'dark' ? 'حالت روشن' : 'حالت تاریک');
+        document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
+            btn.setAttribute('aria-pressed', mode === 'dark' ? 'true' : 'false');
+            btn.setAttribute('title', mode === 'dark' ? 'حالت روشن' : 'حالت تاریک');
         });
-        $(document).trigger('ui:theme', mode);
+        document.dispatchEvent(new CustomEvent('ui:theme', { detail: mode }));
     }
 
     function setTheme(mode, options) {
         options = options || {};
-        var $html = $(document.documentElement);
+        var htmlEl = document.documentElement;
         var isDark = mode === 'dark';
-        if (isDark === $html.hasClass('dark')) { syncToggleButtons(); return; }
+        if (isDark === htmlEl.classList.contains('dark')) { syncToggleButtons(); return; }
 
         /* انیمیشن نرم فقط هنگام تعویض (نه لود اولیه) */
         if (options.animate !== false) {
-            $html.addClass('theme-anim');
+            htmlEl.classList.add('theme-anim');
             clearTimeout(themeAnimTimer);
-            themeAnimTimer = setTimeout(function () { $html.removeClass('theme-anim'); }, 480);
+            themeAnimTimer = setTimeout(function () { htmlEl.classList.remove('theme-anim'); }, 480);
         }
 
-        $html.toggleClass('dark', isDark);
+        htmlEl.classList.toggle('dark', isDark);
         if (options.persist !== false) {
             try { localStorage.setItem(THEME_KEY, mode); } catch (e) { /* noop */ }
         }
@@ -250,8 +268,9 @@
     }
 
     /* init: اتصال دکمه‌های سوییچ (delegate — برای محتوای داینامیک هم کار می‌کند) */
-    $(document).on('click', '[data-theme-toggle]', function () {
-        setTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+    document.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest ? e.target.closest('[data-theme-toggle]') : null;
+        if (btn) { setTheme(currentTheme() === 'dark' ? 'light' : 'dark'); }
     });
 
     /* [Task 8-fix] اعمال دوبارهٔ تم بعد از هر ناوبری SPA —
@@ -272,10 +291,11 @@
         toggle: function () { setTheme(currentTheme() === 'dark' ? 'light' : 'dark'); },
         init: function () { syncToggleButtons(); }
     };
-    $(function () { window.PanelUI.theme.init(); });
+    /* اسکریپت در انتهای body لود می‌شود — اجرای فوری به‌جای DOM-ready */
+    window.PanelUI.theme.init();
 
     /* ---------- API عمومی ---------- */
     window.PanelUI.alert = function (opts, onClose) { return dialog(opts, 'alert', { onClosed: onClose }); };
     window.PanelUI.confirm = function (opts, onOk) { return dialog(opts, 'confirm', { onOk: onOk }); };
     window.PanelUI.toast = toast;
-})(window, window.jQuery);
+})(window);

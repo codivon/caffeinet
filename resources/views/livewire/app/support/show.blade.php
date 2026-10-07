@@ -1,5 +1,5 @@
 {{-- [Task 7] نسخهٔ Livewire 4 «تیکت پشتیبانی» — تبدیل از app/support-detail.blade.php
-     ساختار/کلاس‌ها/آیدی‌ها عیناً حفظ شده (JS صفحهٔ jQuery با CN.api → API v1 دست‌نخورده).
+     ساختار/کلاس‌ها/آیدی‌ها عیناً حفظ شده (JS صفحهٔ Vanilla با CN.api → API v1 دست‌نخورده).
      تنظیمات لایه از کامپوننت با layoutData پاس داده می‌شود؛ این ویو فقط یک ریشهٔ <div> دارد. --}}
 
 
@@ -58,5 +58,5 @@
 
 @push('page')
 <div id="page-data" hidden data-ticket-id="{{ $ticketId }}"></div>
-<script src="{{ asset('front/assets/js/pages/support-detail.js') }}?v=3" defer></script>
+<script src="{{ asset('front/assets/js/pages/support-detail.js') }}?v=4" defer></script>
 @endpush

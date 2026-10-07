@@ -1,9 +1,11 @@
 /* ============================================================
-   کافی‌نت آنلاین — هسته اپ مشتری (jQuery)
-   بدون وابستگی به Node/بیلد — فایل مستقل لینک‌شده به صفحات
+   کافی‌نت آنلاین — هسته اپ مشتری (Vanilla JS — بدون jQuery)
+   [Task 9] مهاجرت کامل از jQuery به DOM استاندارد:
+   • CN.api روی XMLHttpRequest (حفظ xhr.status/responseText در خطاها)
+   • همهٔ متدهای DOM اکنون عنصر خام می‌پذیرند (نه آبجکت jQuery)
+   • بدون وابستگی به Node/بیلد — فایل مستقل لینک‌شده به صفحات
    ============================================================ */
-/* global jQuery */
-window.CN = (function ($) {
+window.CN = (function () {
     'use strict';
 
     /* ---------- پیکربندی گیت‌وی پیش‌نمایش ---------- */
@@ -75,7 +77,7 @@ window.CN = (function ($) {
         return true;
     }
 
-    /* ---------- لایه API ---------- */
+    /* ---------- لایه API (vanilla XHR — جایگزین $.ajax) ---------- */
     function extractMessage(xhr) {
         var data = null;
         try {
@@ -98,9 +100,9 @@ window.CN = (function ($) {
 
     /**
      * فراخوانی API.
-     * opts: { method, data(json), formData, success(resp), error(xhr, message), timeout, retries }
+     * opts: { method, data(json), formData, success(resp), error(xhr, message), timeout, retries, complete(xhr) }
      *
-     * v40 — سخت‌سازی مرکزی (رفع «فرم/فیلدها لود نمی‌شود و رفرش می‌خواهد»):
+     * v40 — سخت‌سازی مرکزی (حفظ عین رفتار نسخهٔ jQuery):
      *  • timeout پیش‌فرض ۲۰ ثانیه — درخواست دیگر تا ابد معلق نمی‌ماند.
      *  • تلاش مجدد خودکار روی خطاهای گذرا (شبکه/تایم‌اوت/۵xx/۴۲۹/پاسخ غیر-JSON):
      *    GET به‌طور پیش‌فرض ۱ تلاش مجدد دارد؛ متدهای دیگر (POST/…) هرگز
@@ -116,65 +118,89 @@ window.CN = (function ($) {
             ? opts.__retriesLeft
             : Math.max(0, (opts.retries !== undefined) ? Number(opts.retries) : (method === 'GET' ? 1 : 0));
 
-        var conf = {
-            url: apiUrl(path),
-            method: method,
-            headers: { 'Accept': 'application/json' },
-            dataType: 'json',
-            timeout: opts.timeout || 20000 // v40 — هیچ درخواستی بی‌مهلت نیست
-        };
+        netBusyBegin(); /* معادل ajaxStart — نگه‌داشتن state دکمهٔ busy */
 
+        var xhr = new XMLHttpRequest();
+        xhr.open(method, apiUrl(path), true);
+        xhr.timeout = opts.timeout || 20000; /* v40 — هیچ درخواستی بی‌مهلت نیست */
+        xhr.responseType = 'text';
+        xhr.setRequestHeader('Accept', 'application/json');
         if (token()) {
-            conf.headers['Authorization'] = 'Bearer ' + token();
+            xhr.setRequestHeader('Authorization', 'Bearer ' + token());
         }
-
         if (opts.formData) {
-            conf.data = opts.formData;
-            conf.processData = false;
-            conf.contentType = false;
+            /* FormData: مرورگر خودش Content-Type چند-بخشی با boundary می‌سازد */
         } else if (typeof opts.data !== 'undefined') {
-            conf.data = JSON.stringify(opts.data);
-            conf.contentType = 'application/json';
+            xhr.setRequestHeader('Content-Type', 'application/json');
         }
 
-        conf.success = function (resp) {
-            if (opts.success) { opts.success(resp); }
-        };
+        var timedOut = false;
+        xhr.ontimeout = function () { timedOut = true; };
 
-        conf.error = function (xhr, textStatus) {
+        xhr.onload = function () {
+            var status = xhr.status;
+            var ok = status >= 200 && status < 300;
+
+            if (ok) {
+                var resp = null;
+                try { resp = JSON.parse(xhr.responseText); } catch (e) { resp = null; }
+                netBusyEnd();
+                if (opts.success) { opts.success(resp); }
+                if (opts.complete) { opts.complete(xhr); }
+                return;
+            }
+
             var message = extractMessage(xhr);
 
-            if (xhr.status === 401) {
+            if (status === 401) {
+                netBusyEnd();
                 clearSession();
                 toast('نشست شما منقضی شده؛ دوباره وارد شوید.', 'error');
                 window.setTimeout(function () {
                     window.location.replace(withPort('/app/auth'));
                 }, 1100);
+                if (opts.complete) { opts.complete(xhr); }
                 return;
             }
 
             /* v40 — خطای گذرا و تلاش مجدد باقی است؟ پس از مکث کوتاه دوباره می‌زنیم */
-            if (retriesLeft > 0 && isTransientFailure(xhr, textStatus)) {
-                var retryOpts = $.extend({}, opts, { __retriesLeft: retriesLeft - 1 });
+            if (retriesLeft > 0 && isTransientFailure(xhr, timedOut ? 'timeout' : '')) {
+                netBusyEnd();
+                var retryOpts = Object.assign({}, opts, { __retriesLeft: retriesLeft - 1 });
                 window.setTimeout(function () { api(path, retryOpts); }, 900);
                 return;
             }
 
+            netBusyEnd();
             if (opts.error) {
                 opts.error(xhr, message);
             } else if (message) {
                 toast(message, 'error');
             }
+            if (opts.complete) {
+                if (status === 401 && opts.error === undefined) { return; }
+                opts.complete(xhr);
+            }
         };
 
-        if (opts.complete) {
-            conf.complete = function (xhr) {
-                if (xhr && xhr.status === 401 && opts.error === undefined) { return; }
-                opts.complete(xhr);
-            };
-        }
+        xhr.onerror = function () {
+            var message = extractMessage(xhr);
+            netBusyEnd();
+            if (opts.error) {
+                opts.error(xhr, message);
+            } else if (message) {
+                toast(message, 'error');
+            }
+            if (opts.complete) { opts.complete(xhr); }
+        };
 
-        $.ajax(conf);
+        if (opts.formData) {
+            xhr.send(opts.formData);
+        } else if (typeof opts.data !== 'undefined') {
+            xhr.send(JSON.stringify(opts.data));
+        } else {
+            xhr.send();
+        }
     }
 
     /** آیا خطای فعلی گذرا است و ارزش تلاش مجدد دارد؟ (v40) */
@@ -245,61 +271,74 @@ window.CN = (function ($) {
         type = type || 'info';
         duration = duration || 3600;
 
-        var $wrap = $('#toastWrap');
-        if (!$wrap.length) { return; }
+        var wrap = document.getElementById('toastWrap');
+        if (!wrap) { return; }
 
-        var $t = $('<div class="toast toast-' + type + '" role="status"><span class="t-icon">' + (ICONS[type] || 'ℹ') + '</span><span></span></div>');
-        $t.find('span:last').text(message);
-        $wrap.append($t);
+        var t = document.createElement('div');
+        t.className = 'toast toast-' + type;
+        t.setAttribute('role', 'status');
+        t.innerHTML = '<span class="t-icon">' + (ICONS[type] || 'ℹ') + '</span><span></span>';
+        t.lastElementChild.textContent = message;
+        wrap.appendChild(t);
 
         window.setTimeout(function () {
-            $t.addClass('out');
-            window.setTimeout(function () { $t.remove(); }, 350);
+            t.classList.add('out');
+            window.setTimeout(function () { t.remove(); }, 350);
         }, duration);
     }
 
-    /* ---------- دکمه در حال بارگذاری ---------- */
-    function btnLoading($btn, loading, loadingText) {
-        if (!$btn || !$btn.length) { return; }
+    /* ---------- دکمه در حال بارگذاری (عنصر خام) ---------- */
+    function btnLoading(btn, loading, loadingText) {
+        if (!btn) { return; }
         if (loading) {
-            if (!$btn.data('cn-html')) { $btn.data('cn-html', $btn.html()); }
-            $btn.prop('disabled', true).css('opacity', 0.65);
-            $btn.html('<span class="spinner"></span>' + (loadingText ? ' ' + esc(loadingText) : ''));
+            if (!btn.__cnHtml) { btn.__cnHtml = btn.innerHTML; }
+            btn.disabled = true;
+            btn.style.opacity = '0.65';
+            btn.innerHTML = '<span class="spinner"></span>' + (loadingText ? ' ' + esc(loadingText) : '');
         } else {
-            $btn.prop('disabled', false).css('opacity', '');
-            var original = $btn.data('cn-html');
-            if (original) { $btn.html(original); }
+            btn.disabled = false;
+            btn.style.opacity = '';
+            if (btn.__cnHtml) { btn.innerHTML = btn.__cnHtml; }
         }
     }
 
     /* ---------- خطای فیلد ---------- */
     /** یافتن عنصر خطای متناظر: #err_name / #ferr_name / #nameError / #name */
     function errorEl(name) {
-        var selectors = ['#err_' + name, '#ferr_' + name, '#' + name + 'Error', '#' + name];
+        var selectors = ['err_' + name, 'ferr_' + name, name + 'Error', name];
         for (var i = 0; i < selectors.length; i++) {
-            var $el = $(selectors[i]);
-            if ($el.length && $el.hasClass('field-error')) { return $el; }
+            var el = document.getElementById(selectors[i]);
+            if (el && el.classList.contains('field-error')) { return el; }
         }
         return null;
     }
 
     function fieldError(name, message) {
-        var $err = errorEl(name);
-        if ($err) {
-            $err.text(message || '').addClass('show');
-            var $input = $err.closest('.form-group').find('.field, .check-row, .check-grid');
-            $input.addClass('invalid');
+        var err = errorEl(name);
+        if (err) {
+            err.textContent = message || '';
+            err.classList.add('show');
+            var group = err.closest('.form-group');
+            if (group) {
+                var input = group.querySelector('.field, .check-row, .check-grid');
+                if (input) { input.classList.add('invalid'); }
+            }
         }
     }
 
     function clearFieldErrors(scope) {
-        var $root = scope ? $(scope) : $(document);
-        $root.find('.field-error').removeClass('show').text('');
-        $root.find('.field').removeClass('invalid');
+        var root = (scope instanceof Element) ? scope : document;
+        Array.prototype.forEach.call(root.querySelectorAll('.field-error'), function (el) {
+            el.classList.remove('show');
+            el.textContent = '';
+        });
+        Array.prototype.forEach.call(root.querySelectorAll('.field'), function (el) {
+            el.classList.remove('invalid');
+        });
     }
 
     /** نگاشت خطاهای سرور (کلید = نام فنی فیلد) روی فرم */
-    function applyErrors(errors, $scope) {
+    function applyErrors(errors, scope) {
         errors = errors || {};
         Object.keys(errors).forEach(function (key) {
             var list = errors[key];
@@ -332,23 +371,28 @@ window.CN = (function ($) {
      */
     function confirm(opts, onOk) {
         opts = opts || {};
-        var $modal = $(modalHtml);
-        $modal.find('.m-icon').text(opts.icon || '⚠');
-        $modal.find('.m-title').text(opts.title || 'تأیید عملیات');
-        $modal.find('.m-desc').text(opts.desc || '');
-        $modal.find('.m-ok').text(opts.okText || 'تأیید');
-        if (opts.danger) {
-            $modal.find('.m-ok').removeClass('btn-primary').addClass('btn-danger');
-        }
-        $('body').append($modal);
+        var tmp = document.createElement('div');
+        tmp.innerHTML = modalHtml;
+        var modal = tmp.firstElementChild;
 
-        $modal.find('.m-cancel').on('click', function () { $modal.remove(); });
-        $modal.find('.m-ok').on('click', function () {
-            $modal.remove();
+        modal.querySelector('.m-icon').textContent = opts.icon || '⚠';
+        modal.querySelector('.m-title').textContent = opts.title || 'تأیید عملیات';
+        modal.querySelector('.m-desc').textContent = opts.desc || '';
+        var okBtn = modal.querySelector('.m-ok');
+        okBtn.textContent = opts.okText || 'تأیید';
+        if (opts.danger) {
+            okBtn.classList.remove('btn-primary');
+            okBtn.classList.add('btn-danger');
+        }
+        document.body.appendChild(modal);
+
+        modal.querySelector('.m-cancel').addEventListener('click', function () { modal.remove(); });
+        okBtn.addEventListener('click', function () {
+            modal.remove();
             if (onOk) { onOk(); }
         });
-        $modal.on('click', function (e) {
-            if (e.target === $modal[0]) { $modal.remove(); }
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) { modal.remove(); }
         });
     }
 
@@ -357,16 +401,18 @@ window.CN = (function ($) {
        کیف پول از ناوبری پایین و صفحهٔ پروفایل در دسترس است. */
 
     function updateAvatar(u) {
-        var $a = $('#headerAvatar, #profileAvatar');
-        if (!$a.length || !u) { return; }
+        var targets = document.querySelectorAll('#headerAvatar, #profileAvatar');
+        if (!targets.length || !u) { return; }
         var initials;
         if (u.name && u.family) {
             initials = (u.name.trim().charAt(0) || '؟') + (u.family.trim().charAt(0) || '');
         } else {
             initials = '؟';
         }
-        $a.text(initials);
-        if ($a.attr('title') !== undefined) { $a.attr('title', u.full_name || ''); }
+        Array.prototype.forEach.call(targets, function (a) {
+            a.textContent = initials;
+            if (a.getAttribute('title') !== null) { a.setAttribute('title', u.full_name || ''); }
+        });
     }
 
     /** بروزرسانی هدر: آواتار */
@@ -376,19 +422,19 @@ window.CN = (function ($) {
         if (u) { updateAvatar(u); }
     }
 
-    /* ---------- شمارش معکوس ---------- */
-    function countdown($target, $btn, seconds, onEnd) {
+    /* ---------- شمارش معکوس (عناصر خام) ---------- */
+    function countdown(target, btn, seconds, onEnd) {
         var remain = seconds;
-        $btn.prop('disabled', true);
+        if (btn) { btn.disabled = true; }
 
         function tick() {
             if (remain <= 0) {
-                $target.text('');
-                $btn.prop('disabled', false);
+                if (target) { target.textContent = ''; }
+                if (btn) { btn.disabled = false; }
                 if (onEnd) { onEnd(); }
                 return;
             }
-            $target.text('ارسال مجدد تا ' + toFaDigits(remain) + ' ثانیه…');
+            if (target) { target.textContent = 'ارسال مجدد تا ' + toFaDigits(remain) + ' ثانیه…'; }
             remain--;
             window.setTimeout(tick, 1000);
         }
@@ -438,28 +484,29 @@ window.CN = (function ($) {
 
     function syncThemeButtons() {
         var mode = currentTheme();
-        $('[data-theme-toggle]').each(function () {
-            this.setAttribute('aria-pressed', mode === 'dark' ? 'true' : 'false');
-            this.setAttribute('title', mode === 'dark' ? 'حالت روز' : 'حالت شب');
+        Array.prototype.forEach.call(document.querySelectorAll('[data-theme-toggle]'), function (el) {
+            el.setAttribute('aria-pressed', mode === 'dark' ? 'true' : 'false');
+            el.setAttribute('title', mode === 'dark' ? 'حالت روز' : 'حالت شب');
         });
-        /* نمودارها/کامپوننت‌های سراسری از این رویداد باخبر شوند */
-        $(document).trigger('ui:theme', mode);
+        /* نمودارها/کامپوننت‌های سراسری از این رویداد باخبر شوند
+           [Task 9] vanilla: شنونده با e.detail به حالت دسترسی دارد */
+        document.dispatchEvent(new CustomEvent('ui:theme', { detail: mode }));
     }
 
     function setTheme(mode, options) {
         options = options || {};
-        var $html = $(document.documentElement);
+        var html = document.documentElement;
         var isDark = mode === 'dark';
-        if (isDark === $html.hasClass('dark')) { syncThemeButtons(); return; }
+        if (isDark === html.classList.contains('dark')) { syncThemeButtons(); return; }
 
         /* انیمیشن نرم فقط هنگام تعویض (نه لود اولیه) */
         if (options.animate !== false) {
-            $html.addClass('theme-anim');
+            html.classList.add('theme-anim');
             window.clearTimeout(themeAnimTimer);
-            themeAnimTimer = window.setTimeout(function () { $html.removeClass('theme-anim'); }, 480);
+            themeAnimTimer = window.setTimeout(function () { html.classList.remove('theme-anim'); }, 480);
         }
 
-        $html.toggleClass('dark', isDark);
+        html.classList.toggle('dark', isDark);
         if (options.persist !== false) {
             try { window.localStorage.setItem(THEME_KEY, mode); } catch (e) { /* noop */ }
         }
@@ -467,8 +514,11 @@ window.CN = (function ($) {
     }
 
     /* اتصال دکمه‌های سوییچ (delegate — برای محتوای داینامیک هم کار می‌کند) */
-    $(document).on('click', '[data-theme-toggle]', function () {
-        setTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+    document.addEventListener('click', function (e) {
+        var el = e.target.closest ? e.target.closest('[data-theme-toggle]') : null;
+        if (el) {
+            setTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+        }
     });
 
     /* ---------- خروج ---------- */
@@ -558,12 +608,25 @@ window.CN = (function ($) {
         syncThemeButtons();
     });
 
+    /* ---------- [Task 9] شمارندهٔ درخواست فعال (جایگزین ajaxStart/ajaxStop) ---------- */
+    var netBusyCount = 0;
+
+    function netBusyBegin() {
+        netBusyCount++;
+        window.clearTimeout(busyTimer);
+    }
+
+    function netBusyEnd() {
+        netBusyCount = Math.max(0, netBusyCount - 1);
+        if (netBusyCount === 0 && busyBtn) { busyRelease(); }
+    }
+
     /* ---------- [Task 8] لودینگ روی دکمه‌ها تا پایان پردازش ----------
        هر دکمهٔ کلیک‌شده کلاس is-busy می‌گیرد:
-       • اگر درخواست AJAX واقعی شروع شود (CN.api همه jQuery است) تا ajaxStop می‌ماند
+       • اگر درخواست شبکه واقعی (CN.api) شروع شود تا پایان آن می‌ماند
        • اگر اکشن فوری باشد (بازکردن مودال/تب) بعد از ۳۵۰ms آزاد می‌شود تا چشمک زنده نگیرد
        • لینک‌های wire:navigate و سوییچ‌های فوری (تم/زنگ/چیپ) مستثنا هستند */
-    var busyBtn = null, busyTimer = null, busyAjax = 0;
+    var busyBtn = null, busyTimer = null;
 
     function busyRelease() {
         window.clearTimeout(busyTimer);
@@ -574,8 +637,8 @@ window.CN = (function ($) {
         }
     }
 
-    $(document).on('click', 'button, [role="button"], .btn, a[class*="btn-"]', function () {
-        var el = this;
+    document.addEventListener('click', function (e) {
+        var el = e.target.closest ? e.target.closest('button, [role="button"], .btn, a[class*="btn-"]') : null;
         if (!el || el.disabled) { return; }
         if (el.hasAttribute('data-no-loading') || el.hasAttribute('data-theme-toggle') || el.id === 'appBell') { return; }
         if (el.classList.contains('chip') || el.classList.contains('ns-item') || el.classList.contains('ns-markall')) { return; }
@@ -587,17 +650,8 @@ window.CN = (function ($) {
         el.setAttribute('aria-busy', 'true');
         window.clearTimeout(busyTimer);
         busyTimer = window.setTimeout(function () {
-            if (busyAjax === 0) { busyRelease(); } /* اکشن فوری — بدون AJAX */
+            if (netBusyCount === 0) { busyRelease(); } /* اکشن فوری — بدون درخواست شبکه */
         }, 350);
-    });
-
-    $(document).ajaxStart(function () {
-        busyAjax++;
-        window.clearTimeout(busyTimer);
-    });
-    $(document).ajaxStop(function () {
-        busyAjax = 0;
-        if (busyBtn) { busyRelease(); }
     });
 
     /* [Task 2-a] آیتم فعال ناوبری پایین بعد از هر ناوبری تازه شود
@@ -669,4 +723,4 @@ window.CN = (function ($) {
         esc: esc,
         normalizeMobile: normalizeMobile
     };
-})(jQuery);
+})();

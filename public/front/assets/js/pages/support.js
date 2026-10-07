@@ -1,6 +1,6 @@
-/* اپ مشتری — تیکت‌های پشتیبانی (فاز ۱۰)
-   global CN, jQuery */
-(function ($) {
+/* اپ مشتری — تیکت‌های پشتیبانی (فاز ۱۰) (Vanilla JS — بدون jQuery)
+   global CN */
+(function () {
     'use strict';
 
     if (!CN.requireCompleteProfile()) { return; }
@@ -20,29 +20,35 @@
         state.loading = true;
 
         var qs = state.status ? ('?status=' + state.status) : '';
-        $('#ticketList').html('<div class="skeleton" style="height:72px"></div><div class="skeleton" style="height:72px"></div>');
+        var ticketList = document.getElementById('ticketList');
+        if (ticketList) {
+            ticketList.innerHTML = '<div class="skeleton" style="height:72px"></div><div class="skeleton" style="height:72px"></div>';
+        }
 
         CN.api('/tickets' + qs, {
             success: function (resp) {
                 state.loading = false;
                 var rows = (resp && resp.data) || [];
+                var listEl = document.getElementById('ticketList');
+                var emptyEl = document.getElementById('ticketEmpty');
 
                 if (!rows.length) {
-                    $('#ticketList').html('').addClass('hidden');
-                    $('#ticketEmpty').removeClass('hidden');
+                    if (listEl) { listEl.innerHTML = ''; listEl.classList.add('hidden'); }
+                    if (emptyEl) { emptyEl.classList.remove('hidden'); }
                     return;
                 }
 
-                $('#ticketEmpty').addClass('hidden');
-                $('#ticketList').removeClass('hidden');
+                if (emptyEl) { emptyEl.classList.add('hidden'); }
+                if (listEl) { listEl.classList.remove('hidden'); }
 
                 var html = '';
                 rows.forEach(function (t) { html += rowHtml(t); });
-                $('#ticketList').html(html);
+                if (listEl) { listEl.innerHTML = html; }
             },
             error: function () {
                 state.loading = false;
-                $('#ticketList').html('<div class="ns-empty">خطا در دریافت تیکت‌ها.</div>');
+                var listEl = document.getElementById('ticketList');
+                if (listEl) { listEl.innerHTML = '<div class="ns-empty">خطا در دریافت تیکت‌ها.</div>'; }
             }
         });
     }
@@ -70,103 +76,132 @@
     }
 
     /* ---------- فیلتر چیپ‌ها ---------- */
-    $('.chip').on('click', function () {
-        $('.chip').removeClass('is-on').attr('aria-selected', 'false');
-        $(this).addClass('is-on').attr('aria-selected', 'true');
-        state.status = $(this).data('status') || '';
-        load();
+    Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+        chip.addEventListener('click', function () {
+            Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (c) {
+                c.classList.remove('is-on');
+                c.setAttribute('aria-selected', 'false');
+            });
+            chip.classList.add('is-on');
+            chip.setAttribute('aria-selected', 'true');
+            state.status = chip.dataset.status || '';
+            load();
+        });
     });
 
     /* ---------- شیت تیکت جدید ---------- */
-    var $backdrop = $('#newSheetBackdrop');
-    var $sheet = $('#newSheet');
+    var newSheetBackdrop = document.getElementById('newSheetBackdrop');
+    var newSheet = document.getElementById('newSheet');
 
     function openSheet() {
-        $sheet.addClass('open');
-        $backdrop.addClass('show');
+        if (newSheet) { newSheet.classList.add('open'); }
+        if (newSheetBackdrop) { newSheetBackdrop.classList.add('show'); }
         loadOrders();
     }
 
     function closeSheet() {
-        $sheet.removeClass('open');
-        $backdrop.removeClass('show');
-        $('#err_subject, #err_message').text('').removeClass('show');
-        $('#nt-subject, #nt-message').val('');
-        $('#nt-priority').val('normal');
+        if (newSheet) { newSheet.classList.remove('open'); }
+        if (newSheetBackdrop) { newSheetBackdrop.classList.remove('show'); }
+        Array.prototype.forEach.call(document.querySelectorAll('#err_subject, #err_message'), function (err) {
+            err.textContent = '';
+            err.classList.remove('show');
+        });
+        Array.prototype.forEach.call(document.querySelectorAll('#nt-subject, #nt-message'), function (field) {
+            field.value = '';
+        });
+        var prioritySel = document.getElementById('nt-priority');
+        if (prioritySel) { prioritySel.value = 'normal'; }
     }
 
-    $('#btnNewTicket').on('click', openSheet);
-    $('#closeNewSheet').on('click', closeSheet);
-    $backdrop.on('click', closeSheet);
-    $(document).on('keydown.newTicket', function (e) {
+    if (document.getElementById('btnNewTicket')) {
+        document.getElementById('btnNewTicket').addEventListener('click', openSheet);
+    }
+    if (document.getElementById('closeNewSheet')) {
+        document.getElementById('closeNewSheet').addEventListener('click', closeSheet);
+    }
+    if (newSheetBackdrop) { newSheetBackdrop.addEventListener('click', closeSheet); }
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') { closeSheet(); }
     });
 
     /* سفارش‌های کاربر برای انتخاب مرتبط */
     function loadOrders() {
-        var $select = $('#nt-order');
-        if ($select.data('loaded')) { return; }
+        var select = document.getElementById('nt-order');
+        if (!select || select.dataset.loaded) { return; }
 
         CN.api('/orders?per_page=30', {
             success: function (resp) {
-                $select.data('loaded', 1);
+                select.dataset.loaded = '1';
                 var rows = (resp && resp.data) || [];
                 var html = '<option value="">بدون سفارش</option>';
                 rows.forEach(function (o) {
                     html += '<option value="' + o.id + '">' + CN.esc(o.order_number) + ' — ' + CN.esc(o.status_label || '') + '</option>';
                 });
-                $select.html(html);
+                select.innerHTML = html;
             }
         });
     }
 
     /* ---------- ثبت ---------- */
-    $('#newTicketForm').on('submit', function (e) {
-        e.preventDefault();
+    if (document.getElementById('newTicketForm')) {
+        document.getElementById('newTicketForm').addEventListener('submit', function (e) {
+            e.preventDefault();
 
-        var subject = $.trim($('#nt-subject').val());
-        var message = $.trim($('#nt-message').val());
-        var priority = $('#nt-priority').val();
-        var orderId = $('#nt-order').val();
+            var subjectInput = document.getElementById('nt-subject');
+            var messageInput = document.getElementById('nt-message');
+            var subject = String(subjectInput ? subjectInput.value : '').trim();
+            var message = String(messageInput ? messageInput.value : '').trim();
+            var prioritySel = document.getElementById('nt-priority');
+            var orderSel = document.getElementById('nt-order');
+            var priority = prioritySel ? prioritySel.value : undefined;
+            var orderId = orderSel ? orderSel.value : undefined;
 
-        $('#err_subject, #err_message').text('').removeClass('show');
+            Array.prototype.forEach.call(document.querySelectorAll('#err_subject, #err_message'), function (err) {
+                err.textContent = '';
+                err.classList.remove('show');
+            });
 
-        if (!subject) {
-            $('#err_subject').text('موضوع الزامی است.').addClass('show');
-            return;
-        }
-        if (!message) {
-            $('#err_message').text('توضیح مشکل الزامی است.').addClass('show');
-            return;
-        }
-
-        var $btn = $('#nt-submit');
-        CN.btnLoading($btn, true, 'در حال ثبت…');
-
-        CN.api('/tickets', {
-            method: 'POST',
-            data: {
-                subject: subject,
-                message: message,
-                priority: priority,
-                order_id: orderId ? +orderId : null
-            },
-            success: function (resp) {
-                CN.btnLoading($btn, false);
-                CN.toast(resp.message || 'تیکت ثبت شد.', 'success');
-                closeSheet();
-                window.location.href = CN.withPort('/app/support/' + resp.data.id);
-            },
-            error: function (xhr, msg) {
-                CN.btnLoading($btn, false);
-                if (xhr && xhr.responseJSON && xhr.responseJSON.errors) {
-                    CN.applyErrors(xhr.responseJSON.errors);
-                } else {
-                    CN.toast(msg || 'ثبت تیکت ناموفق بود.', 'error');
-                }
+            if (!subject) {
+                var errSubject = document.getElementById('err_subject');
+                if (errSubject) { errSubject.textContent = 'موضوع الزامی است.'; errSubject.classList.add('show'); }
+                return;
             }
+            if (!message) {
+                var errMessage = document.getElementById('err_message');
+                if (errMessage) { errMessage.textContent = 'توضیح مشکل الزامی است.'; errMessage.classList.add('show'); }
+                return;
+            }
+
+            var submitBtn = document.getElementById('nt-submit');
+            CN.btnLoading(submitBtn, true, 'در حال ثبت…');
+
+            CN.api('/tickets', {
+                method: 'POST',
+                data: {
+                    subject: subject,
+                    message: message,
+                    priority: priority,
+                    order_id: orderId ? +orderId : null
+                },
+                success: function (resp) {
+                    CN.btnLoading(submitBtn, false);
+                    CN.toast(resp.message || 'تیکت ثبت شد.', 'success');
+                    closeSheet();
+                    window.location.href = CN.withPort('/app/support/' + resp.data.id);
+                },
+                error: function (xhr, msg) {
+                    CN.btnLoading(submitBtn, false);
+                    var respData = null;
+                    try { respData = JSON.parse(xhr.responseText); } catch (parseErr) { respData = null; }
+                    if (respData && respData.errors) {
+                        CN.applyErrors(respData.errors);
+                    } else {
+                        CN.toast(msg || 'ثبت تیکت ناموفق بود.', 'error');
+                    }
+                }
+            });
         });
-    });
+    }
 
     load();
-})(jQuery);
+})();

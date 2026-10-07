@@ -1,5 +1,5 @@
 {{-- [Task 7] نسخهٔ Livewire 4 «گفتگوی سفارش» — تبدیل از app/order-detail.blade.php
-     ساختار/کلاس‌ها/آیدی‌ها عیناً حفظ شده (JS صفحهٔ jQuery با CN.api → API v1 دست‌نخورده).
+     ساختار/کلاس‌ها/آیدی‌ها عیناً حفظ شده (JS صفحهٔ Vanilla با CN.api → API v1 دست‌نخورده).
      تنظیمات لایه از کامپوننت با layoutData پاس داده می‌شود؛ این ویو فقط یک ریشهٔ <div> دارد. --}}
 
 
@@ -481,6 +481,6 @@
 @endpush
 
 @push('page')
-    <script src="{{ asset('front/assets/js/pages/order-detail.js') }}?v=4" defer></script>
-    <script src="{{ asset('front/assets/js/pages/order-chat.js') }}?v=19" defer></script>
+    <script src="{{ asset('front/assets/js/pages/order-detail.js') }}?v=5" defer></script>
+    <script src="{{ asset('front/assets/js/pages/order-chat.js') }}?v=20" defer></script>
 @endpush

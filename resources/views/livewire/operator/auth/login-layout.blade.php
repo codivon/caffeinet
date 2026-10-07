@@ -44,9 +44,8 @@
 </main>
 
 {{-- [Task 2-a] data-navigate-once: اسکریپت‌های مشترک بین ناوبری‌های SPA دوباره اجرا نشوند --}}
-<script src="{{ asset('assets/js/vendor/jquery.min.js') }}?v=10" data-navigate-once></script>
-<script src="{{ asset('back/assets/js/core.js') }}?v=13" data-navigate-once></script>
-<script src="{{ asset('back/assets/js/ui.js') }}?v=10" data-navigate-once></script>
+<script src="{{ asset('back/assets/js/core.js') }}?v=14" data-navigate-once></script>
+<script src="{{ asset('back/assets/js/ui.js') }}?v=12" data-navigate-once></script>
 
 {{-- Livewire [Task 2-a] --}}
 @livewireScripts

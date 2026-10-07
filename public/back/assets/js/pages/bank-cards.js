@@ -4,6 +4,7 @@
  * endpointها از data-base المان ریشه خوانده می‌شوند.
  * v40: اگر data-finnotech=1 باشد، کد ملی صاحب کارت در مودال گرفته می‌شود
  * و کارت‌های تأییدشده نشان ✓ فینوتک می‌گیرند.
+ * [Task 9] Vanilla JS — دسترسی مستقیم DOM (getElementById/querySelector).
  */
 (function () {
     'use strict';
@@ -17,9 +18,6 @@
     try { cards = JSON.parse(root.dataset.cards || '[]'); } catch { cards = []; }
 
     /* ---------- ابزار ---------- */
-
-    const $ = (sel, scope) => (scope || document).querySelector(sel);
-    const $$ = (sel, scope) => Array.from((scope || document).querySelectorAll(sel));
 
     function esc(s) {
         return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -114,8 +112,8 @@
     }
 
     function render() {
-        const list = $('#bcList');
-        const empty = $('#bcEmpty');
+        const list = document.getElementById('bcList');
+        const empty = document.getElementById('bcEmpty');
 
         if (!cards.length) {
             list.innerHTML = '';
@@ -129,31 +127,31 @@
 
     /* ---------- مودال ---------- */
 
-    const modal = $('#bcModal');
-    const form = $('#bcForm');
+    const modal = document.getElementById('bcModal');
+    const form = document.getElementById('bcForm');
     let editingId = null;
 
     function openModal(card) {
         editingId = card ? card.id : null;
 
-        $('#bcModalTitle').textContent = card ? 'ویرایش کارت بانکی' : 'افزودن کارت بانکی';
-        $('#bcCard').value = card?.card_number || '';
-        $('#bcSheba').value = card?.sheba_number || '';
-        $('#bcAccount').value = card?.account_number || '';
-        $('#bcHolder').value = card?.holder_name || '';
-        $('#bcOwnerNid').value = ''; // v40 — هر بار برای امنیت از نو گرفته می‌شود
-        $('#bcDefault').checked = card ? !!card.is_default : cards.length === 0;
+        document.getElementById('bcModalTitle').textContent = card ? 'ویرایش کارت بانکی' : 'افزودن کارت بانکی';
+        document.getElementById('bcCard').value = card?.card_number || '';
+        document.getElementById('bcSheba').value = card?.sheba_number || '';
+        document.getElementById('bcAccount').value = card?.account_number || '';
+        document.getElementById('bcHolder').value = card?.holder_name || '';
+        document.getElementById('bcOwnerNid').value = ''; // v40 — هر بار برای امنیت از نو گرفته می‌شود
+        document.getElementById('bcDefault').checked = card ? !!card.is_default : cards.length === 0;
 
         /* v40 — راهنمای مودال وقتی استعلام فینوتک فعال است */
-        const nidWrap = $('#bcNidWrap');
+        const nidWrap = document.getElementById('bcNidWrap');
         if (nidWrap) { nidWrap.classList.toggle('hidden', !FINNOTECH); }
 
-        $$('.field-error', form).forEach(el => { el.textContent = ''; el.classList.remove('show'); });
-        $$('.field', form).forEach(el => el.classList.remove('invalid'));
+        form.querySelectorAll('.field-error').forEach(el => { el.textContent = ''; el.classList.remove('show'); });
+        form.querySelectorAll('.field').forEach(el => el.classList.remove('invalid'));
 
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
-        setTimeout(() => $('#bcCard').focus(), 60);
+        setTimeout(() => document.getElementById('bcCard').focus(), 60);
     }
 
     function closeModal() {
@@ -163,14 +161,14 @@
     }
 
     function fieldError(id, message) {
-        const err = $('#' + id + 'Error');
+        const err = document.getElementById(id + 'Error');
         if (err) { err.textContent = message || ''; err.classList.add('show'); }
-        const input = $('#' + id);
+        const input = document.getElementById(id);
         if (input) { input.classList.add('invalid'); }
     }
 
-    $('#bcAddBtn').addEventListener('click', () => openModal(null));
-    $$('[data-bc-close]').forEach(el => el.addEventListener('click', closeModal));
+    document.getElementById('bcAddBtn').addEventListener('click', () => openModal(null));
+    document.querySelectorAll('[data-bc-close]').forEach(el => el.addEventListener('click', closeModal));
 
     /* ---------- ذخیره ---------- */
 
@@ -178,12 +176,12 @@
         e.preventDefault();
 
         const payload = {
-            card_number: normNum($('#bcCard').value) || '',
-            sheba_number: normNum($('#bcSheba').value) || '',
-            account_number: normNum($('#bcAccount').value) || '',
-            holder_name: $('#bcHolder').value.trim() || '',
-            is_default: $('#bcDefault').checked,
-            owner_nid: normNum($('#bcOwnerNid').value) || '', // v40
+            card_number: normNum(document.getElementById('bcCard').value) || '',
+            sheba_number: normNum(document.getElementById('bcSheba').value) || '',
+            account_number: normNum(document.getElementById('bcAccount').value) || '',
+            holder_name: document.getElementById('bcHolder').value.trim() || '',
+            is_default: document.getElementById('bcDefault').checked,
+            owner_nid: normNum(document.getElementById('bcOwnerNid').value) || '', // v40
         };
 
         /* اعتبارسنجی سمت کلاینت (سرور هم چک سخت دارد) */
@@ -218,7 +216,7 @@
             payload.sheba_number = 'IR' + payload.sheba_number;
         }
 
-        const btn = $('#bcSaveBtn');
+        const btn = document.getElementById('bcSaveBtn');
         btn.disabled = true;
         btn.innerHTML = '<span class="size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> ذخیره...';
 
@@ -250,7 +248,7 @@
 
     /* ---------- عملیات ردیف ---------- */
 
-    $('#bcList').addEventListener('click', async (e) => {
+    document.getElementById('bcList').addEventListener('click', async (e) => {
         const editBtn = e.target.closest('[data-bc-edit]');
         const defaultBtn = e.target.closest('[data-bc-default]');
         const deleteBtn = e.target.closest('[data-bc-delete]');

@@ -17,6 +17,8 @@
 **افزونه‌های PHP:** `openssl pdo pdo_mysql mbstring fileinfo gd curl iconv tokenizer xml ctype session` (+ `sqlite3` فقط برای محیط تست)
 
 > پروژه از Tailwind CLI مستقل و Chart.js vendored استفاده می‌کند — **هیچ `npm install` / `npm run build` لازم نیست**؛ `public/assets` کامل و آمادهٔ سرو است.
+>
+> **[فاز ۱۲]** فرانت اکنون **Livewire 4 SPA** است (ناوبری بدون رفرش با `wire:navigate`) و JS به‌طور کامل **Vanilla** (jQuery حذف شد). Livewire از طریق composer در `vendor` نصب/کامیت شده است — مرحلهٔ اضافه‌ای برای دپلوی ندارد؛ فقط مطمئن شوید `vendor/` کامل آپلود/clone شده باشد.
 
 ---
 

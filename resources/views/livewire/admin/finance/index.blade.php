@@ -274,7 +274,7 @@
 
     @push('scripts')
     <script src="{{ asset('assets/js/vendor/chart.umd.min.js') }}?v=9"></script>
-    <script src="{{ asset('back/assets/js/charts.js') }}?v=9"></script>
+    <script src="{{ asset('back/assets/js/charts.js') }}?v=10"></script>
     <script>
         /* [Task 3-e] نمودارهای صفحهٔ مالی — همان PanelCharts فعلی؛
            داده از #page-data (months/shares) که کامپوننت رندر می‌کند */

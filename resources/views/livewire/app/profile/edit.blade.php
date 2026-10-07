@@ -1,5 +1,5 @@
 {{-- [Task 7] نسخهٔ Livewire 4 «ویرایش اطلاعات» — تبدیل از app/profile-edit.blade.php
-     ساختار/کلاس‌ها/آیدی‌ها عیناً حفظ شده (JS صفحهٔ jQuery با CN.api → API v1 دست‌نخورده).
+     ساختار/کلاس‌ها/آیدی‌ها عیناً حفظ شده (JS صفحهٔ Vanilla با CN.api → API v1 دست‌نخورده).
      تنظیمات لایه از کامپوننت با layoutData پاس داده می‌شود؛ این ویو فقط یک ریشهٔ <div> دارد. --}}
 
 
@@ -186,7 +186,7 @@
 @push('page')
     {{-- v39 — بازهٔ سنین مجاز از تنظیمات عمومی (بدون اسکریپت درون‌خطی — CSP-safe) --}}
     {{-- v40 — کد ملی: الزامی بودن + وضعیت تأیید فعلی کاربر --}}
-    <script src="{{ asset('front/assets/js/pages/profile-edit.js') }}?v=3" defer
+    <script src="{{ asset('front/assets/js/pages/profile-edit.js') }}?v=4" defer
             data-birth-min="{{ $birthMinAge ?? 10 }}" data-birth-max="{{ $birthMaxAge ?? 100 }}"
             data-nid-required="{{ $nidRequired ?? false ? '1' : '0' }}"></script>
 @endpush

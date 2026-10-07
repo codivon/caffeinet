@@ -1,5 +1,5 @@
 {{-- [Task 7] نسخهٔ Livewire 4 «ثبت سفارش» — تبدیل از app/service.blade.php
-     ساختار/کلاس‌ها/آیدی‌ها عیناً حفظ شده (JS صفحهٔ jQuery با CN.api → API v1 دست‌نخورده).
+     ساختار/کلاس‌ها/آیدی‌ها عیناً حفظ شده (JS صفحهٔ Vanilla با CN.api → API v1 دست‌نخورده).
      تنظیمات لایه از کامپوننت با layoutData پاس داده می‌شود؛ این ویو فقط یک ریشهٔ <div> دارد. --}}
 
 
@@ -81,5 +81,5 @@
 @endpush
 
 @push('page')
-    <script src="{{ asset('front/assets/js/pages/service.js') }}?v=16" defer></script>
+    <script src="{{ asset('front/assets/js/pages/service.js') }}?v=17" defer></script>
 @endpush

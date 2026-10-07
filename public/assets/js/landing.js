@@ -1,6 +1,7 @@
 /* ============================================================
    کافی‌نت آنلاین — اسکریپت صفحه فرود
-   (بدون jQuery — سبک و مستقل)
+   (Vanilla JS — سبک و مستقل)
+   [Task 9] دسترسی مستقیم DOM — بدون هیچ شورت‌کات کمکی
    ------------------------------------------------------------
    [Task 8] سازگاری SPA (wire:navigate):
    • شنونده‌های سراسری (scroll/keydown/click-بیرون) فقط یک‌بار ثبت
@@ -13,16 +14,14 @@
     'use strict';
 
     var doc = document;
-    var $ = function (sel, ctx) { return (ctx || doc).querySelector(sel); };
-    var $$ = function (sel, ctx) { return Array.prototype.slice.call((ctx || doc).querySelectorAll(sel)); };
 
     /* ---------- فعال‌بودن JS (برای reveal تدریجی) ---------- */
     doc.documentElement.classList.add('js');
 
     /* ---------- هدر: سایه هنگام اسکرول — سراسری و تنبل ---------- */
     function onScroll() {
-        var header = $('#siteHeader');
-        var toTop = $('#toTop');
+        var header = doc.getElementById('siteHeader');
+        var toTop = doc.getElementById('toTop');
         var y = window.scrollY || window.pageYOffset || 0;
         if (header) header.classList.toggle('is-scrolled', y > 12);
         if (toTop) toTop.classList.toggle('is-visible', y > 620);
@@ -31,7 +30,7 @@
 
     /* ---------- منوی موبایل — سراسری‌ها یک‌بار، اتصال‌ها در init ---------- */
     function menuEls() {
-        return { burger: $('#navBurger'), mobileNav: $('#mobileNav') };
+        return { burger: doc.getElementById('navBurger'), mobileNav: doc.getElementById('mobileNav') };
     }
 
     function closeMenu() {
@@ -69,7 +68,7 @@
 
     /* ---------- انیمیشن ورود (IntersectionObserver) ---------- */
     function initReveals() {
-        var reveals = $$('.reveal');
+        var reveals = doc.querySelectorAll('.reveal');
 
         if ('IntersectionObserver' in window) {
             var io = new IntersectionObserver(function (entries) {
@@ -120,7 +119,7 @@
     }
 
     function initCounters() {
-        var counters = $$('.stat-num[data-count]');
+        var counters = doc.querySelectorAll('.stat-num[data-count]');
 
         if (counters.length && 'IntersectionObserver' in window) {
             var cio = new IntersectionObserver(function (entries) {
@@ -155,7 +154,7 @@
             });
 
             // بستن با کلیک روی لینک‌ها
-            $$('a', els.mobileNav).forEach(function (a) {
+            els.mobileNav.querySelectorAll('a').forEach(function (a) {
                 a.addEventListener('click', closeMenu);
             });
         }
@@ -164,7 +163,7 @@
         initCounters();
 
         /* سوالات متداول (آکاردئون) */
-        $$('.faq-item').forEach(function (item) {
+        doc.querySelectorAll('.faq-item').forEach(function (item) {
             var btn = item.querySelector('.faq-q');
             var panel = item.querySelector('.faq-a');
             if (!btn || !panel) return;
@@ -173,7 +172,7 @@
                 var isOpen = item.classList.contains('is-open');
 
                 // بستن بقیه (آکاردئون تک‌بازشو)
-                $$('.faq-item.is-open').forEach(function (other) {
+                doc.querySelectorAll('.faq-item.is-open').forEach(function (other) {
                     if (other === item) return;
                     other.classList.remove('is-open');
                     var p = other.querySelector('.faq-a');
@@ -189,7 +188,7 @@
         });
 
         /* اسکرول نرم برای لینک‌های داخلی (fallback مرورگرهای قدیمی) */
-        $$('a[href^="#"]').forEach(function (a) {
+        doc.querySelectorAll('a[href^="#"]').forEach(function (a) {
             a.addEventListener('click', function (e) {
                 var id = a.getAttribute('href');
                 if (!id || id === '#') return;

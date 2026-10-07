@@ -454,11 +454,9 @@ window.PanelCharts = (function () {
         });
     }
 
-    /* ثبت رویداد تعویض تم (jQuery event از PanelUI) + MutationObserver پشتیبان */
+    /* ثبت رویداد تعویض تم (CustomEvent از PanelUI) + MutationObserver پشتیبان */
     function listenTheme() {
-        if (window.jQuery) {
-            window.jQuery(document).on('ui:theme', function () { updateTheme(); });
-        }
+        document.addEventListener('ui:theme', function () { updateTheme(); });
         // پشتیبان: تغییر مستقیم کلاس .dark روی <html>
         if (window.MutationObserver) {
             var mo = new MutationObserver(function (records) {

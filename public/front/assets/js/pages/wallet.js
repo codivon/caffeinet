@@ -1,6 +1,7 @@
 /* اپ مشتری — کیف پول */
-/* global CN, jQuery */
-(function ($) {
+/* [Task 9] Vanilla JS — بدون جی‌کوئری */
+/* global CN */
+(function () {
     'use strict';
 
     if (!CN.requireCompleteProfile()) { return; }
@@ -14,46 +15,60 @@
         var apiPath = '/wallet' + (state.page > 1 ? '?page=' + state.page : '');
 
         if (state.page === 1) {
-            $('#txList').html('<div class="skeleton" style="height:60px"></div><div class="skeleton" style="height:60px"></div>');
+            var txList = document.getElementById('txList');
+            if (txList) {
+                txList.innerHTML = '<div class="skeleton" style="height:60px"></div><div class="skeleton" style="height:60px"></div>';
+            }
         } else {
-            $('#txMoreLoader').removeClass('hidden');
+            var txMoreLoader = document.getElementById('txMoreLoader');
+            if (txMoreLoader) { txMoreLoader.classList.remove('hidden'); }
         }
 
         CN.api(apiPath, {
             success: function (resp) {
                 state.loading = false;
 
-                if (state.page === 1) {
-                    $('#txList').empty();
-                }
-                $('#txMoreLoader').addClass('hidden');
+                var container = document.getElementById('txList');
+                if (state.page === 1 && container) { container.innerHTML = ''; }
 
-                $('#walletBalance').text(CN.faMoney(resp.balance || 0));
+                var moreLoader = document.getElementById('txMoreLoader');
+                if (moreLoader) { moreLoader.classList.add('hidden'); }
+
+                var walletBalance = document.getElementById('walletBalance');
+                if (walletBalance) { walletBalance.textContent = CN.faMoney(resp.balance || 0); }
+
                 var u = CN.user();
                 if (u) {
                     u.wallet_balance = resp.balance || 0;
                     try { window.localStorage.setItem('cn_user', JSON.stringify(u)); } catch (e) { /* noop */ }
                 }
-                $('#walletMobile').text('شماره حساب: ' + (CN.toFaDigits((u && u.mobile) || '')));
-                $('#txCount').text(resp.transactions ? CN.toFaDigits(resp.transactions.total || 0) + ' تراکنش' : '');
+
+                var walletMobile = document.getElementById('walletMobile');
+                if (walletMobile) { walletMobile.textContent = 'شماره حساب: ' + (CN.toFaDigits((u && u.mobile) || '')); }
+
+                var txCount = document.getElementById('txCount');
+                if (txCount) { txCount.textContent = resp.transactions ? CN.toFaDigits(resp.transactions.total || 0) + ' تراکنش' : ''; }
 
                 var txs = (resp.transactions && resp.transactions.data) || [];
                 var html = '';
                 txs.forEach(function (t) {
                     html += txRow(t);
                 });
-                $('#txList').append(html);
+                if (container) { container.insertAdjacentHTML('beforeend', html); }
 
                 state.hasMore = !!(resp.transactions && resp.transactions.next_page_url);
-                $('#txLoadMore').toggleClass('hidden', !state.hasMore);
+                var txLoadMore = document.getElementById('txLoadMore');
+                if (txLoadMore) { txLoadMore.classList.toggle('hidden', !state.hasMore); }
 
                 var empty = !txs.length && state.page === 1;
-                $('#txEmpty').toggleClass('hidden', !empty);
-                $('#txList').toggleClass('hidden', empty);
+                var txEmpty = document.getElementById('txEmpty');
+                if (txEmpty) { txEmpty.classList.toggle('hidden', !empty); }
+                if (container) { container.classList.toggle('hidden', empty); }
             },
             error: function () {
                 state.loading = false;
-                $('#txMoreLoader').addClass('hidden');
+                var moreLoader = document.getElementById('txMoreLoader');
+                if (moreLoader) { moreLoader.classList.add('hidden'); }
             }
         });
     }
@@ -76,114 +91,164 @@
             '</div>';
     }
 
-    $('#txLoadMore').on('click', function () {
-        if (!state.hasMore || state.loading) { return; }
-        state.page++;
-        load();
-    });
+    var txLoadMoreBtn = document.getElementById('txLoadMore');
+    if (txLoadMoreBtn) {
+        txLoadMoreBtn.addEventListener('click', function () {
+            if (!state.hasMore || state.loading) { return; }
+            state.page++;
+            load();
+        });
+    }
 
     /* ---------- شارژ کیف پول از درگاه ---------- */
     var selectedAmount = 0;
 
+    /* عناصر ثابت صفحه — [Task 9] عناصر خام (جایگزین انتخاب‌گرهای قدیمی) */
+    var chargeOverlay = document.getElementById('chargeOverlay');
+    var chargeSheet = document.getElementById('chargeSheet');
+    var chargeError = document.getElementById('chargeError');
+    var chargeCustom = document.getElementById('chargeCustom');
+    var quickAmounts = document.getElementById('quickAmounts');
+
     /* پیش‌نمایش مبلغ انتخابی با جداکنندهٔ هزارگان (۳رقمی) — v24 */
     function updateAmountPreview() {
-        var $p = $('#chargePreview');
+        var p = document.getElementById('chargePreview');
+        if (!p) { return; }
         if (selectedAmount > 0) {
-            $p.html('<span class="cap-label">مبلغ انتخابی</span><strong class="num">' + CN.faMoney(selectedAmount) + '</strong><span class="cap-unit">تومان</span>').removeClass('hidden');
+            p.innerHTML = '<span class="cap-label">مبلغ انتخابی</span><strong class="num">' + CN.faMoney(selectedAmount) + '</strong><span class="cap-unit">تومان</span>';
+            p.classList.remove('hidden');
         } else {
-            $p.addClass('hidden').empty();
+            p.classList.add('hidden');
+            p.innerHTML = '';
         }
     }
 
     function resetAmountUI() {
         selectedAmount = 0;
-        $('#quickAmounts .charge-amt').removeClass('active');
-        $('#chargeCustom').val('');
+        if (quickAmounts) {
+            Array.prototype.forEach.call(quickAmounts.querySelectorAll('.charge-amt'), function (a) {
+                a.classList.remove('active');
+            });
+        }
+        if (chargeCustom) { chargeCustom.value = ''; }
         updateAmountPreview();
     }
 
     function openSheet() {
-        $('#chargeOverlay').addClass('show').attr('aria-hidden', 'false');
-        $('#chargeSheet').addClass('open');
+        if (chargeOverlay) {
+            chargeOverlay.classList.add('show');
+            chargeOverlay.setAttribute('aria-hidden', 'false');
+        }
+        if (chargeSheet) { chargeSheet.classList.add('open'); }
         hideChargeError();
         updateAmountPreview();
     }
 
     function closeSheet() {
-        $('#chargeOverlay').removeClass('show').attr('aria-hidden', 'true');
-        $('#chargeSheet').removeClass('open');
+        if (chargeOverlay) {
+            chargeOverlay.classList.remove('show');
+            chargeOverlay.setAttribute('aria-hidden', 'true');
+        }
+        if (chargeSheet) { chargeSheet.classList.remove('open'); }
     }
 
+    /* [Task 9] #chargeError با style="display:none" مخفی می‌شود؛
+       متدهای show/hide قدیمی display را به‌ترتیب '' و 'none' می‌کنند — عین همان رفتار */
     function showChargeError(msg) {
-        $('#chargeError').text(msg).show();
+        if (chargeError) {
+            chargeError.textContent = msg;
+            chargeError.style.display = '';
+        }
     }
 
     function hideChargeError() {
-        $('#chargeError').hide();
+        if (chargeError) { chargeError.style.display = 'none'; }
     }
 
-    $('#chargeBtn').on('click', openSheet);
-    $('#chargeClose').on('click', closeSheet);
-    $('#chargeOverlay').on('click', closeSheet);
+    var chargeBtn = document.getElementById('chargeBtn');
+    if (chargeBtn) { chargeBtn.addEventListener('click', openSheet); }
 
-    $('#quickAmounts').on('click', '.charge-amt', function () {
-        $('#quickAmounts .charge-amt').removeClass('active');
-        $(this).addClass('active');
-        selectedAmount = +$(this).data('amount') || 0;
-        $('#chargeCustom').val('');
-        updateAmountPreview();
-        hideChargeError();
-    });
+    var chargeClose = document.getElementById('chargeClose');
+    if (chargeClose) { chargeClose.addEventListener('click', closeSheet); }
 
-    $('#chargeCustom').on('input', function () {
-        var raw = CN.toEnDigits($(this).val()).replace(/[^\d]/g, '');
-        if (raw) {
-            $('#quickAmounts .charge-amt').removeClass('active');
-            selectedAmount = parseInt(raw, 10) || 0;
-        } else if (!$('#quickAmounts .charge-amt.active').length) {
-            /* ورودی خالی و چیپی هم انتخاب نیست → مقدار صفر */
-            selectedAmount = 0;
-        }
-        updateAmountPreview();
-        hideChargeError();
-    });
+    if (chargeOverlay) { chargeOverlay.addEventListener('click', closeSheet); }
 
-    $('#chargeSubmit').on('click', function () {
-        var $btn = $(this);
+    /* [Task 9] delegate روی #quickAmounts (جایگزین اتصال کلاسیک روی مبلغ‌های آماده) */
+    if (quickAmounts) {
+        quickAmounts.addEventListener('click', function (e) {
+            var amt = e.target.closest ? e.target.closest('.charge-amt') : null;
+            if (!amt || !quickAmounts.contains(amt)) { return; }
 
-        if (!selectedAmount || selectedAmount < 10000) {
-            showChargeError('مبلغ را انتخاب یا وارد کنید (حداقل ۱۰,۰۰۰ تومان).');
-            return;
-        }
-        if (selectedAmount > 50000000) {
-            showChargeError('حداکثر مبلغ شارژ ۵۰,۰۰۰,۰۰۰ تومان است.');
-            return;
-        }
-
-        hideChargeError();
-        CN.btnLoading($btn, true, 'در حال اتصال به درگاه…');
-
-        CN.api('/wallet/charge', {
-            method: 'POST',
-            data: { amount: selectedAmount },
-            success: function (resp) {
-                // مسیر نسبی → سازگار با گیت‌وی پیش‌نمایش و دامنهٔ واقعی
-                var url = resp.payment_path
-                    ? CN.withPort(resp.payment_path)
-                    : (resp.payment_url || '');
-                if (url) {
-                    window.location.href = url;
-                } else {
-                    CN.btnLoading($btn, false);
-                    showChargeError('خطا در ایجاد تراکنش؛ دوباره تلاش کنید.');
-                }
-            },
-            error: function (xhr, message) {
-                CN.btnLoading($btn, false);
-                showChargeError(message || 'خطا در شروع شارژ؛ دوباره تلاش کنید.');
-            }
+            Array.prototype.forEach.call(quickAmounts.querySelectorAll('.charge-amt'), function (a) {
+                a.classList.remove('active');
+            });
+            amt.classList.add('active');
+            selectedAmount = +amt.dataset.amount || 0;
+            if (chargeCustom) { chargeCustom.value = ''; }
+            updateAmountPreview();
+            hideChargeError();
         });
-    });
+    }
+
+    if (chargeCustom) {
+        chargeCustom.addEventListener('input', function () {
+            var raw = CN.toEnDigits(chargeCustom.value).replace(/[^\d]/g, '');
+            if (raw) {
+                if (quickAmounts) {
+                    Array.prototype.forEach.call(quickAmounts.querySelectorAll('.charge-amt'), function (a) {
+                        a.classList.remove('active');
+                    });
+                }
+                selectedAmount = parseInt(raw, 10) || 0;
+            } else if (quickAmounts && !quickAmounts.querySelector('.charge-amt.active')) {
+                /* ورودی خالی و چیپی هم انتخاب نیست → مقدار صفر */
+                selectedAmount = 0;
+            }
+            updateAmountPreview();
+            hideChargeError();
+        });
+    }
+
+    var chargeSubmit = document.getElementById('chargeSubmit');
+    if (chargeSubmit) {
+        chargeSubmit.addEventListener('click', function () {
+            /* [Task 9] دکمه به‌صورت عنصر خام برای CN.btnLoading */
+            var btn = chargeSubmit;
+
+            if (!selectedAmount || selectedAmount < 10000) {
+                showChargeError('مبلغ را انتخاب یا وارد کنید (حداقل ۱۰,۰۰۰ تومان).');
+                return;
+            }
+            if (selectedAmount > 50000000) {
+                showChargeError('حداکثر مبلغ شارژ ۵۰,۰۰۰,۰۰۰ تومان است.');
+                return;
+            }
+
+            hideChargeError();
+            CN.btnLoading(btn, true, 'در حال اتصال به درگاه…');
+
+            CN.api('/wallet/charge', {
+                method: 'POST',
+                data: { amount: selectedAmount },
+                success: function (resp) {
+                    // مسیر نسبی → سازگار با گیت‌وی پیش‌نمایش و دامنهٔ واقعی
+                    var url = resp.payment_path
+                        ? CN.withPort(resp.payment_path)
+                        : (resp.payment_url || '');
+                    if (url) {
+                        window.location.href = url;
+                    } else {
+                        CN.btnLoading(btn, false);
+                        showChargeError('خطا در ایجاد تراکنش؛ دوباره تلاش کنید.');
+                    }
+                },
+                error: function (xhr, message) {
+                    CN.btnLoading(btn, false);
+                    showChargeError(message || 'خطا در شروع شارژ؛ دوباره تلاش کنید.');
+                }
+            });
+        });
+    }
 
     /* ---------- پیام نتیجهٔ بازگشت از درگاه (?charged=1 / ?payment=failed) ---------- */
     try {
@@ -198,4 +263,4 @@
     } catch (e) { /* noop */ }
 
     load();
-})(jQuery);
+})();

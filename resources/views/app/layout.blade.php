@@ -126,19 +126,18 @@
     </div>
 </div>
 
-{{-- اسکریپت‌ها: jQuery (vendor استاتیک) + هسته مشترک + اسکریپت صفحه (فایل جدا) --}}
+{{-- اسکریپت‌ها: هسته مشترک Vanilla (بدون jQuery — [Task 9]) + اسکریپت صفحه (فایل جدا) --}}
 {{-- [Task 2-a] data-navigate-once: اسکریپت‌های مشترک در هر ناوبری wire:navigate دوباره اجرا نشوند؛
      re-init هدر/ناوبری با CN.onNavigate --}}
 {{-- Realtime پوشر (فاز ۱۳): پیکربندی عمومی CSP-safe؛ کانال شخصی کاربر از API /realtime/config --}}
-<script src="{{ asset('assets/js/vendor/jquery.min.js') }}" data-navigate-once></script>
 <script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1" data-navigate-once></script>
 <script src="{{ asset('assets/js/realtime.js') }}?v=2" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(null))'></script>
-<script src="{{ asset('front/assets/js/core.js') }}?v=7" data-navigate-once defer></script>
+<script src="{{ asset('front/assets/js/core.js') }}?v=8" data-navigate-once defer></script>
 <script src="{{ asset('assets/js/jalali-datepicker.js') }}?v=3" defer></script>
 {{-- نوتیف دستگاه (v26: پیش‌فرض/پوشر/فایربیس) — پیکربندی از PushManager؛ اپ مشتری از CN.api برای ثبت استفاده می‌کند --}}
 <script src="{{ asset('assets/js/push/push-client.js') }}?v=7" defer data-push-config='@json(app(\App\Services\Push\PushManager::class)->clientConfig(auth()->user()))'></script>
-<script src="{{ asset('front/assets/js/pages/notifications.js') }}?v=5" data-navigate-once defer></script>
-<script src="{{ asset('front/assets/js/pages/announcements.js') }}?v=15" defer></script>
+<script src="{{ asset('front/assets/js/pages/notifications.js') }}?v=6" data-navigate-once defer></script>
+<script src="{{ asset('front/assets/js/pages/announcements.js') }}?v=16" defer></script>
 
 {{-- Livewire [Task 2-a] --}}
 @livewireScripts

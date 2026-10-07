@@ -1,13 +1,14 @@
-/* اپ مشتری — گفتگوی تیکت پشتیبانی (فاز ۱۰)
-   global CN, jQuery */
-(function ($) {
+/* اپ مشتری — گفتگوی تیکت پشتیبانی (فاز ۱۰) (Vanilla JS — بدون jQuery)
+   global CN */
+(function () {
     'use strict';
 
     if (!CN.requireCompleteProfile()) { return; }
 
     var ticketId = 0;
     try {
-        ticketId = parseInt($('#page-data').data('ticket-id'), 10) || 0;
+        var pageDataEl = document.getElementById('page-data');
+        ticketId = parseInt((pageDataEl ? pageDataEl.dataset.ticketId : ''), 10) || 0;
     } catch (e) { ticketId = 0; }
 
     if (!ticketId) {
@@ -34,32 +35,34 @@
     function renderHead(t) {
         state.closed = t.status === 'closed';
 
-        $('#tkdHead').html(
-            '<div class="tkd-main">' +
-            '  <div class="tkd-title-row">' +
-            '    <h1>' + CN.esc(t.subject) + '</h1>' +
-            '    <span class="sup-badge" data-status="' + CN.esc(t.status) + '" id="tkdStatusBadge">' + CN.esc(STATUS_LABEL[t.status] || t.status) + '</span>' +
-            '  </div>' +
-            '  <div class="tkd-meta">' +
-            '    <span class="sup-num" dir="ltr">' + CN.esc(t.ticket_number) + '</span>' +
-            (t.order_number ? ' · سفارش <span dir="ltr">' + CN.esc(t.order_number) + '</span>' : '') +
-            (t.priority === 'high' ? ' · <b class="sup-prio">' + CN.esc(PRIO_LABEL.high) + '</b>' : '') +
-            '    · ثبت: ' + CN.esc(t.created_at || '') +
-            '  </div>' +
-            '</div>' +
-            '<div class="tkd-actions">' +
-            (state.closed
-                ? '<span class="tkd-closed-note">این تیکت بسته شده — با ارسال پیام جدید بازگشایی می‌شود.</span>'
-                : '<button type="button" class="btn btn-outline btn-sm" id="tkdCloseBtn">' +
-                  '  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>' +
-                  '  بستن تیکت' +
-                  '</button>') +
-            '</div>'
-        );
+        var tkdHead = document.getElementById('tkdHead');
+        if (tkdHead) {
+            tkdHead.innerHTML =
+                '<div class="tkd-main">' +
+                '  <div class="tkd-title-row">' +
+                '    <h1>' + CN.esc(t.subject) + '</h1>' +
+                '    <span class="sup-badge" data-status="' + CN.esc(t.status) + '" id="tkdStatusBadge">' + CN.esc(STATUS_LABEL[t.status] || t.status) + '</span>' +
+                '  </div>' +
+                '  <div class="tkd-meta">' +
+                '    <span class="sup-num" dir="ltr">' + CN.esc(t.ticket_number) + '</span>' +
+                (t.order_number ? ' · سفارش <span dir="ltr">' + CN.esc(t.order_number) + '</span>' : '') +
+                (t.priority === 'high' ? ' · <b class="sup-prio">' + CN.esc(PRIO_LABEL.high) + '</b>' : '') +
+                '    · ثبت: ' + CN.esc(t.created_at || '') +
+                '  </div>' +
+                '</div>' +
+                '<div class="tkd-actions">' +
+                (state.closed
+                    ? '<span class="tkd-closed-note">این تیکت بسته شده — با ارسال پیام جدید بازگشایی می‌شود.</span>'
+                    : '<button type="button" class="btn btn-outline btn-sm" id="tkdCloseBtn">' +
+                      '  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>' +
+                      '  بستن تیکت' +
+                      '</button>') +
+                '</div>';
+        }
 
-        var $closeBtn = $('#tkdCloseBtn');
-        if ($closeBtn.length) {
-            $closeBtn.on('click', function () {
+        var closeBtn = document.getElementById('tkdCloseBtn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function () {
                 CN.confirm({
                     title: 'بستن تیکت',
                     desc: 'آیا مطمئنید مشکل شما حل شده است؟',
@@ -103,9 +106,10 @@
     }
 
     function renderThread() {
-        var $thread = $('#tkdThread');
-        $thread.html(state.messages.map(msgHtml).join('') || '<div class="ns-empty">پیامی نیست.</div>');
-        $thread.scrollTop($thread[0].scrollHeight);
+        var thread = document.getElementById('tkdThread');
+        if (!thread) { return; }
+        thread.innerHTML = state.messages.map(msgHtml).join('') || '<div class="ns-empty">پیامی نیست.</div>';
+        thread.scrollTop = thread.scrollHeight;
     }
 
     function load() {
@@ -121,17 +125,18 @@
                     window.location.replace(CN.withPort('/app/support'));
                     return;
                 }
-                $('#tkdThread').html('<div class="ns-empty">' + CN.esc(msg || 'خطا در دریافت تیکت.') + '</div>');
+                var thread = document.getElementById('tkdThread');
+                if (thread) { thread.innerHTML = '<div class="ns-empty">' + CN.esc(msg || 'خطا در دریافت تیکت.') + '</div>'; }
             }
         });
     }
 
     /* ---------- پیوست (v29 — چیپ زیر تکست‌باکس + دکمهٔ حذف) ---------- */
-    var $chip = $('#tkdFileChip');
-    var $chipName = $('#tkdChipName');
-    var $chipSize = $('#tkdChipSize');
-    var $chipHint = $('#tkdChipHint');
-    var $attachBtn = $('#tkdAttachBtn');
+    var chip = document.getElementById('tkdFileChip');
+    var chipName = document.getElementById('tkdChipName');
+    var chipSize = document.getElementById('tkdChipSize');
+    var chipHint = document.getElementById('tkdChipHint');
+    var attachBtn = document.getElementById('tkdAttachBtn');
 
     function sizeFa(bytes) {
         if (!bytes || bytes <= 0) { return ''; }
@@ -142,83 +147,96 @@
 
     function renderChip(file) {
         if (file) {
-            $chipName.text(file.name || 'پیوست');
-            $chipSize.text(sizeFa(file.size));
-            $chip.removeAttr('hidden');
-            $chipHint.removeAttr('hidden');
-            $attachBtn.addClass('has-file');
+            if (chipName) { chipName.textContent = file.name || 'پیوست'; }
+            if (chipSize) { chipSize.textContent = sizeFa(file.size); }
+            if (chip) { chip.removeAttribute('hidden'); }
+            if (chipHint) { chipHint.removeAttribute('hidden'); }
+            if (attachBtn) { attachBtn.classList.add('has-file'); }
         } else {
-            $chip.attr('hidden', '');
-            $chipHint.attr('hidden', '');
-            $attachBtn.removeClass('has-file');
+            if (chip) { chip.setAttribute('hidden', ''); }
+            if (chipHint) { chipHint.setAttribute('hidden', ''); }
+            if (attachBtn) { attachBtn.classList.remove('has-file'); }
         }
     }
 
-    $('#tkdFile').on('change', function () {
-        renderChip(this.files && this.files[0]);
-    });
+    var fileInputEl = document.getElementById('tkdFile');
+    if (fileInputEl) {
+        fileInputEl.addEventListener('change', function () {
+            renderChip(this.files && this.files[0]);
+        });
+    }
 
-    $('#tkdChipRemove').on('click', function () {
-        var input = document.getElementById('tkdFile');
-        if (input) { input.value = ''; }
-        renderChip(null);
-    });
+    if (document.getElementById('tkdChipRemove')) {
+        document.getElementById('tkdChipRemove').addEventListener('click', function () {
+            var input = document.getElementById('tkdFile');
+            if (input) { input.value = ''; }
+            renderChip(null);
+        });
+    }
 
-    $('#tkdMessage').on('keydown', function (e) {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-            e.preventDefault();
-            $('#tkdComposer').trigger('submit');
-        }
-    });
-
-    $('#tkdComposer').on('submit', function (e) {
-        e.preventDefault();
-        if (state.sending) { return; }
-
-        var message = $.trim($('#tkdMessage').val());
-        var fileInput = document.getElementById('tkdFile');
-        var file = fileInput && fileInput.files[0];
-
-        if (!message && !file) {
-            CN.toast('متن پیام یا پیوست الزامی است.', 'error');
-            return;
-        }
-
-        state.sending = true;
-        var $btn = $('#tkdSend');
-        CN.btnLoading($btn, true);
-
-        var fd = new FormData();
-        if (message) { fd.append('message', message); }
-        if (file) { fd.append('file', file); }
-
-        CN.api('/tickets/' + ticketId + '/messages', {
-            method: 'POST',
-            formData: fd,
-            success: function (resp) {
-                state.sending = false;
-                CN.btnLoading($btn, false);
-
-                $('#tkdMessage').val('');
-                fileInput.value = '';
-                renderChip(null);
-
-                if (resp.data) {
-                    state.messages.push(resp.data);
-                    state.lastId = Math.max(state.lastId, resp.data.id || 0);
+    var tkdMessage = document.getElementById('tkdMessage');
+    if (tkdMessage) {
+        tkdMessage.addEventListener('keydown', function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                var composer = document.getElementById('tkdComposer');
+                if (composer) {
+                    composer.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
                 }
-                CN.toast(resp.message || 'پاسخ ثبت شد.', 'success');
-                renderThread();
-                // وضعیت ممکن است تغییر کند (بازگشایی)
-                load();
-            },
-            error: function (xhr, msg) {
-                state.sending = false;
-                CN.btnLoading($btn, false);
-                CN.toast(msg || 'ارسال ناموفق بود.', 'error');
             }
         });
-    });
+    }
+
+    if (document.getElementById('tkdComposer')) {
+        document.getElementById('tkdComposer').addEventListener('submit', function (e) {
+            e.preventDefault();
+            if (state.sending) { return; }
+
+            var message = String(tkdMessage ? tkdMessage.value : '').trim();
+            var fileInput = document.getElementById('tkdFile');
+            var file = fileInput && fileInput.files[0];
+
+            if (!message && !file) {
+                CN.toast('متن پیام یا پیوست الزامی است.', 'error');
+                return;
+            }
+
+            state.sending = true;
+            var sendBtn = document.getElementById('tkdSend');
+            CN.btnLoading(sendBtn, true);
+
+            var fd = new FormData();
+            if (message) { fd.append('message', message); }
+            if (file) { fd.append('file', file); }
+
+            CN.api('/tickets/' + ticketId + '/messages', {
+                method: 'POST',
+                formData: fd,
+                success: function (resp) {
+                    state.sending = false;
+                    CN.btnLoading(sendBtn, false);
+
+                    if (tkdMessage) { tkdMessage.value = ''; }
+                    if (fileInput) { fileInput.value = ''; }
+                    renderChip(null);
+
+                    if (resp.data) {
+                        state.messages.push(resp.data);
+                        state.lastId = Math.max(state.lastId, resp.data.id || 0);
+                    }
+                    CN.toast(resp.message || 'پاسخ ثبت شد.', 'success');
+                    renderThread();
+                    // وضعیت ممکن است تغییر کند (بازگشایی)
+                    load();
+                },
+                error: function (xhr, msg) {
+                    state.sending = false;
+                    CN.btnLoading(sendBtn, false);
+                    CN.toast(msg || 'ارسال ناموفق بود.', 'error');
+                }
+            });
+        });
+    }
 
     load();
-})(jQuery);
+})();

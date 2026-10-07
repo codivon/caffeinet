@@ -1,7 +1,8 @@
 /* اپ مشتری — صفحه خدمت + فرم داینامیک سفارش */
 /* فاز ۱۲ — آپلودر زیبای مدارک (دراپ‌زون + چیپ فایل) */
-/* global CN, jQuery */
-(function ($) {
+/* [Task 9] Vanilla JS — بدون jQuery */
+/* global CN */
+(function () {
     'use strict';
 
     if (!CN.requireCompleteProfile()) { return; }
@@ -232,8 +233,10 @@
     }
 
     function loadDetail() {
-        $('#svcName').text('در حال دریافت…');
-        $('#svcDesc').text('');
+        var svcNameEl = document.getElementById('svcName');
+        if (svcNameEl) { svcNameEl.textContent = 'در حال دریافت…'; }
+        var svcDescEl = document.getElementById('svcDesc');
+        if (svcDescEl) { svcDescEl.textContent = ''; }
 
         CN.api('/services/' + serviceId, {
             timeout: 15000,
@@ -246,17 +249,22 @@
 
                 /* خطای گذرا → تلاش مجدد خودکار با فاصلهٔ کوتاه */
                 if (isTransientXhr(xhr) && detailAttempts < DETAIL_MAX_TRIES) {
-                    $('#svcName').text('تلاش مجدد برای دریافت خدمت… (' + CN.toFaDigits(detailAttempts) + '/' + CN.toFaDigits(DETAIL_MAX_TRIES - 1) + ')');
+                    var svcNameRetry = document.getElementById('svcName');
+                    if (svcNameRetry) { svcNameRetry.textContent = 'تلاش مجدد برای دریافت خدمت… (' + CN.toFaDigits(detailAttempts) + '/' + CN.toFaDigits(DETAIL_MAX_TRIES - 1) + ')'; }
                     window.setTimeout(loadDetail, 900 * detailAttempts);
                     return;
                 }
 
                 /* ۴۰۴ واقعی → خدمت حذف/غیرفعال شده */
                 if (xhr && xhr.status === 404) {
-                    $('#svcName').text('خدمت یافت نشد');
-                    $('#svcDesc').text(message);
-                    $('#dynamicFields').html('<p class="text-faint tiny">این خدمت وجود ندارد یا غیرفعال شده است.</p>');
-                    $('#costRows').html('');
+                    var svcName404 = document.getElementById('svcName');
+                    if (svcName404) { svcName404.textContent = 'خدمت یافت نشد'; }
+                    var svcDesc404 = document.getElementById('svcDesc');
+                    if (svcDesc404) { svcDesc404.textContent = message; }
+                    var dynFields404 = document.getElementById('dynamicFields');
+                    if (dynFields404) { dynFields404.innerHTML = '<p class="text-faint tiny">این خدمت وجود ندارد یا غیرفعال شده است.</p>'; }
+                    var costRows404 = document.getElementById('costRows');
+                    if (costRows404) { costRows404.innerHTML = ''; }
                     return;
                 }
 
@@ -266,32 +274,43 @@
     }
 
     function renderDetailError(message) {
-        $('#svcName').text('خطا در دریافت خدمت');
-        $('#svcDesc').text(message || 'ارتباط با سرور برقرار نشد.');
+        var svcNameEl = document.getElementById('svcName');
+        if (svcNameEl) { svcNameEl.textContent = 'خطا در دریافت خدمت'; }
+        var svcDescEl = document.getElementById('svcDesc');
+        if (svcDescEl) { svcDescEl.textContent = message || 'ارتباط با سرور برقرار نشد.'; }
 
-        $('#costRows').html('');
-        $('#totalAmount').text('—');
-        $('#submitOrderBtn').prop('disabled', true);
+        var costRowsEl = document.getElementById('costRows');
+        if (costRowsEl) { costRowsEl.innerHTML = ''; }
+        var totalAmountEl = document.getElementById('totalAmount');
+        if (totalAmountEl) { totalAmountEl.textContent = '—'; }
+        var submitBtnErr = document.getElementById('submitOrderBtn');
+        if (submitBtnErr) { submitBtnErr.disabled = true; }
 
-        $('#dynamicFields').html(
-            '<div class="form-group" style="text-align:center">' +
-            '<p class="help-text" style="font-size:13px">دریافت فرم این خدمت با خطا مواجه شد؛ اتصال اینترنت خود را بررسی کنید و دوباره تلاش کنید.</p>' +
-            '<button type="button" class="btn btn-outline" id="retryDetailBtn" style="margin-top:8px">' +
-            '↻ تلاش مجدد' +
-            '</button>' +
-            '</div>'
-        );
+        var dynamicFieldsEl = document.getElementById('dynamicFields');
+        if (dynamicFieldsEl) {
+            dynamicFieldsEl.innerHTML =
+                '<div class="form-group" style="text-align:center">' +
+                '<p class="help-text" style="font-size:13px">دریافت فرم این خدمت با خطا مواجه شد؛ اتصال اینترنت خود را بررسی کنید و دوباره تلاش کنید.</p>' +
+                '<button type="button" class="btn btn-outline" id="retryDetailBtn" style="margin-top:8px">' +
+                '↻ تلاش مجدد' +
+                '</button>' +
+                '</div>';
+        }
 
-        $('#retryDetailBtn').on('click', function () {
-            detailAttempts = 0;
-            $('#dynamicFields').html('<div class="skeleton" style="height:56px"></div><div class="skeleton" style="height:56px"></div>');
-            loadDetail();
-        });
+        var retryBtn = document.getElementById('retryDetailBtn');
+        if (retryBtn) {
+            retryBtn.addEventListener('click', function () {
+                detailAttempts = 0;
+                var dynEl = document.getElementById('dynamicFields');
+                if (dynEl) { dynEl.innerHTML = '<div class="skeleton" style="height:56px"></div><div class="skeleton" style="height:56px"></div>'; }
+                loadDetail();
+            });
+        }
     }
 
     /* بازگشت از bfcache (دکمهٔ back) با فرم ناقص → دریافت مجدد */
-    $(window).on('pageshow', function (e) {
-        if (e.originalEvent && e.originalEvent.persisted && !detail) {
+    window.addEventListener('pageshow', function (e) {
+        if (e.persisted && !detail) {
             detailAttempts = 0;
             loadDetail();
         }
@@ -332,10 +351,12 @@
             '  </div>' +
             '</div>';
 
-        var $m = $(html);
-        $('body').append($m);
-        $m.find('.ann-ok').on('click', function () { $m.remove(); });
-        $m.on('click', function (e) { if (e.target === $m[0]) { $m.remove(); } });
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        var m = tmp.firstElementChild;
+        document.body.appendChild(m);
+        m.querySelector('.ann-ok').addEventListener('click', function () { m.remove(); });
+        m.addEventListener('click', function (e) { if (e.target === m) { m.remove(); } });
     }
 
     function checkWorkHours() {
@@ -369,10 +390,12 @@
             '  </div>' +
             '</div>';
 
-        var $m = $(html);
-        $('body').append($m);
-        $m.find('.ann-ok').on('click', function () { $m.remove(); });
-        $m.on('click', function (e) { if (e.target === $m[0]) { $m.remove(); } });
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        var m = tmp.firstElementChild;
+        document.body.appendChild(m);
+        m.querySelector('.ann-ok').addEventListener('click', function () { m.remove(); });
+        m.addEventListener('click', function (e) { if (e.target === m) { m.remove(); } });
     }
 
     function alertModal(alert) {
@@ -398,24 +421,30 @@
             '  </div>' +
             '</div>';
 
-        var $m = $(html);
-        $('body').append($m);
-        $m.find('.ann-ok').on('click', function () { $m.remove(); });
-        $m.on('click', function (e) { if (e.target === $m[0]) { $m.remove(); } });
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        var m = tmp.firstElementChild;
+        document.body.appendChild(m);
+        m.querySelector('.ann-ok').addEventListener('click', function () { m.remove(); });
+        m.addEventListener('click', function (e) { if (e.target === m) { m.remove(); } });
     }
 
     function renderDetail() {
         var d = detail;
 
         /* قهرمان */
-        $('#svcIcon').text((d.category && d.category.icon) || '📄');
-        $('#svcName').text(d.name);
-        $('#svcDesc').text(d.description || '');
+        var svcIconEl = document.getElementById('svcIcon');
+        if (svcIconEl) { svcIconEl.textContent = (d.category && d.category.icon) || '📄'; }
+        var svcNameEl = document.getElementById('svcName');
+        if (svcNameEl) { svcNameEl.textContent = d.name; }
+        var svcDescEl = document.getElementById('svcDesc');
+        if (svcDescEl) { svcDescEl.textContent = d.description || ''; }
 
         /* فاز ۱۵ — تصویر خدمت */
         if (d.image_url) {
-            $('#svcHero').prepend('<img class="svc-hero-img" src="' + CN.esc(d.image_url) + '" alt="' + CN.esc(d.name) + '">');
-            $('#svcIcon').addClass('hidden');
+            var svcHeroEl = document.getElementById('svcHero');
+            if (svcHeroEl) { svcHeroEl.insertAdjacentHTML('afterbegin', '<img class="svc-hero-img" src="' + CN.esc(d.image_url) + '" alt="' + CN.esc(d.name) + '">'); }
+            if (svcIconEl) { svcIconEl.classList.add('hidden'); }
         }
 
         /* فاز ۱۵ — وضعیت برخط: قطع/انقضا → بنر + بلوکه کردن فرم */
@@ -427,8 +456,11 @@
                 '<div class="min-w-0"><b>' + (isExp ? 'مهلت خدمت به پایان رسیده است' : 'این خدمت موقتاً از سایت اصلی قطع است') + '</b>' +
                 '<p>' + CN.esc(d.availability_note || '') + '</p></div></div>';
 
-            $('#formCard').before(banner);
-            $('#formCard').addClass('hidden');
+            var formCardEl = document.getElementById('formCard');
+            if (formCardEl) {
+                formCardEl.insertAdjacentHTML('beforebegin', banner);
+                formCardEl.classList.add('hidden');
+            }
             stateModal(d.availability_state, d.availability_note, isExp ? d.expires_at_label : null);
             return; // فرم رندر نمی‌شود
         }
@@ -451,8 +483,10 @@
         if (d.version) {
             badges += '<span class="badge badge-stone">نسخه ' + CN.toFaDigits(d.version) + ' فرم</span>';
         }
-        $('#svcBadges').html(badges);
-        $('#svcTime').text(d.estimated_time_label && d.estimated_time_label !== '—' ? d.estimated_time_label : '');
+        var svcBadgesEl = document.getElementById('svcBadges');
+        if (svcBadgesEl) { svcBadgesEl.innerHTML = badges; }
+        var svcTimeEl = document.getElementById('svcTime');
+        if (svcTimeEl) { svcTimeEl.textContent = d.estimated_time_label && d.estimated_time_label !== '—' ? d.estimated_time_label : ''; }
 
         /* ردیف‌های قیمت */
         var rows = '';
@@ -466,8 +500,10 @@
             );
         });
         rows += '<div class="price-row total"><span class="pr-title">هزینهٔ درخواست</span><span class="pr-amount">' + CN.faMoney(d.total_amount) + ' تومان</span></div>';
-        $('#costRows').html(rows);
-        $('#totalAmount').text(CN.faMoneyUnit(d.total_amount));
+        var costRowsEl = document.getElementById('costRows');
+        if (costRowsEl) { costRowsEl.innerHTML = rows; }
+        var totalAmountEl = document.getElementById('totalAmount');
+        if (totalAmountEl) { totalAmountEl.textContent = CN.faMoneyUnit(d.total_amount); }
 
         /* فرم داینامیک */
         renderFields(d.form_fields || []);
@@ -477,14 +513,20 @@
 
         /* یادداشت مدارک — فقط وقتی خدمت واقعاً نیاز به آپلود دارد نمایش داده می‌شود */
         var needsUpload = !!(d.requires_upload || d.has_file_fields);
-        $('#extraDocsGroup').toggleClass('hidden', !needsUpload);
-        if (needsUpload) {
-            $('#extraDocsGroup .label').text(
-                d.requires_upload ? 'مدارک لازم (الزامی برای این خدمت)' : 'مدارک (پیوست فایل فرم)'
-            );
+        var extraDocsGroupEl = document.getElementById('extraDocsGroup');
+        if (extraDocsGroupEl) {
+            extraDocsGroupEl.classList.toggle('hidden', !needsUpload);
+            if (needsUpload) {
+                var extraLabelEl = extraDocsGroupEl.querySelector('.label');
+                if (extraLabelEl) {
+                    extraLabelEl.textContent =
+                        d.requires_upload ? 'مدارک لازم (الزامی برای این خدمت)' : 'مدارک (پیوست فایل فرم)';
+                }
+            }
         }
 
-        $('#submitOrderBtn').prop('disabled', false);
+        var submitBtnEl = document.getElementById('submitOrderBtn');
+        if (submitBtnEl) { submitBtnEl.disabled = false; }
     }
 
     function priceRow(icon, title, amount, commission) {
@@ -506,7 +548,8 @@
             html = '<p class="text-faint tiny">این خدمت فرم ندارد؛ مستقیم ثبت کنید.</p>';
         }
 
-        $('#dynamicFields').html(html);
+        var dynamicFieldsEl = document.getElementById('dynamicFields');
+        if (dynamicFieldsEl) { dynamicFieldsEl.innerHTML = html; }
 
         /* بایند تقویم شمسی روی فیلدهای تاریخ رندرشده */
         if (window.CNJdp) { window.CNJdp.bindAll(document.getElementById('dynamicFields')); }
@@ -621,14 +664,20 @@
             var value = null;
 
             if (f.field_type === 'select') {
-                value = $('#f_' + f.name).val() || null;
+                var selectEl = document.getElementById('f_' + f.name);
+                value = (selectEl && selectEl.value) || null;
             } else if (f.field_type === 'radio') {
-                value = $('input[name="r_' + f.name + '"]:checked').val() || null;
+                var radioEl = document.querySelector('input[name="r_' + f.name + '"]:checked');
+                value = (radioEl && radioEl.value) || null;
             } else if (f.field_type === 'checkbox') {
-                var checked = $('input[name="c_' + f.name + '"]:checked').map(function () { return this.value; }).get();
+                var checked = Array.prototype.map.call(
+                    document.querySelectorAll('input[name="c_' + f.name + '"]:checked'),
+                    function (cb) { return cb.value; }
+                );
                 value = checked.length ? checked : null;
             } else {
-                value = ($('#f_' + f.name).val() || '').trim() || null;
+                var inputEl = document.getElementById('f_' + f.name);
+                value = ((inputEl && inputEl.value) || '').trim() || null;
                 if (value !== null && ['number', 'mobile', 'national_code'].indexOf(f.field_type) !== -1) {
                     value = CN.toEnDigits(value).replace(/[,،]/g, '');
                 }
@@ -650,7 +699,8 @@
 
     /* ---------- ثبت سفارش ---------- */
     function submitOrder() {
-        CN.clearFieldErrors('#orderForm');
+        /* [Task 9] امضای جدید CN.clearFieldErrors عنصر خام می‌گیرد */
+        CN.clearFieldErrors(document.getElementById('orderForm'));
 
         /* فاز ۱۵ — گارد ساعت کاری (سمت کلاینت؛ سرور هم چک سخت دارد) */
         if (!checkWorkHours()) { return; }
@@ -663,7 +713,9 @@
         var formData = collectFormData();
         if (formData === null) {
             CN.toast('لطفاً فیلدهای الزامی را کامل کنید.', 'error');
-            $('html, body').animate({ scrollTop: ($('.form-group').first().offset() || { top: 0 }).top - 90 }, 300);
+            var firstGroup = document.querySelector('.form-group');
+            var groupTop = firstGroup ? (firstGroup.getBoundingClientRect().top + window.pageYOffset) : 0;
+            window.scrollTo({ top: groupTop - 90, behavior: 'smooth' });
             return;
         }
 
@@ -690,21 +742,24 @@
             fd.append('documents[]', file);
         });
 
-        CN.btnLoading($('#submitOrderBtn'), true, 'در حال ثبت…');
+        CN.btnLoading(document.getElementById('submitOrderBtn'), true, 'در حال ثبت…');
 
         CN.api('/orders', {
             method: 'POST',
             formData: fd,
             success: function (resp) {
-                CN.btnLoading($('#submitOrderBtn'), false);
+                CN.btnLoading(document.getElementById('submitOrderBtn'), false);
                 CN.toast('درخواست شما ثبت شد و برای اپراتورها ارسال شد.', 'success', 5200);
                 window.location.replace(CN.withPort('/app/orders/' + resp.data.id));
             },
             error: function (xhr, message) {
-                CN.btnLoading($('#submitOrderBtn'), false);
+                CN.btnLoading(document.getElementById('submitOrderBtn'), false);
 
-                /* فاز ۱۵ — پاسخ‌های ساختاریافتهٔ گاردها → مودال */
-                var body = (xhr.responseJSON || {});
+                /* فاز ۱۵ — پاسخ‌های ساختاریافتهٔ گاردها → مودال
+                   [Task 9] xhr دیگر responseJSON جی‌کوئری ندارد → پارس دستی */
+                var body = null;
+                try { body = JSON.parse(xhr.responseText); } catch (parseErr) { body = null; }
+                body = body || {};
                 if (body.code === 'outside_work_hours' && body.work_hours) {
                     workHoursModal({
                         start: body.work_hours.start,
@@ -720,15 +775,18 @@
                     return;
                 }
 
-                var errors = (xhr.responseJSON && xhr.responseJSON.errors) || {};
+                var errors = (body && body.errors) || {};
                 CN.applyErrors(errors);
                 CN.toast(message, 'error');
             }
         });
     }
 
-    $('#orderForm').on('submit', function (e) {
-        e.preventDefault();
-        submitOrder();
-    });
-})(jQuery);
+    var orderFormEl = document.getElementById('orderForm');
+    if (orderFormEl) {
+        orderFormEl.addEventListener('submit', function (e) {
+            e.preventDefault();
+            submitOrder();
+        });
+    }
+})();

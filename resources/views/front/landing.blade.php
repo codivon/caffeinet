@@ -675,6 +675,6 @@
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>
 </button>
 
-<script src="{{ asset('assets/js/landing.js') }}?v=2" defer></script>
+<script src="{{ asset('assets/js/landing.js') }}?v=4" defer></script>
 </body>
 </html>

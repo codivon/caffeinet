@@ -1,6 +1,7 @@
 /* اپ مشتری — صفحه خانه (کاتالوگ) */
-/* global CN, jQuery */
-(function ($) {
+/* [Task 9] Vanilla JS — بدون جی‌کوئری */
+/* global CN */
+(function () {
     'use strict';
 
     if (!CN.requireCompleteProfile()) { return; }
@@ -41,7 +42,7 @@
     }
 
     function renderChips() {
-        var $row = $('#categoryChips');
+        var row = document.getElementById('categoryChips');
         var html = '<button class="chip' + (state.categoryId === 0 ? ' active' : '') + '" data-cat="0" type="button"><span class="chip-icon">✨</span> همه</button>';
 
         // اگر دسته فعالِ فرزند است → ریشه + خواهر/برادرها؛ وگرنه ریشه‌ها
@@ -69,22 +70,29 @@
             });
         }
 
-        $row.html(html);
+        if (row) { row.innerHTML = html; }
 
-        $row.off('click', '.chip').on('click', '.chip', function () {
-            state.categoryId = +$(this).data('cat');
-            renderChips();
-            resetAndLoad();
-        });
+        /* [Task 9] جایگزین اتصالِ delegate تکراری روی ردیف چیپ‌ها:
+           شنونده یک‌بار در بخش رویدادها به #categoryChips بسته می‌شود
+           و با بازرندر چیپ‌ها پابرجاست (رفتار عین قبل: هر لحظه فقط یک شنونده). */
     }
 
     /* ---------- خدمات ---------- */
     function resetAndLoad() {
         state.page = 1;
         state.hasMore = false;
-        $('#servicesList').empty();
-        $('#servicesEmpty').addClass('hidden');
+        var servicesList = document.getElementById('servicesList');
+        if (servicesList) { servicesList.innerHTML = ''; }
+        var servicesEmpty = document.getElementById('servicesEmpty');
+        if (servicesEmpty) { servicesEmpty.classList.add('hidden'); }
         loadServices();
+    }
+
+    /* [Task 9] حذف همهٔ اسکلت‌ها از کل سند (جایگزین remove سراسری قدیمی) */
+    function removeSkeletons() {
+        Array.prototype.forEach.call(document.querySelectorAll('.skeleton'), function (sk) {
+            sk.remove();
+        });
     }
 
     function loadServices() {
@@ -92,9 +100,13 @@
         state.loading = true;
 
         if (state.page === 1) {
-            $('#servicesList').append('<div class="skeleton svc"></div><div class="skeleton svc"></div>');
+            var servicesList = document.getElementById('servicesList');
+            if (servicesList) {
+                servicesList.insertAdjacentHTML('beforeend', '<div class="skeleton svc"></div><div class="skeleton svc"></div>');
+            }
         } else {
-            $('#servicesMoreLoader').removeClass('hidden');
+            var servicesMoreLoader = document.getElementById('servicesMoreLoader');
+            if (servicesMoreLoader) { servicesMoreLoader.classList.remove('hidden'); }
         }
 
         var params = '?page=' + state.page;
@@ -104,28 +116,34 @@
         CN.api('/services' + params, {
             success: function (resp) {
                 state.loading = false;
-                $('.skeleton').remove();
-                $('#servicesMoreLoader').addClass('hidden');
+                removeSkeletons();
+                var servicesMoreLoader = document.getElementById('servicesMoreLoader');
+                if (servicesMoreLoader) { servicesMoreLoader.classList.add('hidden'); }
 
-                $('#servicesCount').text(CN.toFaDigits(resp.total || 0) + ' خدمت');
+                var servicesCount = document.getElementById('servicesCount');
+                if (servicesCount) { servicesCount.textContent = CN.toFaDigits(resp.total || 0) + ' خدمت'; }
 
+                var servicesList = document.getElementById('servicesList');
                 (resp.data || []).forEach(function (s) {
-                    $('#servicesList').append(serviceCard(s));
+                    if (servicesList) { servicesList.insertAdjacentHTML('beforeend', serviceCard(s)); }
                 });
 
                 state.hasMore = !!resp.next_page_url;
-                $('#loadMoreBtn').toggleClass('hidden', !state.hasMore);
+                var loadMoreBtn = document.getElementById('loadMoreBtn');
+                if (loadMoreBtn) { loadMoreBtn.classList.toggle('hidden', !state.hasMore); }
 
                 if (!resp.data || !resp.data.length) {
-                    $('#servicesEmpty').removeClass('hidden');
+                    var servicesEmpty = document.getElementById('servicesEmpty');
+                    if (servicesEmpty) { servicesEmpty.classList.remove('hidden'); }
                 }
 
                 loadFeatured(resp.data || []);
             },
             error: function () {
                 state.loading = false;
-                $('.skeleton').remove();
-                $('#servicesMoreLoader').addClass('hidden');
+                removeSkeletons();
+                var servicesMoreLoader = document.getElementById('servicesMoreLoader');
+                if (servicesMoreLoader) { servicesMoreLoader.classList.add('hidden'); }
             }
         });
     }
@@ -170,25 +188,45 @@
                 '</a>';
         });
 
-        $('#featuredStrip').html(html);
-        $('#featuredSection').removeClass('hidden');
+        var featuredStrip = document.getElementById('featuredStrip');
+        if (featuredStrip) { featuredStrip.innerHTML = html; }
+        var featuredSection = document.getElementById('featuredSection');
+        if (featuredSection) { featuredSection.classList.remove('hidden'); }
     }
 
     /* ---------- رویدادها ---------- */
     var onSearch = CN.debounce(function () {
-        state.q = $('#searchInput').val().trim();
+        var searchInput = document.getElementById('searchInput');
+        state.q = (searchInput ? searchInput.value : '').trim();
         resetAndLoad();
     }, 420);
 
-    $('#searchInput').on('input', onSearch);
+    var searchInput = document.getElementById('searchInput');
+    if (searchInput) { searchInput.addEventListener('input', onSearch); }
 
-    $('#loadMoreBtn').on('click', function () {
-        if (!state.hasMore || state.loading) { return; }
-        state.page++;
-        loadServices();
-    });
+    /* کلیک چیپ‌های دسته — [Task 9] delegate یک‌بار روی #categoryChips (جایگزین off/on تکراری) */
+    var categoryChipsRow = document.getElementById('categoryChips');
+    if (categoryChipsRow) {
+        categoryChipsRow.addEventListener('click', function (e) {
+            var chip = e.target.closest ? e.target.closest('.chip') : null;
+            if (!chip || !categoryChipsRow.contains(chip)) { return; }
+
+            state.categoryId = +chip.dataset.cat;
+            renderChips();
+            resetAndLoad();
+        });
+    }
+
+    var loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function () {
+            if (!state.hasMore || state.loading) { return; }
+            state.page++;
+            loadServices();
+        });
+    }
 
     /* ---------- شروع ---------- */
     loadCategories();
     loadServices();
-})(jQuery);
+})();

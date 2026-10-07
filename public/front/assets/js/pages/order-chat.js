@@ -1,8 +1,8 @@
 /* اپ مشتری — گفتگوی سفارش (فاز ۷ — چت تلگرام‌گونه) */
 /* فاز ۱۲ — شیت پیوست تلگرامی + آپلودر زیبا + کش‌ودرگ + paste تصویر */
-/* فایل مستقل (Blade + jQuery) — بدون Node / بدون بیلد */
-/* global CN, jQuery */
-(function ($) {
+/* فایل مستقل (Vanilla JS — بدون jQuery) — بدون Node / بدون بیلد */
+/* global CN */
+(function () {
     'use strict';
 
     if (!CN.requireCompleteProfile()) { return; }
@@ -405,45 +405,51 @@
 
         setUploadState(true);
 
-        $.ajax({
-            url: CN.apiUrl(API),
-            type: 'POST',
-            data: fd,
-            processData: false,
-            contentType: false,
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + CN.token()
-            },
-            xhr: function () {
-                var xhr = new XMLHttpRequest();
-                xhr.upload.addEventListener('progress', function (e) {
-                    if (e.lengthComputable) {
-                        var pct = Math.round((e.loaded / e.total) * 100);
-                        els.uploadFill.style.width = pct + '%';
-                        els.pPct.textContent = fa(pct) + '٪';
-                    }
-                }, false);
-                return xhr;
-            },
-            success: function (resp) {
+        /* [Task 9] vanilla XHR — جایگزین $.ajax با حفظ عین رفتار:
+           هدرهای Accept/Authorization + رویداد پیشرفت آپلود (نوار درصد) +
+           بدون مهلت زمانی. CN.api رویداد upload progress ندارد و تایم‌اوت
+           پیش‌فرض ۲۰ ثانیه‌اش آپلود فایل‌های حجیم را قطع می‌کرد. */
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', CN.apiUrl(API), true);
+        xhr.setRequestHeader('Accept', 'application/json');
+        xhr.setRequestHeader('Authorization', 'Bearer ' + CN.token());
+        xhr.upload.addEventListener('progress', function (e) {
+            if (e.lengthComputable) {
+                var pct = Math.round((e.loaded / e.total) * 100);
+                els.uploadFill.style.width = pct + '%';
+                els.pPct.textContent = fa(pct) + '٪';
+            }
+        }, false);
+        xhr.onload = function () {
+            var resp = null;
+            try { resp = JSON.parse(xhr.responseText); } catch (e) { resp = null; }
+
+            if ((xhr.status >= 200 && xhr.status < 300) || xhr.status === 304) {
                 setUploadState(false);
                 clearPendingFile();
                 els.input.value = '';
                 autoGrow();
-                ingestLocal(resp.data);
+                ingestLocal(resp ? resp.data : null);
                 scrollToBottom();
                 load(false);
                 done();
-            },
-            error: function (xhr) {
-                setUploadState(false);
-                var message = 'ارسال فایل ناموفق بود.';
-                try { message = JSON.parse(xhr.responseText).message || message; } catch (e) { /* noop */ }
-                CN.toast(message, 'error');
-                done();
+                return;
             }
-        });
+
+            setUploadState(false);
+            var message = 'ارسال فایل ناموفق بود.';
+            try { message = JSON.parse(xhr.responseText).message || message; } catch (e) { /* noop */ }
+            CN.toast(message, 'error');
+            done();
+        };
+        xhr.onerror = function () {
+            setUploadState(false);
+            var message = 'ارسال فایل ناموفق بود.';
+            try { message = JSON.parse(xhr.responseText).message || message; } catch (e) { /* noop */ }
+            CN.toast(message, 'error');
+            done();
+        };
+        xhr.send(fd);
     }
 
     /* حالت آپلود: کارت آپلودر زنده می‌شود (شیمر + درصد) */
@@ -808,4 +814,4 @@
     autoGrow();
     load(true);
     startPolling();
-})(jQuery);
+})();

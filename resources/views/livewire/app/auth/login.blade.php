@@ -1,5 +1,5 @@
 {{-- [Task 7] نسخهٔ Livewire 4 «ورود / ثبت‌نام» — تبدیل از app/auth.blade.php
-     ساختار/کلاس‌ها/آیدی‌ها عیناً حفظ شده (JS صفحهٔ jQuery با CN.api → API v1 دست‌نخورده).
+     ساختار/کلاس‌ها/آیدی‌ها عیناً حفظ شده (JS صفحهٔ Vanilla با CN.api → API v1 دست‌نخورده).
      تنظیمات لایه از کامپوننت با layoutData پاس داده می‌شود؛ این ویو فقط یک ریشهٔ <div> دارد. --}}
 
 
@@ -78,5 +78,5 @@
 </div>
 
 @push('page')
-    <script src="{{ asset('front/assets/js/pages/auth.js') }}?v=2" defer></script>
+    <script src="{{ asset('front/assets/js/pages/auth.js') }}?v=3" defer></script>
 @endpush

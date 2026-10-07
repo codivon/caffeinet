@@ -6,9 +6,11 @@
  *      data-ann-pending (GET) و data-ann-read (POST با {id})
  *   ۲) اطلاعیه‌های دیده‌نشده به ترتیب در یک مودال زیبا (بلندگو + رسانه) نمایش داده می‌شوند.
  *   ۳) با بستن هر اطلاعیه، «دیده‌شده» در سرور ثبت می‌شود و اطلاعیه بعدی می‌آید.
+ *
+ * [Task 9] Vanilla JS — بدون هیچ کتابخانهٔ خارجی؛ شنوندهٔ Escape با مرجع
+ * نگه‌داری‌شده حذف می‌شود (معادل حذف نام‌فضادار قبلی).
  */
-/* global jQuery */
-(function ($) {
+(function () {
     'use strict';
 
     const body = document.body;
@@ -19,6 +21,7 @@
 
     const queue = [];
     let active = null; // اطلاعیهٔ در حال نمایش
+    let keyHandler = null; // مرجع شنوندهٔ Escape — برای removeEventListener در next()
 
     const MEGAPHONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>';
 
@@ -44,7 +47,9 @@
 
         const remaining = queue.length;
 
-        const $wrap = $(`
+        /* پارس مارک‌آپ با DOM استاندارد — ریشه، همان .annm-backdrop است */
+        const host = document.createElement('div');
+        host.innerHTML = `
             <div class="annm-backdrop" role="dialog" aria-modal="true" aria-labelledby="annm-title">
                 <div class="annm" data-id="${esc(item.id)}">
                     <div class="annm-head">
@@ -66,33 +71,40 @@
                         <button type="button" class="btn btn-primary btn-shine ui-press annm-btn">متوجه شدم</button>
                     </div>
                 </div>
-            </div>`);
+            </div>`;
+        const wrap = host.firstElementChild;
 
-        $('body').append($wrap);
+        document.body.appendChild(wrap);
 
         const close = () => {
             // توقف ویدیو هنگام بستن
-            $wrap.find('video').each(function () { try { this.pause(); } catch (e) { /* noop */ } });
+            wrap.querySelectorAll('video').forEach(v => { try { v.pause(); } catch (e) { /* noop */ } });
 
-            $wrap.addClass('annm-closing');
-            $wrap.find('.annm').addClass('annm-closing');
+            wrap.classList.add('annm-closing');
+            const modalEl = wrap.querySelector('.annm');
+            if (modalEl) { modalEl.classList.add('annm-closing'); }
             markRead(item.id);
             setTimeout(() => {
-                $wrap.remove();
+                wrap.remove();
                 active = null;
                 next();
             }, 230);
         };
 
-        $wrap.find('.annm-btn').on('click', close);
-        $wrap.on('click', e => { if (e.target === $wrap[0]) { close(); } });
-        $(document).on('keydown.annm', e => {
+        const okBtn = wrap.querySelector('.annm-btn');
+        if (okBtn) { okBtn.addEventListener('click', close); }
+        wrap.addEventListener('click', e => { if (e.target === wrap) { close(); } });
+        keyHandler = e => {
             if (e.key === 'Escape' && active) { close(); }
-        });
+        };
+        document.addEventListener('keydown', keyHandler);
     }
 
     function next() {
-        $(document).off('keydown.annm');
+        if (keyHandler) {
+            document.removeEventListener('keydown', keyHandler);
+            keyHandler = null;
+        }
         if (queue.length) {
             show(queue.shift());
         }
@@ -113,20 +125,19 @@
     }
 
     /* ---------- دریافت اطلاعیه‌ها ---------- */
-    $(function () {
-        fetch(App.url(pendingUrl), {
-            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
-            credentials: 'same-origin',
+    /* اسکریپت در انتهای body است — اجرای فوری به‌جای DOM-ready */
+    fetch(App.url(pendingUrl), {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        credentials: 'same-origin',
+    })
+        .then(r => (r.ok ? r.json() : null))
+        .then(resp => {
+            const items = (resp && resp.data) || [];
+            if (items.length) {
+                items.reverse(); // قدیمی → جدید
+                queue.push(...items);
+                setTimeout(() => next(), 700); // کمی تأخیر تا صفحه آرام بگیرد
+            }
         })
-            .then(r => (r.ok ? r.json() : null))
-            .then(resp => {
-                const items = (resp && resp.data) || [];
-                if (items.length) {
-                    items.reverse(); // قدیمی → جدید
-                    queue.push(...items);
-                    setTimeout(() => next(), 700); // کمی تأخیر تا صفحه آرام بگیرد
-                }
-            })
-            .catch(() => { /* noop */ });
-    });
-})(jQuery);
+        .catch(() => { /* noop */ });
+})();

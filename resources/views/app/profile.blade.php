@@ -128,5 +128,5 @@
 @endsection
 
 @push('page')
-    <script src="{{ asset('front/assets/js/pages/profile.js') }}?v=3" defer></script>
+    <script src="{{ asset('front/assets/js/pages/profile.js') }}?v=4" defer></script>
 @endpush

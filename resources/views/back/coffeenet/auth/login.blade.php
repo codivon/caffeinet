@@ -96,9 +96,8 @@
     </div>
 </main>
 
-<script src="{{ asset('assets/js/vendor/jquery.min.js') }}?v=10"></script>
-<script src="{{ asset('back/assets/js/core.js') }}?v=10"></script>
-<script src="{{ asset('back/assets/js/ui.js') }}?v=10"></script>
+<script src="{{ asset('back/assets/js/core.js') }}?v=14"></script>
+<script src="{{ asset('back/assets/js/ui.js') }}?v=12"></script>
 <script src="{{ asset('back/assets/js/pages/coffeenet/auth/login.js') }}?v=10"></script>
 </body>
 </html>

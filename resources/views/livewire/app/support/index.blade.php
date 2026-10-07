@@ -1,5 +1,5 @@
 {{-- [Task 7] نسخهٔ Livewire 4 «پشتیبانی» — تبدیل از app/support.blade.php
-     ساختار/کلاس‌ها/آیدی‌ها عیناً حفظ شده (JS صفحهٔ jQuery با CN.api → API v1 دست‌نخورده).
+     ساختار/کلاس‌ها/آیدی‌ها عیناً حفظ شده (JS صفحهٔ Vanilla با CN.api → API v1 دست‌نخورده).
      تنظیمات لایه از کامپوننت با layoutData پاس داده می‌شود؛ این ویو فقط یک ریشهٔ <div> دارد. --}}
 
 
@@ -88,5 +88,5 @@
     </form>
 </div>
 
-<script src="{{ asset('front/assets/js/pages/support.js') }}?v=2" defer></script>
+<script src="{{ asset('front/assets/js/pages/support.js') }}?v=3" defer></script>
 @endpush

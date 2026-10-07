@@ -1,6 +1,7 @@
 /* اپ مشتری — صفحهٔ «خدمات» (همهٔ خدمات با دسته‌بندی‌ها، گروهی) */
-/* global CN, jQuery */
-(function ($) {
+/* [Task 9] Vanilla JS — بدون جی‌کوئری */
+/* global CN */
+(function () {
     'use strict';
 
     if (!CN.requireCompleteProfile()) { return; }
@@ -20,29 +21,33 @@
 
     /* ---------- بارگذاری ---------- */
     function load() {
-        $('#groupedList').html(
-            '<div class="skeleton svc"></div><div class="skeleton svc"></div><div class="skeleton svc"></div>'
-        );
+        var groupedList = document.getElementById('groupedList');
+        if (groupedList) {
+            groupedList.innerHTML = '<div class="skeleton svc"></div><div class="skeleton svc"></div><div class="skeleton svc"></div>';
+        }
 
         CN.api('/services-grouped', {
             success: function (resp) {
                 tree = (resp.data && resp.data.categories) || [];
                 var total = (resp.data && resp.data.total_services) || 0;
-                $('#servicesCount').text(CN.toFaDigits(total) + ' خدمت');
+                var servicesCount = document.getElementById('servicesCount');
+                if (servicesCount) { servicesCount.textContent = CN.toFaDigits(total) + ' خدمت'; }
                 renderChips();
                 render();
                 applyLandingHash();
             },
             error: function () {
-                $('#groupedList').empty();
-                $('#servicesEmpty').removeClass('hidden');
+                var list = document.getElementById('groupedList');
+                if (list) { list.innerHTML = ''; }
+                var servicesEmpty = document.getElementById('servicesEmpty');
+                if (servicesEmpty) { servicesEmpty.classList.remove('hidden'); }
             }
         });
     }
 
     /* ---------- چیپ‌های دسته ---------- */
     function renderChips() {
-        var $row = $('#categoryChips');
+        var row = document.getElementById('categoryChips');
         var html = '<button class="chip' + (state.categoryId === 0 ? ' active' : '') + '" data-cat="0" type="button" role="tab" aria-selected="' + (state.categoryId === 0) + '"><span class="chip-icon">✨</span> همه</button>';
 
         tree.forEach(function (c) {
@@ -53,14 +58,15 @@
                 '</button>';
         });
 
-        $row.html(html);
-        $row.attr('aria-selected', null);
+        if (row) {
+            row.innerHTML = html;
+            /* [Task 9] حذف aria-selected از ردیف (مقدار null در ستر قدیمی یعنی حذف attribute) */
+            row.removeAttribute('aria-selected');
+        }
 
-        $row.off('click', '.chip').on('click', '.chip', function () {
-            state.categoryId = +$(this).data('cat');
-            renderChips();
-            render();
-        });
+        /* [Task 9] جایگزین اتصالِ delegate تکراری روی ردیف چیپ‌ها:
+           شنونده یک‌بار در بخش رویدادها به #categoryChips بسته می‌شود
+           و با بازرندر چیپ‌ها پابرجاست (رفتار عین قبل: هر لحظه فقط یک شنونده). */
     }
 
     /* ---------- رندر سکشن‌ها ---------- */
@@ -111,7 +117,7 @@
 
     /* پیمایش درخت: هر دسته و هر زیردسته، سکشن جدا */
     function render() {
-        var $list = $('#groupedList');
+        var list = document.getElementById('groupedList');
         var html = '';
 
         (state.categoryId ? [findCategory(tree, state.categoryId)].filter(Boolean) : tree).forEach(function (cat) {
@@ -122,16 +128,18 @@
             });
         });
 
-        $list.html(html);
+        if (list) { list.innerHTML = html; }
 
-        var totalShown = $list.find('.service-card').length;
-        $('#servicesEmpty').toggleClass('hidden', totalShown > 0);
-        $('#groupedList').toggleClass('hidden', totalShown === 0);
+        var totalShown = list ? list.querySelectorAll('.service-card').length : 0;
+        var servicesEmpty = document.getElementById('servicesEmpty');
+        if (servicesEmpty) { servicesEmpty.classList.toggle('hidden', totalShown > 0); }
+        if (list) { list.classList.toggle('hidden', totalShown === 0); }
 
         var active = findCategory(tree, state.categoryId);
-        $('#servicesTitle').text(
-            state.q ? 'نتایج جستجو' : (active ? active.name : 'همهٔ دسته‌بندی‌ها')
-        );
+        var servicesTitle = document.getElementById('servicesTitle');
+        if (servicesTitle) {
+            servicesTitle.textContent = state.q ? 'نتایج جستجو' : (active ? active.name : 'همهٔ دسته‌بندی‌ها');
+        }
     }
 
     function findCategory(nodes, id) {
@@ -182,11 +190,26 @@
 
     /* ---------- جستجو ---------- */
     var onSearch = CN.debounce(function () {
-        state.q = $('#searchInput').val().trim().toLowerCase();
+        var searchInput = document.getElementById('searchInput');
+        state.q = (searchInput ? searchInput.value : '').trim().toLowerCase();
         render();
     }, 420);
 
-    $('#searchInput').on('input', onSearch);
+    var searchInput = document.getElementById('searchInput');
+    if (searchInput) { searchInput.addEventListener('input', onSearch); }
+
+    /* کلیک چیپ‌های دسته — [Task 9] delegate یک‌بار روی #categoryChips (جایگزین off/on تکراری) */
+    var categoryChipsRow = document.getElementById('categoryChips');
+    if (categoryChipsRow) {
+        categoryChipsRow.addEventListener('click', function (e) {
+            var chip = e.target.closest ? e.target.closest('.chip') : null;
+            if (!chip || !categoryChipsRow.contains(chip)) { return; }
+
+            state.categoryId = +chip.dataset.cat;
+            renderChips();
+            render();
+        });
+    }
 
     /* ---------- لینک‌های ورودی از صفحه فرود (#cat-{id}) ---------- */
     function applyLandingHash() {
@@ -206,13 +229,17 @@
         renderChips();
         render();
         window.setTimeout(function () {
-            var $sec = $('[data-cat="' + catId + '"]').first();
-            if ($sec.length) {
-                $('html, body').animate({ scrollTop: $sec.offset().top - 70 }, 500);
+            /* [Task 9] اولین تطبیق در ترتیب سند (همان first قدیمی)
+               چیپ‌های #categoryChips قبل از #groupedList اند — عین رفتار قبلی */
+            var sec = document.querySelector('[data-cat="' + catId + '"]');
+            if (sec) {
+                /* [Task 9] $sec.offset().top → فاصله از بالای سند */
+                var top = sec.getBoundingClientRect().top + (window.pageYOffset || document.documentElement.scrollTop) - 70;
+                window.scrollTo({ top: top, behavior: 'smooth' }); /* معادل animate({scrollTop}) با ۵۰۰ms */
             }
         }, 350);
     }
 
     /* ---------- شروع ---------- */
     load();
-})(jQuery);
+})();

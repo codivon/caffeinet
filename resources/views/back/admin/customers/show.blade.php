@@ -753,6 +753,6 @@
 
 @push('scripts')
 <script src="{{ asset('assets/js/vendor/chart.umd.min.js') }}?v=9"></script>
-<script src="{{ asset('back/assets/js/charts.js') }}?v=9"></script>
+<script src="{{ asset('back/assets/js/charts.js') }}?v=10"></script>
 <script src="{{ asset('back/assets/js/pages/admin/customers/show.js') }}?v=1"></script>
 @endpush
