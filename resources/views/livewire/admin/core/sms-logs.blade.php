@@ -2,6 +2,10 @@
      فیلترها/جستجو/صفحه‌بندی سمت سرور؛ کلاس‌ها عیناً مطابق نسخهٔ قبلی --}}
 <div class="sl-stack">
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/pages/sms-logs.css') }}?v=17">
+@endpush
+
     {{-- ================== هدر قهرمان ================== --}}
     <div class="card ui-lift animate-fade-up sl-hero">
         <div class="sl-hero-main">
@@ -191,9 +195,8 @@
             @endif
         </div>
     </section>
-</div>
 
-{{-- ================== مودال جزئیات ================== --}}
+{{-- ================== مودال جزئیات (درون ریشهٔ واحد کامپوننت — Livewire فقط یک ریشه می‌پذیرد) ================== --}}
 <div class="ui-modal-backdrop {{ $detail === null ? 'hidden' : 'flex' }}">
     <div class="absolute inset-0" wire:click="closeDetail" aria-hidden="true"></div>
     <div class="ui-modal adm-modal-md adm-modal-text-start" data-tone="info" role="dialog" aria-modal="true" aria-labelledby="sl-d-title">

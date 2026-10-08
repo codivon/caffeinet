@@ -19,7 +19,7 @@
 
     {{-- استایل و اسکریپت — کاملاً بدون Node / بدون بیلد --}}
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v=10">
-    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=16">
+    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=18">
     <link rel="stylesheet" href="{{ asset('assets/css/pages/admin.css') }}?v=24">
     {{-- سیستم تم روشن/تاریک (فاز ۱۰) — باید آخرین CSS باشد تا برنده بماند --}}
     <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}?v=11">

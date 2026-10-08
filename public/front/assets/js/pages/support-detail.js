@@ -31,6 +31,30 @@
     };
     var PRIO_LABEL = { low: 'کم', normal: 'معمولی', high: 'فوری' };
 
+    /* ---------- فاز ۱۳ — گفتگوی زندهٔ تیکت (Realtime SSE/پوشر) ----------
+       اعلان‌های تیکت (پاسخ کارشناس/تغییر وضعیت) با notif.new روی کانال شخصی
+       کاربر همیشه می‌رسند؛ این صفحه با شنیدن آن، بدون پولینگ همان لحظه
+       پیام‌ها را می‌خواند. کانال بعد از RT.setup نوتیفیکیشن‌ها آماده می‌شود —
+       چند تلاش نرم برای bind لازم است. */
+    var rtBound = false;
+
+    function bindRealtime() {
+        if (rtBound || !window.RT || !RT.active() || !RT.cfg.channel) { return; }
+
+        var ok = RT.bindUser('notif.new', function (payload) {
+            var t = String((payload && payload.type) || '');
+            if (t && t.indexOf('ticket') === -1) { return; }
+            if (document.hidden || state.sending) { return; }
+            load();
+        });
+
+        if (ok) { rtBound = true; }
+    }
+
+    bindRealtime();
+    setTimeout(bindRealtime, 1500);
+    setTimeout(bindRealtime, 4000);
+
     /* ---------- هدر تیکت ---------- */
     function renderHead(t) {
         state.closed = t.status === 'closed';

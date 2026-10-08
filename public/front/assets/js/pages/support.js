@@ -15,6 +15,24 @@
     };
     var PRIO_LABEL = { low: 'کم', normal: 'معمولی', high: 'فوری' };
 
+    /* فاز ۱۳ — لیست زندهٔ تیکت‌ها: اعلان تیکت (پاسخ کارشناس/وضعیت) با
+       notif.new می‌رسد → فهرست بدون پولینگ تازه می‌شود. */
+    var rtBound = false;
+
+    function bindRealtime() {
+        if (rtBound || !window.RT || !RT.active() || !RT.cfg.channel) { return; }
+        var ok = RT.bindUser('notif.new', function (payload) {
+            var t = String((payload && payload.type) || '');
+            if (t && t.indexOf('ticket') === -1) { return; }
+            if (document.hidden) { return; }
+            load();
+        });
+        if (ok) { rtBound = true; }
+    }
+    bindRealtime();
+    setTimeout(bindRealtime, 1500);
+    setTimeout(bindRealtime, 4000);
+
     function load() {
         if (state.loading) { return; }
         state.loading = true;

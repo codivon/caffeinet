@@ -20,7 +20,7 @@
 
     {{-- استایل و اسکریپت — کاملاً بدون Node / بدون بیلد --}}
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v=14">
-    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=17">
+    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=18">
     <link rel="stylesheet" href="{{ asset('assets/css/pages/admin.css') }}?v=24">
     {{-- زنگ اعلان (فاز ۱۰) — قبل از theme --}}
     <link rel="stylesheet" href="{{ asset('assets/css/notifications.css') }}?v=14">
@@ -227,7 +227,7 @@
 {{-- [Task 2-a] data-navigate-once: اسکریپت‌های مشترک لایه در هر ناوبری wire:navigate
      دوباره اجرا نشوند (intervals/listener تکراری ممنوع)؛ re-bind کروم با App.onNavigate --}}
 <script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1" data-navigate-once></script>
-<script src="{{ asset('assets/js/realtime.js') }}?v=5" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(auth()->user()))'></script>
+<script src="{{ asset('assets/js/realtime.js') }}?v=6" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(auth()->user()))'></script>
 <script src="{{ asset('back/assets/js/core.js') }}?v=15" data-navigate-once></script>
 <script src="{{ asset('back/assets/js/ui.js') }}?v=12" data-navigate-once></script>
 <script src="{{ asset('back/assets/js/pages/layout.js') }}?v=14" data-navigate-once></script>

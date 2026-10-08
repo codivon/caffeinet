@@ -100,7 +100,7 @@
 
 .sl-stat--ok::before   { background: linear-gradient(90deg, #34d399, #059669); }
 .sl-stat--err::before  { background: linear-gradient(90deg, #fb7185, #e11d48); }
-.sl-stat--today::before{ background: linear-gradient(90deg, #60a5fa, #2563eb); }}
+.sl-stat--today::before{ background: linear-gradient(90deg, #60a5fa, #2563eb); }
 
 .sl-stat-num {
     font-size: 1.15rem;
@@ -110,12 +110,12 @@
 }
 .sl-stat--ok .sl-stat-num   { color: #047857; }
 .sl-stat--err .sl-stat-num  { color: #be123c; }
-.sl-stat--today .sl-stat-num{ color: #1d4ed8; }}
+.sl-stat--today .sl-stat-num{ color: #1d4ed8; }
 
 html.dark .sl-stat-num          { color: #f1f5f9; }
 html.dark .sl-stat--ok .sl-stat-num   { color: #6ee7b7; }
 html.dark .sl-stat--err .sl-stat-num  { color: #fda4af; }
-html.dark .sl-stat--today .sl-stat-num{ color: #93c5fd; }}
+html.dark .sl-stat--today .sl-stat-num{ color: #93c5fd; }
 
 .sl-stat-label {
     font-size: 0.62rem;

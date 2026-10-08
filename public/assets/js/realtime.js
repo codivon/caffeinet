@@ -125,6 +125,7 @@
     function connectSse() {
         if (es) { return es; }
         if (!sseActive()) { return null; }
+        if (document.hidden) { pausedHidden = true; return null; } // تب پنهان → اتصال ممنوع
 
         try {
             var url = String(cfg.sse_url);
@@ -177,6 +178,29 @@
     /* ================================================================ */
     /* اشتراک‌ها (مشترک بین دو ترابورت)                                  */
     /* ================================================================ */
+
+    /* فاز ۱۳ — بهینه‌سازی سرعت هاست اشتراکی:
+       هر استریم SSE یک پروسهٔ PHP را تا ~۴ دقیقه اشغال می‌کند. تب‌های
+       پس‌زمینه (غیرفعال) به رویدادِ لحظه‌ای نیاز ندارند — اتصال آن‌ها را
+       می‌بندیم تا پروسه‌ها آزاد بمانند (سقف Entry Processes هاست). با
+       بازگشت به تب، همان لحظه دوباره وصل می‌شود. در حالت پنهان، وضعیت
+       «وصل» برای صفحات دست‌نخورده می‌ماند تا پولینگ اضطراری روشن نشود. */
+    var pausedHidden = false;
+
+    document.addEventListener('visibilitychange', function () {
+        if (!sseActive()) { return; }
+
+        if (document.hidden) {
+            if (es) {
+                try { es.close(); } catch (e) { /* noop */ }
+                es = null;
+                pausedHidden = true;
+            }
+        } else if (pausedHidden) {
+            pausedHidden = false;
+            if (!es) { connectSse(); }
+        }
+    });
 
     /** اشتراک روی کانال/رویداد — در صورت خطا بی‌صدا false */
     function on(channel, event, cb) {

@@ -8,6 +8,24 @@
 
     var state = { status: '', page: 1, hasMore: false, loading: false };
 
+    /* فاز ۱۳ — لیست زنده: با رویداد order.changed (تغییر وضعیت/پرداخت سفارش خودم)
+       فهرست همان لحظه تازه می‌شود — بدون پولینگ. چند تلاش نرم برای bind
+       چون کانال شخصی بعد از RT.setup نوتیفیکیشن‌ها آماده می‌شود. */
+    var rtBound = false;
+
+    function bindRealtime() {
+        if (rtBound || !window.RT || !RT.active() || !RT.cfg.channel) { return; }
+        var ok = RT.bindUser('order.changed', function () {
+            if (document.hidden) { return; }
+            state.page = 1;
+            load();
+        });
+        if (ok) { rtBound = true; }
+    }
+    bindRealtime();
+    setTimeout(bindRealtime, 1500);
+    setTimeout(bindRealtime, 4000);
+
     function load() {
         if (state.loading) { return; }
         state.loading = true;

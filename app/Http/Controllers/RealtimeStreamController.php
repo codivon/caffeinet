@@ -49,6 +49,19 @@ class RealtimeStreamController extends Controller
             return response('sse disabled', 404)->header('Content-Type', 'text/plain');
         }
 
+        // فاز ۱۳ — آزادسازی نشست پیش از استریم (نکتهٔ سرعت):
+        // استریم تا ~۴ دقیقه باز می‌مانَد؛ اگر نشست باز بماند، نوشتنش تا پایان
+        // استریم عقب می‌افتد و در درایورهای دارای قفل (database/file block) بقیهٔ
+        // درخواست‌های همان کاربر هم معطل می‌شوند. با ذخیرهٔ فوری، نشست رها می‌شود
+        // و بقیهٔ درخواست‌ها با حداکثر سرعت اجرا می‌شوند.
+        if ($request->hasSession()) {
+            try {
+                $request->session()->save();
+            } catch (\Throwable) {
+                // نشست اختیاری است — استریم نباید به‌خاطر آن بشکند
+            }
+        }
+
         return $sse->streamResponse($user);
     }
 }

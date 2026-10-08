@@ -727,6 +727,13 @@ html.dark .presence-seen { color: #2563eb; }
     inset-inline-end: auto;
     margin-inline-start: -7.5px;
 }
+/* فاز ۱۳ — فیکس «۲ لودر روی دکمه»: دکمه‌هایی که اسپینر خودشان را دارند
+   (wire:loading لایووایر یا اسپینر innerHTMLِ اسکریپت صفحه) نباید اسپینر
+   دوم is-busy هم بگیرند — :has() در مرورگرهای قدیمی نادیده گرفته می‌شود
+   و رفتار قبلی حفظ می‌شود. */
+.is-busy:has(.animate-spin, .brand-spin)::after {
+    display: none;
+}
 @keyframes cnBusySpin { to { transform: rotate(360deg); } }
 
 @media (prefers-reduced-motion: reduce) {

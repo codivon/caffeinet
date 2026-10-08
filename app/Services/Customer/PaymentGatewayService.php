@@ -210,6 +210,25 @@ class PaymentGatewayService
     {
         $this->syncGatewayConfig($payment->driver);
 
+        // فاز ۱۳ — رنگ‌های درگاه از پالت انتخابی پنل اپ مشتری (Appearance) تزریق می‌شود
+        // تا صفحهٔ درگاه (تست/انتقال) با تم پنل‌ها یکدست شود — دیگر قهوه‌ای نیست.
+        $paletteDetails = [];
+        try {
+            $t = \App\Support\Appearance::tokensFor('app');
+            $ramp = $t['ramp'];
+            $paletteDetails = [
+                'brand50' => (string) ($ramp['50'] ?? '#eff6ff'),
+                'brand100' => (string) ($ramp['100'] ?? '#dbeafe'),
+                'brand300' => (string) ($ramp['300'] ?? '#93c5fd'),
+                'brand600' => (string) ($ramp['600'] ?? '#2563eb'),
+                'brand700' => (string) ($ramp['700'] ?? '#1d4ed8'),
+                'brand900' => (string) ($ramp['900'] ?? '#1e3a8a'),
+                'pageBg' => (string) ($t['page_bg'] ?? '#f4f7fb'),
+            ];
+        } catch (\Throwable) {
+            // تنظیمات ظاهری در دسترس نیست — نما از fallback رنگی خودش استفاده می‌کند
+        }
+
         $form = PaymentFacade::via($payment->driver)
             ->amount((int) round($this->paymentAmount($payment)))
             ->transactionId($payment->id)
@@ -220,6 +239,21 @@ class PaymentGatewayService
                 $payment->forceFill(['ref_id' => (string) $transactionId])->save();
             })
             ->pay();
+
+        // تزریق رنگ‌ها به متغیرهای نمای درگاه (بدون دست‌زدن به vendor) —
+        // ورودی‌های درایور کلیدهای ثابت دارند و detail() به نما نمی‌رسد؛
+        // در redirect.php کلیدهای رنگی از hidden inputs فیلتر می‌شوند تا به درگاه POST نشوند.
+        if ($paletteDetails !== []) {
+            RedirectionForm::setViewRenderer(
+                static function (string $view, string $action, array $inputs, string $method) use ($paletteDetails): string {
+                    $inputs = array_merge($inputs, $paletteDetails);
+                    ob_start();
+                    require($view);
+
+                    return (string) ob_get_clean();
+                }
+            );
+        }
 
         // نمای اختصاصی (بعد از pay که درایور مسیر خودش را ست می‌کند، قبل از render)
         RedirectionForm::setViewPath(

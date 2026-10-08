@@ -102,23 +102,23 @@ html.dark .slg-empty-title { color: #f8fafc; }
 html.dark .slg-empty-sub { color: #60a5fa; }
 
 /* ---------- کارت فایل‌ها ---------- */
-.slg-files { padding: 1rem 1.1rem; }}
+.slg-files { padding: 1rem 1.1rem; }
 .slg-files-head {
     display: flex;
     align-items: baseline;
     gap: 0.6rem;
     flex-wrap: wrap;
     margin-bottom: 0.8rem;
-}}
-.slg-files-head b { font-size: 0.82rem; font-weight: 900; color: #292524; }}
-.slg-files-head span { font-size: 0.66rem; color: #60a5fa; }}
-html.dark .slg-files-head b { color: #f8fafc; }}
+}
+.slg-files-head b { font-size: 0.82rem; font-weight: 900; color: #292524; }
+.slg-files-head span { font-size: 0.66rem; color: #60a5fa; }
+html.dark .slg-files-head b { color: #f8fafc; }
 
 .slg-files-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
     gap: 0.7rem;
-}}
+}
 .slg-file {
     display: flex;
     align-items: center;
@@ -129,12 +129,12 @@ html.dark .slg-files-head b { color: #f8fafc; }}
     background: rgba(255, 255, 255, 0.55);
     text-decoration: none !important;
     transition: border-color .16s ease, background-color .16s ease, transform .16s ease;
-}}
-.slg-file:hover { border-color: rgba(96, 165, 250, 0.45); transform: translateY(-1px); }}
+}
+.slg-file:hover { border-color: rgba(96, 165, 250, 0.45); transform: translateY(-1px); }
 .slg-file--on {
     border-color: rgba(5, 150, 105, 0.55);
     background: rgba(16, 185, 129, 0.07);
-}}
+}
 .slg-file-ico {
     flex: none;
     display: grid;
@@ -144,10 +144,10 @@ html.dark .slg-files-head b { color: #f8fafc; }}
     border-radius: 0.6rem;
     background: rgba(100, 116, 139, 0.1);
     color: #2563eb;
-}}
-.slg-file-ico svg { width: 1.05rem; height: 1.05rem; }}
-.slg-file--on .slg-file-ico { background: rgba(5, 150, 105, 0.13); color: #047857; }}
-.slg-file-body { min-width: 0; flex: 1; }}
+}
+.slg-file-ico svg { width: 1.05rem; height: 1.05rem; }
+.slg-file--on .slg-file-ico { background: rgba(5, 150, 105, 0.13); color: #047857; }
+.slg-file-body { min-width: 0; flex: 1; }
 .slg-file-body b {
     display: block;
     font-size: 0.74rem;
@@ -159,14 +159,14 @@ html.dark .slg-files-head b { color: #f8fafc; }}
     white-space: nowrap;
     direction: ltr;
     text-align: right;
-}}
+}
 .slg-file-body i {
     display: block;
     margin-top: 0.15rem;
     font-style: normal;
     font-size: 0.63rem;
     color: #60a5fa;
-}}
+}
 .slg-file-on-badge {
     flex: none;
     font-size: 0.6rem;
@@ -176,13 +176,13 @@ html.dark .slg-files-head b { color: #f8fafc; }}
     border: 1px solid rgba(5, 150, 105, 0.28);
     padding: 0.16rem 0.5rem;
     border-radius: 999px;
-}}
-html.dark .slg-file { background: rgba(255, 255, 255, 0.03); border-color: rgba(148, 163, 184, 0.16); }}
-html.dark .slg-file:hover { border-color: rgba(214, 164, 106, 0.4); }}
-html.dark .slg-file--on { background: rgba(16, 185, 129, 0.09); }}
-html.dark .slg-file-body b { color: #f8fafc; }}
-html.dark .slg-file-body i { color: #2563eb; }}
-html.dark .slg-file-on-badge { color: #34d399; background: rgba(16, 185, 129, 0.14); border-color: rgba(16, 185, 129, 0.3); }}
+}
+html.dark .slg-file { background: rgba(255, 255, 255, 0.03); border-color: rgba(148, 163, 184, 0.16); }
+html.dark .slg-file:hover { border-color: rgba(214, 164, 106, 0.4); }
+html.dark .slg-file--on { background: rgba(16, 185, 129, 0.09); }
+html.dark .slg-file-body b { color: #f8fafc; }
+html.dark .slg-file-body i { color: #2563eb; }
+html.dark .slg-file-on-badge { color: #34d399; background: rgba(16, 185, 129, 0.14); border-color: rgba(16, 185, 129, 0.3); }
 
 /* نوار عملیات فایل فعال */
 .slg-file-actions {
@@ -193,12 +193,12 @@ html.dark .slg-file-on-badge { color: #34d399; background: rgba(16, 185, 129, 0.
     margin-top: 0.9rem;
     padding-top: 0.85rem;
     border-top: 1px dashed rgba(100, 116, 139, 0.2);
-}}
-.slg-file-actions-info { font-size: 0.72rem; color: #2563eb; margin-inline-end: auto; }}
-.slg-file-actions-info b { color: #292524; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }}
-html.dark .slg-file-actions { border-top-color: rgba(148, 163, 184, 0.18); }}
-html.dark .slg-file-actions-info { color: #60a5fa; }}
-html.dark .slg-file-actions-info b { color: #f8fafc; }}
+}
+.slg-file-actions-info { font-size: 0.72rem; color: #2563eb; margin-inline-end: auto; }
+.slg-file-actions-info b { color: #292524; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+html.dark .slg-file-actions { border-top-color: rgba(148, 163, 184, 0.18); }
+html.dark .slg-file-actions-info { color: #60a5fa; }
+html.dark .slg-file-actions-info b { color: #f8fafc; }
 
 /* ---------- یادداشت فایل بزرگ ---------- */
 .slg-note {
@@ -384,11 +384,11 @@ html.dark .slg-d-pre { background: rgba(0, 0, 0, 0.32); border-color: rgba(148, 
     .slg-hero-side { margin-inline-start: 0; }
     .slg-stats { grid-template-columns: 1fr 1fr; }
     .slg-stat--time { grid-column: span 2; }
-    .slg-files-list { grid-template-columns: 1fr; }}
+    .slg-files-list { grid-template-columns: 1fr; }
     .slg-levels { padding: 0.7rem 0.8rem 0.5rem; }
-    .slg-file-actions { flex-direction: column; align-items: stretch; }}
-    .slg-file-actions-info { margin-inline-end: 0; }}
-    .slg-file-actions .btn-ghost { justify-content: center; }}
+    .slg-file-actions { flex-direction: column; align-items: stretch; }
+    .slg-file-actions-info { margin-inline-end: 0; }
+    .slg-file-actions .btn-ghost { justify-content: center; }
     .slg-msg { -webkit-line-clamp: 3; }
     .slg-perpage { margin-inline-start: auto; }
 }

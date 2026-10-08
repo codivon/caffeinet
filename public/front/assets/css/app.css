@@ -3584,6 +3584,11 @@ html.dark .pf-nid-badge {
     inset-inline-end: auto;
     margin-inline-start: -7.5px;
 }
+/* فاز ۱۳ — فیکس «۲ لودر روی دکمه»: دکمه‌هایی که اسپینر خودشان را دارند
+   اسپینر دوم is-busy نگیرند (:has() در مرورگرهای قدیمی نادیده گرفته می‌شود). */
+.is-busy:has(.animate-spin, .brand-spin)::after {
+    display: none;
+}
 @keyframes cnBusySpin { to { transform: rotate(360deg); } }
 
 @media (prefers-reduced-motion: reduce) {

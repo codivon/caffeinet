@@ -2,6 +2,10 @@
      فیلتر سطح/جستجو/صفحه‌بندی سمت سرور؛ کلاس‌ها عیناً مطابق نسخهٔ قبلی --}}
 <div class="slg-stack">
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/pages/system-logs.css') }}?v=2">
+@endpush
+
     {{-- ================== هدر قهرمان ================== --}}
     <div class="card ui-lift animate-fade-up slg-hero">
         <div class="slg-hero-main">
@@ -225,9 +229,8 @@
         @endif
     </section>
     @endif
-</div>
 
-{{-- مودال جزئیات ورودی لاگ --}}
+{{-- مودال جزئیات ورودی لاگ (درون ریشهٔ واحد کامپوننت — Livewire فقط یک ریشه می‌پذیرد) --}}
 <div class="ui-modal-backdrop {{ $detail === null ? 'hidden' : 'flex' }}">
     <div class="absolute inset-0" wire:click="closeDetail" aria-hidden="true"></div>
     <div class="ui-modal adm-modal-lg adm-modal-text-start" data-tone="info" role="dialog" aria-modal="true" aria-labelledby="slg-d-title">

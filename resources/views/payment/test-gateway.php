@@ -34,6 +34,28 @@ $relative = function (string $url): string {
     if ($path === '' || $path === '/') { return $url; }
     return $query ? $path.'?'.$query : $path;
 };
+
+/* فاز ۱۳ — رنگ‌های پالت از پنل اپ تزریق می‌شود (PaymentGatewayService)؛
+   اگر به هر دلیلی نبودند، همان آبی پیش‌فرض به‌عنوان fallback استفاده می‌شود. */
+$c = fn (string $k, string $fb): string => htmlspecialchars((string) ($inputs[$k] ?? $fb), ENT_QUOTES, 'UTF-8');
+
+$brand600 = $c('brand600', '#2563eb');
+$brand700 = $c('brand700', '#1d4ed8');
+$brand900 = $c('brand900', '#1e3a8a');
+$brand300 = $c('brand300', '#93c5fd');
+$brand100 = $c('brand100', '#dbeafe');
+$brand50 = $c('brand50', '#eff6ff');
+$pageBg = $c('pageBg', '#f4f7fb');
+
+$rgba = function (string $hex, float $a): string {
+    $h = ltrim($hex, '#');
+    if (strlen($h) === 3) { $h = $h[0].$h[0].$h[1].$h[1].$h[2].$h[2]; }
+    if (strlen($h) !== 6 || ! ctype_xdigit($h)) { return 'rgba(30,58,138,'.$a.')'; }
+    $r = hexdec(substr($h, 0, 2));
+    $g = hexdec(substr($h, 2, 2));
+    $b = hexdec(substr($h, 4, 2));
+    return 'rgba('.$r.','.$g.','.$b.','.$a.')';
+};
 ?>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -47,14 +69,14 @@ $relative = function (string $url): string {
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --brand-600: #2563eb;
-            --brand-700: #8f5424;
-            --brand-900: #4a2c12;
-            --ink: #2d2317;
-            --ink-soft: #6b5d4a;
+            --brand-600: <?= $brand600 ?>;
+            --brand-700: <?= $brand700 ?>;
+            --brand-900: <?= $brand900 ?>;
+            --ink: <?= $brand900 ?>;
+            --ink-soft: <?= $brand700 ?>;
             --ok-600: #1f7a4d;
             --err-600: #b33636;
-            --line: #e9e1d5;
+            --line: <?= $brand100 ?>;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { height: 100%; }
@@ -62,9 +84,9 @@ $relative = function (string $url): string {
             min-height: 100%;
             font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Arial, sans-serif;
             background:
-                radial-gradient(1000px 500px at 100% -10%, rgba(37,99,235,.10), transparent 60%),
-                radial-gradient(800px 400px at 0% 110%, rgba(37,99,235,.07), transparent 55%),
-                #faf7f2;
+                radial-gradient(1000px 500px at 100% -10%, <?= $rgba($brand600, 0.10) ?>, transparent 60%),
+                radial-gradient(800px 400px at 0% 110%, <?= $rgba($brand600, 0.07) ?>, transparent 55%),
+                <?= $pageBg ?>;
             color: var(--ink);
             display: flex;
             flex-direction: column;
@@ -78,7 +100,7 @@ $relative = function (string $url): string {
             background: #fff;
             border: 1px solid var(--line);
             border-radius: 20px;
-            box-shadow: 0 18px 50px rgba(74, 44, 18, .12);
+            box-shadow: 0 18px 50px <?= $rgba($brand900, 0.12) ?>;
             overflow: hidden;
         }
         .gw-head {
@@ -96,7 +118,7 @@ $relative = function (string $url): string {
             width: 110px;
             height: 110px;
             border-radius: 999px;
-            background: radial-gradient(circle, rgba(147,197,253,.35), transparent 70%);
+            background: radial-gradient(circle, <?= $rgba($brand300, 0.35) ?>, transparent 70%);
         }
         .gw-logo {
             width: 54px;
@@ -126,7 +148,7 @@ $relative = function (string $url): string {
         .gw-row .k svg { width: 15px; height: 15px; stroke: var(--brand-600); }
         .gw-row .v { font-weight: 700; letter-spacing: .2px; }
         .gw-row .v.num { direction: ltr; }
-        .gw-row.total { background: #fdf9f3; border: 1px solid #f0e5d6; border-radius: 12px; padding: 13px 14px; margin-top: 8px; }
+        .gw-row.total { background: <?= $brand50 ?>; border: 1px solid <?= $brand100 ?>; border-radius: 12px; padding: 13px 14px; margin-top: 8px; }
         .gw-row.total .v { color: var(--brand-700); font-size: 16px; font-weight: 800; }
         .gw-actions { padding: 16px 22px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .gw-btn {
@@ -147,7 +169,7 @@ $relative = function (string $url): string {
             width: 100%;
         }
         .gw-btn svg { width: 17px; height: 17px; stroke: currentColor; }
-        .gw-btn:focus-visible { outline: 3px solid rgba(37,99,235,.3); outline-offset: 2px; }
+        .gw-btn:focus-visible { outline: 3px solid <?= $rgba($brand600, 0.30) ?>; outline-offset: 2px; }
         .gw-btn-success {
             background: linear-gradient(100deg, #2e9e63, var(--ok-600));
             color: #fff;

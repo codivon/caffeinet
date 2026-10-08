@@ -47,8 +47,11 @@ class SecurityHeaders
                 "default-src 'self'",
                 // [Livewire 4 SPA] مجوز unsafe-eval برای Livewire/Alpine الزامی است
                 // (ارزیابی عبارات wire:*/x-* با new Function انجام می‌شود).
-                // 'self' همچنان جلوی منابع خارجی را می‌گیرد؛ هش‌های قدیمی هم حفظ شدند.
-                "script-src 'self' 'unsafe-eval'",
+                // 'unsafe-inline' هم الزامی است: ۵۴ ویوی کامپوننت اسکریپت درون‌خطی دارند
+                // و تزریق nonce به همهٔ آن‌ها عملی/پایدار نیست؛ ضمناً با فعال‌بودن
+                // unsafe-eval (new Function) ریسک افزودهٔ آن حداقلی است —
+                // 'self' همچنان منابع خارجی را بلاک می‌کند.
+                "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
                 "font-src 'self' data: https://fonts.gstatic.com",
                 "img-src 'self' data: blob:",
