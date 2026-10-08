@@ -572,10 +572,9 @@
     /* ---------- کش‌ودرگ روی چت + paste تصویر ---------- */
 
     function detectType(file) {
-        if (file.type && file.type.indexOf('image/') === 0) { return 'image'; }
-        if (file.type && file.type.indexOf('video/') === 0) { return 'video'; }
-        if (file.type && file.type.indexOf('audio/') === 0) { return 'audio'; }
-        return 'file';
+        /* فاز ۱۴ — CN.detectFileType: اگر file.type خالی باشد (گالری موبایل)
+           از پسوند نام فایل قضاوت می‌کند → پیش‌نمایش تصویر روی گوشی هم می‌آید */
+        return CN.detectFileType(file);
     }
 
     function bindDragDrop() {
@@ -616,7 +615,7 @@
             var items = e.clipboardData.files && e.clipboardData.files.length
                 ? e.clipboardData.files
                 : null;
-            if (items && items[0] && items[0].type.indexOf('image/') === 0) {
+            if (items && items[0] && CN.detectFileType(items[0]) === 'image') {
                 setPendingFile('image', items[0]);
             }
         });

@@ -26,10 +26,8 @@
     };
 
     function fupDetectType(file) {
-        if (file.type && file.type.indexOf('image/') === 0) { return 'image'; }
-        if (file.type && file.type.indexOf('video/') === 0) { return 'video'; }
-        if (file.type && file.type.indexOf('audio/') === 0) { return 'audio'; }
-        return 'file';
+        /* فاز ۱۴ — CN.detectFileType: file.type خالی در گالری موبایل → قضاوت از پسوند */
+        return CN.detectFileType(file);
     }
 
     function fupFa(n) { return CN.toFaDigits(String(n || 0)); }

@@ -104,7 +104,7 @@ Route::get('{panel}/manifest.webmanifest', function (string $panel) {
     $panels = [
         'app' => [
             'title'       => $name.' — اپ مشتریان',
-            'short'       => 'کافینت',
+            'short'       => 'کافی‌نت',
             'description' => 'سفارش خدمات کافی‌نت آنلاین؛ فرم‌ساز پویا، پرداخت آنلاین، پیگیری لحظه‌ای سفارش و چت مستقیم با اپراتور.',
             'start'       => '/app',
             'scope'       => '/',

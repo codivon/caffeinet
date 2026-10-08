@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap">
 
     {{-- استایل مستقل (بدون نیاز به بیلد Node) --}}
-    <link rel="stylesheet" href="{{ asset('front/assets/css/app.css') }}?v=28">
+    <link rel="stylesheet" href="{{ asset('front/assets/css/app.css') }}?v=29">
     {{-- پوستهٔ پویا: پالت اختصاصی اپ مشتری (بعد از استایل اصلی) --}}
     @include('partials.appearance', ['panel' => 'app'])
     {{-- تقویم/دیت‌پیکر شمسی (CNJdp) --}}
@@ -96,7 +96,9 @@
                     ];
                 @endphp
                 @foreach($nav as $key => $item)
-                    <a href="{{ $item[0] }}" wire:navigate class="{{ $active === $key ? 'active' : '' }}" @if($active === $key) aria-current="page" @endif>
+                    {{-- فاز ۱۴ — .hover: پیش‌بارگذاری روی hover/فوکوس؛ همراه گرم‌کردن مصنوعی در core.js
+                         تا کلیک روی منوهای پایین همان لحظه (از کش ۳۰ثانیه‌ای Livewire) سواپ شود — حس اپ بومی --}}
+                    <a href="{{ $item[0] }}" wire:navigate.hover class="{{ $active === $key ? 'active' : '' }}" @if($active === $key) aria-current="page" @endif>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $item[2] !!}</svg>
                         <span>{{ $item[1] }}</span>
                     </a>
@@ -131,8 +133,8 @@
      re-init هدر/ناوبری با CN.onNavigate --}}
 {{-- Realtime پوشر (فاز ۱۳): پیکربندی عمومی CSP-safe؛ کانال شخصی کاربر از API /realtime/config --}}
 <script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1" data-navigate-once></script>
-<script src="{{ asset('assets/js/realtime.js') }}?v=6" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(null))'></script>
-<script src="{{ asset('front/assets/js/core.js') }}?v=10" data-navigate-once defer></script>
+<script src="{{ asset('assets/js/realtime.js') }}?v=7" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(null))'></script>
+<script src="{{ asset('front/assets/js/core.js') }}?v=11" data-navigate-once defer></script>
 <script src="{{ asset('assets/js/jalali-datepicker.js') }}?v=3" defer></script>
 {{-- نوتیف دستگاه (v26: پیش‌فرض/پوشر/فایربیس) — پیکربندی از PushManager؛ اپ مشتری از CN.api برای ثبت استفاده می‌کند --}}
 <script src="{{ asset('assets/js/push/push-client.js') }}?v=7" defer data-push-config='@json(app(\App\Services\Push\PushManager::class)->clientConfig(auth()->user()))'></script>

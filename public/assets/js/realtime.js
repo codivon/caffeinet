@@ -307,10 +307,16 @@
         /** برای اپ مشتری: پر کردن/ترکیب پیکربندی (مثلاً کانال و توکن از API) — ادغام امن */
         setup: function (newCfg) {
             if (!newCfg) { return active(); }
-            var merged = {};
-            for (var k in cfg) { if (Object.prototype.hasOwnProperty.call(cfg, k)) { merged[k] = cfg[k]; } }
-            for (var k2 in newCfg) { if (Object.prototype.hasOwnProperty.call(newCfg, k2)) { merged[k2] = newCfg[k2]; } }
-            cfg = merged;
+            /* فاز ۱۴ — فیکس ریشه‌ای: cfg «درجا» پر می‌شود و دیگر بازتخصیص نمی‌شود.
+               قبلاً `cfg = merged` بود و window.RT.cfg به شیء قدیمی اشاره می‌کرد؛
+               نتیجه: `RT.cfg.channel = …` در اپ مشتری (notifications.js / order-detail.js /
+               support-detail.js) روی شیء مرده نوشته می‌شد و bindUser چون کانالِ داخلی
+               null می‌ماند بی‌صدا false برمی‌گرداند → هیچ شنونده‌ای روی استریم SSE/پوشر
+               وصل نمی‌شد و «realtime» فقط در order-chat (که کانال را صریح پاس می‌داد)
+               کار می‌کرد. حالا هویت RT.cfg === cfg داخلی همیشه حفظ می‌شود. */
+            for (var k2 in newCfg) {
+                if (Object.prototype.hasOwnProperty.call(newCfg, k2)) { cfg[k2] = newCfg[k2]; }
+            }
             // SSE بدون اتصال → همان لحظه وصل شو؛ اگر es بدون توکنِ درحال-خطا
             // باز شده و حالا توکن رسید → ببند و با توکن از نو باز کن
             if (sseActive()) {

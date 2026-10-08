@@ -16,10 +16,10 @@
         ? asset($pwaIconDir.'-'.$s.'.png')
         : asset('icons/icon-'.$s.'.png');
     $pwaTitle  = match ($pwaPanel) {
-        'admin'        => 'کافینت — مدیریت کل',
-        'organization' => 'کافینت — سازمان',
-        'coffeenet'    => 'کافینت — کافی‌نت',
-        'operator'     => 'کافینت — اپراتور',
+        'admin'        => 'کافی‌نت — مدیریت کل',
+        'organization' => 'کافی‌نت — سازمان',
+        'coffeenet'    => 'کافی‌نت — پنل کافی‌نت',
+        'operator'     => 'کافی‌نت — اپراتور',
         default        => (string) config('app.name', 'کافی‌نت آنلاین'),
     };
 @endphp

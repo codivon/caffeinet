@@ -59,5 +59,5 @@
 
 @push('page')
 <div id="page-data" hidden data-ticket-id="{{ $ticketId }}"></div>
-<script src="{{ asset('front/assets/js/pages/support-detail.js') }}?v=6" defer></script>
+<script src="{{ asset('front/assets/js/pages/support-detail.js') }}?v=7" defer></script>
 @endpush

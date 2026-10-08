@@ -612,6 +612,41 @@ window.CN = (function () {
     window.addEventListener('alpine:navigate', spaProgressStart);
     window.addEventListener('livewire:navigated', spaProgressDone);
 
+    /* ---------- فاز ۱۴ — پیش‌بارگذاری منوهای پایین (حس اپ بومی) ----------
+       لینک‌های ناوبری پایین با «wire:navigate.hover» شنوندهٔ hover Livewire را
+       دارند؛ اینجا بعد از هر ناوبری (و هر ۲۵ ثانیه در تبِ باز) به‌صورت مصنوعی
+       mouseenter/mouseleave می‌فرستیم تا Livewire HTML صفحه‌های منو را در کشِ
+       ۳۰ ثانیه‌ای خودش پیش‌بارگذاری کند → کلیک روی منو همان لحظه از کش سواپ
+       می‌شود (بدون انتظار برای پاسخ سرور) — «فقط محتوای لازم از دیتابیس». */
+    var navWarmTimer = null;
+    var navWarmInterval = null;
+    var NAV_WARM_IDLE_MS = 900;
+    var NAV_WARM_EVERY_MS = 25000;
+
+    function warmBottomNav() {
+        try {
+            if (document.hidden || (navigator.onLine === false)) { return; }
+            var links = document.querySelectorAll('.bottom-nav a[href]');
+            if (!links.length) { return; }
+            Array.prototype.forEach.call(links, function (el) {
+                if (el.getAttribute('aria-current') === 'page') { return; }
+                el.dispatchEvent(new MouseEvent('mouseenter'));
+                window.setTimeout(function () {
+                    el.dispatchEvent(new MouseEvent('mouseleave'));
+                }, 220);
+            });
+        } catch (e) { /* هرگز گرم‌کردن، صفحه را نشکند */ }
+    }
+
+    function scheduleNavWarmup() {
+        window.clearTimeout(navWarmTimer);
+        navWarmTimer = window.setTimeout(warmBottomNav, NAV_WARM_IDLE_MS);
+        if (!navWarmInterval) {
+            navWarmInterval = window.setInterval(warmBottomNav, NAV_WARM_EVERY_MS);
+        }
+    }
+    window.addEventListener('livewire:navigated', scheduleNavWarmup);
+
     function reapplyThemeAfterNavigation() {
         var stored = null;
         try { stored = window.localStorage.getItem(THEME_KEY); } catch (e) { /* noop */ }
@@ -714,6 +749,35 @@ window.CN = (function () {
     var COMPRESS_PNG_KEEP_BYTES = 1536 * 1024;  /* PNG زیر ۱.۵MB همان PNG می‌ماند */
     var COMPRESS_DEFAULT_SIDE = 2048;           /* بزرگ‌ترین ضلع مجاز (پیش‌فرض) */
     var COMPRESS_DEFAULT_QUALITY = 0.85;
+
+    /* ---------- فاز ۱۴ — شناسایی نوع فایل (فیکس «پیش‌نمایش تصویر در گوشی») ----------
+       خیلی از مرورگرهای موبایل (گالری اندروید/برخی iOS) برای فایل انتخابی
+       file.type خالی می‌دهند → کد قبلی فایل تصویری را «file» می‌دانست؛ نه
+       پیش‌نمایش تصویر می‌آمد و نه فشرده‌سازی انجام می‌شد. اینجا ابتدا MIME و
+       اگر خالی بود پسوند نام فایل ملاک است. خروجی: image|video|audio|file */
+    var FTYPE_EXT_MAP = [
+        ['image', /\.(jpe?g|png|webp|gif|bmp|heic|heif|avif|tiff?|svg)$/i],
+        ['video', /\.(mp4|m4v|mov|webm|avi|mkv|3gp|wmv|flv)$/i],
+        ['audio', /\.(mp3|wav|ogg|oga|m4a|aac|opus|flac)$/i]
+    ];
+
+    function detectFileType(file) {
+        var type = String((file && file.type) || '').toLowerCase();
+        if (type.indexOf('image/') === 0) { return 'image'; }
+        if (type.indexOf('video/') === 0) { return 'video'; }
+        if (type.indexOf('audio/') === 0) { return 'audio'; }
+        /* نوع خالی/ناشناخته → قضاوت از پسوند نام فایل (رایج در گالری موبایل) */
+        if (!type || type === 'application/octet-stream') {
+            var name = String((file && file.name) || '');
+            for (var i = 0; i < FTYPE_EXT_MAP.length; i++) {
+                if (FTYPE_EXT_MAP[i][1].test(name)) { return FTYPE_EXT_MAP[i][0]; }
+            }
+            /* iOS: نام فایل گاهی «image.jpg» یا «IMG_0001.HEIC» است — پوشش شد؛
+               عدم تطابق → file (کاشی عمومی با بج پسوند) */
+            return 'file';
+        }
+        return 'file';
+    }
 
     function compressImage(file, opts) {
         return new Promise(function (resolve) {
@@ -880,6 +944,7 @@ window.CN = (function () {
         toEnDigits: toEnDigits,
         esc: esc,
         compressImage: compressImage,
+        detectFileType: detectFileType,
         normalizeMobile: normalizeMobile
     };
 })();

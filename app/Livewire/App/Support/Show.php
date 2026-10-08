@@ -28,7 +28,10 @@ class Show extends Component
         return view('livewire.app.support.show', [
             'ticketId' => $this->ticketId,
         ])->layoutData([
-            'htmlTitle' => 'تیکت پشتیبانی',
+            'htmlTitle'  => 'تیکت پشتیبانی',
+            /* فاز ۱۴ — فیکس «اسکرول نمی‌خورد در گوشی»: پوستهٔ تمام‌ارتفاع مثل چت سفارش؛
+               پیام‌های تیکت تنها ناحیهٔ اسکرول‌اند و پاسخ‌دهنده چسبیده به پایین می‌ماند. */
+            'shellClass' => 'ticket-shell',
         ]);
     }
 }

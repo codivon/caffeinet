@@ -178,7 +178,8 @@
 
     function renderChip(file) {
         clearChipThumb();
-        var isImage = !!(file && file.type && file.type.indexOf('image/') === 0);
+        /* فاز ۱۴ — CN.detectFileType: file.type خالی در گالری موبایل → قضاوت از پسوند */
+        var isImage = CN.detectFileType(file) === 'image';
         var showThumb = isImage && !!chipThumb;
         if (file) {
             if (chipName) { chipName.textContent = file.name || 'پیوست'; }
