@@ -1066,3 +1066,21 @@ html.dark .ap-custom { background: color-mix(in srgb, var(--ui-brand-600, #2563e
     .ap-actions .flex { justify-content: stretch; }
     .ap-actions .btn-primary { flex: 1; }
 }
+
+/* ═══════════ v42 — آپلود و فشرده‌سازی ═══════════ */
+.up-preset {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1.5px solid rgb(231 229 228);
+    background: #fff;
+    cursor: pointer;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.up-preset:hover { border-color: rgb(168 162 158); }
+.up-preset.on {
+    border-color: var(--brand-500, #3b82f6);
+    box-shadow: 0 0 0 3px var(--ring, rgba(59, 130, 246, .15));
+}
+.up-preset.on .text-xs { color: var(--brand-700, #1d4ed8); }
+html.dark .up-preset { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .12); }

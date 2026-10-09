@@ -88,22 +88,25 @@
 
         CN.api('/orders/' + orderId, {
             success: function (resp) {
-                var d = resp.data;
-                /* فاز ۱۴ — نه فقط status: پرداخت (is_paid/paid_at) هم ممکن است
-                   تغییر کند و فرم پرداخت باید همان لحظه برود/بازتولید شود */
+                var next = resp.data;
+                /* v42 — مقایسهٔ کامل: status/پرداخت (is_paid/paid_at/payment_status)
+                   /اپراتور/مبلغ — فاکتور پرداخت بعد از پرداختِ موفق با رویداد
+                   realtime همان لحظه تازه می‌شود و تا رفرش سرِ جایش نمی‌ماند */
                 var changed = !order
-                    || d.status !== order.status
-                    || (!!d.is_paid) !== (!!order.is_paid)
-                    || String(d.paid_at || '') !== String(order.paid_at || '')
-                    || String(d.payment_status || '') !== String(order.payment_status || '');
+                    || next.status !== order.status
+                    || (!!next.is_paid) !== (!!order.is_paid)
+                    || String(next.paid_at || '') !== String(order.paid_at || '')
+                    || String(next.payment_status || '') !== String(order.payment_status || '')
+                    || next.operator_id !== order.operator_id
+                    || Number(next.total_amount) !== Number(order.total_amount);
                 if (changed) {
-                    order = d;
+                    order = next;
                     render();
                     return;
                 }
                 // هم‌گام‌سازی ثانیهٔ شمارش معکوس
-                if (resp.data.status === 'broadcasting') {
-                    var s = parseInt(resp.data.broadcast_seconds_left, 10) || 0;
+                if (next.status === 'broadcasting') {
+                    var s = parseInt(next.broadcast_seconds_left, 10) || 0;
                     var bcCardSync = document.getElementById('broadcastCard');
                     if (bcCardSync) { bcCardSync.dataset.seconds = String(s); }
                 }
@@ -864,12 +867,14 @@
             if (walletHintEl) { walletHintEl.textContent = '(موجودی: ' + CN.faMoney((u && u.wallet_balance) || 0) + ')'; }
         }
 
-        /* فاکتور داخل چت */
+        /* فاکتور داخل چت — v42: بعد از پرداختِ موفق کامل پنهان می‌شود
+           (تاریخچهٔ پرداخت در شیت «اطلاعات سفارش» هست)؛ تا همین نسخه
+           حالت سبز «پرداخت شد» می‌ماند و تا رفرش برنمی‌گشت */
         var inv = document.getElementById('chatInvoice');
-        var showPaidState = o.status === 'paid' && chatCardVisible;
-        if (inv) { inv.classList.toggle('hidden', !inChat && !showPaidState); }
+        var alreadyPaid = o.is_paid || o.status === 'paid';
+        if (inv) { inv.classList.toggle('hidden', !inChat || alreadyPaid); }
 
-        if (inChat || showPaidState) {
+        if (inChat && !alreadyPaid) {
             var invServiceEl = document.getElementById('invService');
             if (invServiceEl) { invServiceEl.textContent = o.service ? o.service.name : 'سفارش ' + o.order_number; }
             var invAmountEl = document.getElementById('invAmount');
@@ -880,7 +885,7 @@
             var invWalletHintEl = document.getElementById('invWalletHint');
             if (invWalletHintEl) { invWalletHintEl.textContent = '(موجودی: ' + CN.faMoney((uw && uw.wallet_balance) || 0) + ')'; }
 
-            var paid = o.is_paid || showPaidState;
+            var paid = alreadyPaid;
             if (inv) { inv.classList.toggle('paid', !!paid); }
             var invPaidAtEl = document.getElementById('invPaidAt');
             if (invPaidAtEl) { invPaidAtEl.textContent = o.paid_at_fa || ''; }

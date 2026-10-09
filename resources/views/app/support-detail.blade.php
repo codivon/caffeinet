@@ -1,6 +1,9 @@
 @extends('app.layout')
 
 @section('title', 'تیکت پشتیبانی')
+{{-- v42 — پوستهٔ «فیت موبایل»: کل صفحه در ارتفاع پنجره جا می‌شود؛
+     فقط ناحیهٔ گفتگو (tkd-thread) اسکرول می‌خورد، نه خود صفحه --}}
+@section('shell-class', 'tk-shell')
 
 @section('content')
 <a href="{{ route('app.support') }}" class="back-link fade-up" id="backLink">
@@ -30,7 +33,7 @@
             <textarea class="field" id="tkdMessage" rows="2" maxlength="3000" placeholder="پاسخ خود را بنویسید…"></textarea>
             <label class="tkd-attach-btn" for="tkdFile" title="پیوست" id="tkdAttachBtn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-                <input type="file" id="tkdFile" class="sr-only" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.7z,.mp3,.mp4,.webm">
+                <input type="file" id="tkdFile" class="sr-only" accept=".jpg,.jpeg,.png,.webp,.gif,.heic,.heif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.7z,.mp3,.mp4,.webm">
             </label>
             <button type="submit" class="btn btn-primary btn-sm" id="tkdSend" aria-label="ارسال">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>

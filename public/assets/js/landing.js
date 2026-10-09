@@ -35,6 +35,12 @@
         if (toTop) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
     });
 
+    /* v42 — ذخیرهٔ پوستهٔ پالت لندینگ برای صفحهٔ آفلاین */
+    try {
+        var apEl = document.getElementById('appearance-css');
+        if (apEl) { localStorage.setItem('cn-appearance-css:front', apEl.textContent); }
+    } catch (err) { /* noop */ }
+
     /* ---------- کلید روز/شب — سراسری و تنبل ----------
        پیش‌فرض: روز؛ انتخاب کاربر در localStorage «caffeinet-theme» (مشترک با پنل‌ها) */
     doc.addEventListener('click', function (e) {
@@ -44,6 +50,7 @@
         var isDark = doc.documentElement.classList.toggle('dark');
 
         try { localStorage.setItem('caffeinet-theme', isDark ? 'dark' : 'light'); } catch (err) { /* noop */ }
+        if (window.CNThemeCookie) { window.CNThemeCookie(isDark ? 'dark' : 'light'); } /* v42 — کوکی تم */
 
         t.setAttribute('aria-label', isDark ? 'رفتن به حالت روز' : 'رفتن به حالت شب');
 

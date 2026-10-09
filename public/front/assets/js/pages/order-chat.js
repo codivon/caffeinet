@@ -651,6 +651,11 @@
         if (type === 'image') {
             try {
                 thumbUrl = URL.createObjectURL(file);
+                /* v42 — اگر گوشی فرمت را نشان نداد (مثل HEIC) → آیکن به‌جای خالی‌بودن */
+                els.pThumbImg.onerror = function () {
+                    els.pThumbImg.hidden = true;
+                    els.pThumbIcon.style.display = '';
+                };
                 els.pThumbImg.src = thumbUrl;
                 els.pThumbImg.hidden = false;
                 els.pThumbIcon.style.display = 'none';

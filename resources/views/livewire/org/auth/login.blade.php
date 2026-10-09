@@ -7,9 +7,7 @@
 
     <div class="text-center mb-8 animate-fade-up">
         <span class="inline-grid place-items-center size-16 rounded-3xl bg-gradient-to-br from-teal-400 to-teal-700 shadow-2xl shadow-black/40 mb-4">
-            <svg class="size-8 text-teal-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect width="4" height="16" x="4" y="2" rx="1"/><rect width="4" height="16" x="10" y="2" rx="1"/><path d="M20 4v14"/><path d="M2 20h20"/>
-            </svg>
+            <img src="{{ asset('icons/icon-96.png') }}" alt="" width="32" height="32" style="width:32px;height:32px;object-fit:contain">
         </span>
         <h1 class="text-2xl font-extrabold text-teal-50 tracking-tight">کافی‌نت آنلاین</h1>
         <p class="mt-1.5 text-sm text-teal-200/60 font-light">ورود به پنل سازمان</p>

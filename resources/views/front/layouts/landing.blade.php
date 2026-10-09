@@ -23,7 +23,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/apple-touch-icon.png') }}">
 
     {{-- بوت تم روز/شب — قبل از استایل‌ها (ضد-FLUC)؛ پیش‌فرض: روز --}}
-    <script src="{{ asset('assets/js/landing-theme-boot.js') }}?v=1"></script>
+    <script src="{{ asset('assets/js/landing-theme-boot.js') }}?v=2"></script>
 
     {{-- فونت وزیرمتن --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -64,7 +64,7 @@
     <div class="container header-inner">
         <a class="brand" href="{{ url('/') }}" aria-label="کافی‌نت آنلاین — صفحه اصلی">
             <span class="brand-mark">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                <img src="{{ asset('icons/icon-96.png') }}" alt="" width="22" height="22" style="width:22px;height:22px;object-fit:contain">
                 <span class="dot"></span>
             </span>
             <span class="brand-text">
@@ -116,7 +116,7 @@
             <div>
                 <a class="brand" href="{{ url('/') }}" aria-label="کافی‌نت آنلاین">
                     <span class="brand-mark">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                        <img src="{{ asset('icons/icon-96.png') }}" alt="" width="22" height="22" style="width:22px;height:22px;object-fit:contain">
                         <span class="dot"></span>
                     </span>
                     <span class="brand-text">
@@ -201,7 +201,7 @@
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>
 </button>
 
-<script src="{{ asset('assets/js/landing.js') }}?v=6" defer></script>
+<script src="{{ asset('assets/js/landing.js') }}?v=7" defer></script>
 @stack('scripts')
 
 {{-- [Task 8] Livewire SPA --}}

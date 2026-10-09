@@ -23,7 +23,14 @@
     </div>
 
     <div class="pf-hero-body">
-        <div class="pf-avatar" id="profileAvatar" aria-hidden="true">؟</div>
+        {{-- v42 — آواتار قابل‌کلیک با کراپر لینکدین‌وار --}}
+        <button type="button" class="pf-avatar-btn" id="profileAvatarBtn" aria-label="تغییر تصویر پروفایل" aria-haspopup="dialog">
+            <span class="pf-avatar" id="profileAvatar" aria-hidden="true">؟</span>
+            <span class="pf-avatar-cam" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+            </span>
+        </button>
+        <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp" class="sr-only" aria-hidden="true" tabindex="-1">
 
         <div class="pf-id">
             <strong id="profileName">—</strong>
@@ -127,6 +134,41 @@
 </button>
 @endsection
 
+{{-- ============ v42 — کراپر آواتار (لینکدین‌وار) ============ --}}
+<div class="sheet-backdrop" id="avcBackdrop" aria-hidden="true"></div>
+<div class="sheet avc-sheet" id="avcSheet" role="dialog" aria-modal="true" aria-labelledby="avcTitle">
+    <div class="sheet-grip" aria-hidden="true"></div>
+
+    <div class="sheet-head">
+        <h2 id="avcTitle">تصویر پروفایل</h2>
+        <button type="button" class="sheet-x" id="avcClose" aria-label="بستن">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+    </div>
+
+    <p class="avc-hint">تصویر را جابه‌جا کنید و با دو انگشت (یا اسلایدر) بزرگ/کوچک کنید — ناحیهٔ داخل دایره ذخیره می‌شود.</p>
+
+    <div class="avc-stage" id="avcStage" role="img" aria-label="پیش‌نمایش برش تصویر">
+        <img id="avcImg" alt="" draggable="false">
+        <span class="avc-mask" aria-hidden="true"></span>
+    </div>
+
+    <div class="avc-zoom-row">
+        <svg viewBox="0 0 24 24" class="avc-zoom-ico" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M8 11h6"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="range" id="avcZoom" class="avc-zoom" min="1" max="4" step="0.01" value="1" aria-label="بزرگ‌نمایی تصویر">
+        <svg viewBox="0 0 24 24" class="avc-zoom-ico" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M8 11h6"/><path d="M11 8v6"/><path d="m20 20-3.5-3.5"/></svg>
+    </div>
+
+    <div class="avc-actions">
+        <button type="button" class="btn btn-ghost" id="avcCancel">انصراف</button>
+        <button type="button" class="btn btn-primary" id="avcSave">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            ذخیره تصویر
+        </button>
+    </div>
+    <p class="field-error text-center" id="avcError"></p>
+</div>
+
 @push('page')
-    <script src="{{ asset('front/assets/js/pages/profile.js') }}?v=4" defer></script>
+    <script src="{{ asset('front/assets/js/pages/profile.js') }}?v=5" defer></script>
 @endpush

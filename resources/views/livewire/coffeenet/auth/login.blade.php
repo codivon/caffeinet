@@ -14,7 +14,7 @@
 
     <div class="text-center mb-8 animate-fade-up">
         <span class="inline-grid place-items-center size-16 rounded-3xl bg-brand-gradient shadow-2xl shadow-black/30 mb-4">
-            <svg class="size-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            <img src="{{ asset('icons/icon-96.png') }}" alt="" width="32" height="32" loading="lazy" style="width:32px;height:32px;object-fit:contain">
         </span>
         <h1 class="text-2xl font-extrabold text-white tracking-tight">کافی‌نت آنلاین</h1>
         <p class="mt-1.5 text-sm text-brand-muted font-light">ورود به پنل مدیریت کافی‌نت</p>

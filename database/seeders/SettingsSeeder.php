@@ -176,6 +176,16 @@ class SettingsSeeder extends Seeder
             ['group' => 'appearance', 'key' => 'appearance.warmth.operator', 'value' => '0', 'cast' => 'string', 'label' => 'دمای سرد/گرم پنل اپراتور'],
             ['group' => 'appearance', 'key' => 'appearance.warmth.org', 'value' => '0', 'cast' => 'string', 'label' => 'دمای سرد/گرم پنل سازمان'],
             ['group' => 'appearance', 'key' => 'appearance.warmth.front', 'value' => '0', 'cast' => 'string', 'label' => 'دمای سرد/گرم لندینگ'],
+
+            // v42 — فشرده‌سازی آپلودها (پیش‌فرض: فعال، «بدون افت کیفیت»)
+            ['group' => 'uploads', 'key' => 'uploads.compression.enabled', 'value' => '1', 'cast' => 'boolean', 'label' => 'فشرده‌سازی آپلودها فعال باشد؟'],
+            ['group' => 'uploads', 'key' => 'uploads.compression.preset', 'value' => 'lossless', 'cast' => 'string', 'label' => 'حالت فشرده‌سازی (lossless | balanced | max | custom)'],
+            ['group' => 'uploads', 'key' => 'uploads.compression.images.max_side', 'value' => '4096', 'cast' => 'string', 'label' => 'حداکثر ضلع تصویر (پیکسل — فقط حالت سفارشی)'],
+            ['group' => 'uploads', 'key' => 'uploads.compression.images.quality', 'value' => '92', 'cast' => 'string', 'label' => 'کیفیت انکود تصویر (فقط حالت سفارشی)'],
+            ['group' => 'uploads', 'key' => 'uploads.compression.images.format', 'value' => 'keep', 'cast' => 'string', 'label' => 'فرمت تصویر (keep | auto | jpeg | webp)'],
+            ['group' => 'uploads', 'key' => 'uploads.compression.videos.enabled', 'value' => '0', 'cast' => 'boolean', 'label' => 'فشرده‌سازی ویدیو (نیازمند ffmpeg روی سرور)'],
+            ['group' => 'uploads', 'key' => 'uploads.compression.videos.crf', 'value' => '28', 'cast' => 'string', 'label' => 'سطح فشرده‌سازی ویدیو CRF (۱۸ بهترین، ۳۴ سبک‌ترین)'],
+            ['group' => 'uploads', 'key' => 'uploads.compression.server_batch', 'value' => '8', 'cast' => 'string', 'label' => 'حداکثر فایل تصویری در هر اجرای کرون (بدون فشار به سرور)'],
         ];
 
         foreach ($rows as $row) {

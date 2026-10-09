@@ -733,14 +733,7 @@ input[type=file].field::file-selector-button {
 .price-row .pr-title svg { width: 15px; height: 15px; color: var(--brand-400); }
 .price-row .pr-amount { font-weight: 700; color: var(--ink); white-space: nowrap; }
 
-.price-row.commission .pr-title::after {
-    content: 'مشمول کمیسیون';
-    font-size: 9px;
-    background: var(--brand-200);
-    color: var(--brand-800);
-    border-radius: 999px;
-    padding: 1px 7px;
-}
+/* v42 — بج «مشمول کمیسیون» حذف شد (درخواست مالک) */
 
 .price-row.total {
     border-top: 1.5px solid var(--brand-300);
@@ -3601,3 +3594,296 @@ html.dark .pf-nid-badge {
 
 /* ---------- ۴) لمس نهایی شبِ یاقوتی ---------- */
 html.dark .support-hero { background: linear-gradient(120deg, #1c2f63, #0d1424); }
+
+/* ═══════════ v42 — فیت موبایل صفحهٔ تیکت ═══════════
+   کل صفحه در ارتفاع پنجره (var(--app-vh)) جا می‌شود؛ خود صفحه هیچ‌وقت
+   اسکرول نمی‌خورد و فقط ناحیهٔ گفتگو (tkd-thread) اسکرول دارد. */
+.tk-shell {
+    height: var(--app-vh, 100dvh);
+    overflow: hidden;
+}
+.tk-shell .app-main {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+}
+/* ریشهٔ کامپوننت Livewire (div بدون استایل) بین app-main و محتواست —
+   زنجیرهٔ flex/min-height:0 باید تا wrap ادامه یابد وگرنه گفتگو کش می‌آید */
+.tk-shell .app-main > * {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+}
+.tk-shell .back-link { flex: none; margin-bottom: 8px; }
+.tk-shell .tkd-head { flex: none; margin-bottom: 8px; }
+.tk-shell .tkd-head .tkd-actions { margin-top: 8px; }
+.tk-shell .tkd-thread-wrap {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.tk-shell .tkd-thread {
+    flex: 1 1 0;
+    min-height: 0;
+    max-height: none;
+    margin-bottom: 10px;
+    padding: 12px;
+    gap: 10px;
+}
+.tk-shell .tkd-composer { flex: none; padding: 10px; }
+.tk-shell .tkd-input-row textarea { min-height: 44px; }
+/* قفل اسکرول بدنه وقتی صفحهٔ تیکت باز است */
+body:has(.app-shell.tk-shell) { overflow: hidden; }
+
+/* ═══════════ v42 — اسکلتون فوری ناوبری (لودر مدرن اپ مشتری) ═══════════
+   با کلیک روی منوی پایین/هدر، پوستهٔ صفحهٔ مقصد با شیمر موجی همان لحظه
+   نمایش داده می‌شود تا حس باز شدن فوری اپ بدهد؛ بعد از تعویض صفحه پنهان می‌شود. */
+.nav-sk-overlay {
+    position: fixed;
+    inset-inline: 0;
+    z-index: 35;
+    display: none;
+    background: var(--paper, #f6f8fd);
+    padding: 16px;
+    overflow: hidden;
+    pointer-events: none;
+}
+.nav-sk-overlay.show { display: block; animation: navSkIn .16s ease; }
+@keyframes navSkIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.nav-sk-overlay .skb {
+    border-radius: 14px;
+    background: linear-gradient(90deg, var(--line-soft, #e8edf6) 25%, var(--brand-100, #dbeafe) 45%, var(--line-soft, #e8edf6) 65%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+}
+.nav-sk-overlay .skb.circle { border-radius: 999px; }
+.nav-sk-overlay .skb + .skb,
+.nav-sk-overlay .sk-gap { margin-top: 10px; }
+.nav-sk-overlay .sk-row { display: flex; gap: 10px; align-items: center; }
+.nav-sk-overlay .sk-row .grow { flex: 1; }
+
+/* موج شیمر روی کل پوسته (حس «یه حاله رد می‌شه») */
+.nav-sk-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, var(--brand-50, rgba(219, 234, 254, .55)) 50%, transparent 70%);
+    transform: translateX(120%);
+    animation: navSkWave 1.5s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes navSkWave {
+    from { transform: translateX(-120%); }
+    to   { transform: translateX(120%); }
+}
+
+/* انیمیشن ورود ملایم محتوای صفحه بعد از تعویض (حس اپ بومی) */
+@keyframes pageIn {
+    from { opacity: .35; }
+    to   { opacity: 1; }
+}
+.app-main.page-enter { animation: pageIn .24s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+    .nav-sk-overlay::after { animation: none; }
+    .app-main.page-enter { animation: none; }
+}
+
+/* ═══════════ v42 — شیت «همهٔ دسته‌بندی‌ها» ═══════════ */
+.chip-allcats {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1.5px dashed var(--brand-300, #93c5fd);
+    color: var(--brand-700, #1d4ed8);
+    background: transparent;
+}
+.chip-allcats svg { flex: none; }
+
+.allcats-sheet .allcats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 10px;
+    padding: 4px 0 12px;
+}
+.ac-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 8px 11px;
+    border-radius: 16px;
+    border: 1.5px solid var(--line, #e2e8f0);
+    background: var(--bg-card, #fff);
+    font: inherit;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+}
+.ac-tile:active { transform: scale(.97); }
+.ac-tile .ac-ico {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    border-radius: 14px;
+    background: var(--brand-grad-soft, linear-gradient(135deg, rgba(59,130,246,.13), rgba(37,99,235,.13)));
+}
+.ac-tile .ac-name {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--ink, #0f172a);
+    line-height: 1.6;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ac-tile .ac-count { font-size: 9.5px; color: var(--ink-faint, #64748b); }
+.ac-tile.on {
+    border-color: var(--brand-500, #3b82f6);
+    box-shadow: 0 0 0 3px var(--ring, rgba(59, 130, 246, .18));
+}
+.ac-tile.on .ac-name { color: var(--brand-700, #1d4ed8); }
+
+/* v42 — فاصلهٔ بیشتر «هزینهٔ درخواست» از فرم (درخواست مالک) */
+#formCard .price-row.total,
+#formCard #totalRow {
+    margin-top: 26px;
+    padding-top: 16px;
+}
+
+/* ═══════════ v42 — آواتار پروفایل + کراپر لینکدین‌وار ═══════════ */
+.pf-avatar-btn {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    border: 0;
+    padding: 0;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.pf-avatar-btn .pf-avatar { transition: transform .18s ease; }
+.pf-avatar-btn:active .pf-avatar { transform: scale(.96); }
+.pf-avatar-cam {
+    position: absolute;
+    bottom: -2px;
+    inset-inline-end: -4px;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--brand-grad, linear-gradient(135deg, #3b82f6, #1d4ed8));
+    color: #fff;
+    border: 2px solid #fff;
+    box-shadow: 0 3px 10px rgba(37, 99, 235, .35);
+}
+html.dark .pf-avatar-cam { border-color: var(--bg-card, #0f172a); }
+.pf-avatar-cam svg { width: 12px; height: 12px; }
+.pf-avatar.is-img {
+    color: transparent;
+}
+
+.avc-sheet { max-width: 420px; }
+.avc-hint {
+    margin: 0 0 12px;
+    font-size: 11px;
+    line-height: 1.9;
+    color: var(--ink-faint, #64748b);
+    text-align: center;
+}
+.avc-stage {
+    position: relative;
+    width: min(78vw, 300px);
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #0f172a;
+    touch-action: none; /* جابه‌جایی/پینچ به‌جای اسکرول صفحه */
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.avc-stage:active { cursor: grabbing; }
+.avc-stage img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    max-width: none;
+    transform-origin: center;
+    will-change: transform;
+}
+.avc-mask {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+.avc-mask::after {
+    content: '';
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: 100%;
+    height: 100%;
+    transform: translate(-50%, -50%);
+    border-radius: 999px;
+    border: 2px dashed rgba(255, 255, 255, .85);
+    box-shadow: 0 0 0 9999px rgba(15, 23, 42, .45); /* تاریکی بیرون دایره */
+}
+.avc-zoom-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px auto 4px;
+    width: min(78vw, 300px);
+}
+.avc-zoom-ico { width: 16px; height: 16px; color: var(--ink-faint, #64748b); flex: none; }
+.avc-zoom {
+    flex: 1;
+    appearance: none;
+    height: 4px;
+    border-radius: 99px;
+    background: var(--brand-200, #bfdbfe);
+    outline: none;
+}
+.avc-zoom::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 99px;
+    background: var(--brand-600, #2563eb);
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, .4);
+    cursor: pointer;
+}
+.avc-zoom::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 99px;
+    background: var(--brand-600, #2563eb);
+    border: 3px solid #fff;
+    cursor: pointer;
+}
+.avc-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+}
+.avc-actions .btn { flex: 1; }
+
+/* v42 — آواتار تصویری (هدر + پروفایل) */
+.avatar-btn.is-avatar,
+.pf-avatar.is-avatar {
+    color: transparent;
+    background-size: cover !important;
+    background-position: center !important;
+    text-indent: -9999px;
+}

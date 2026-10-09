@@ -264,6 +264,8 @@
         if (options.persist !== false) {
             try { localStorage.setItem(THEME_KEY, mode); } catch (e) { /* noop */ }
         }
+        /* v42 — کوکی تم برای مانیفست PWA (رنگ اسپلش روشن/تاریک) */
+        if (window.CNThemeCookie) { window.CNThemeCookie(isDark ? 'dark' : 'light'); }
         syncToggleButtons();
     }
 
@@ -293,6 +295,20 @@
     };
     /* اسکریپت در انتهای body لود می‌شود — اجرای فوری به‌جای DOM-ready */
     window.PanelUI.theme.init();
+
+    /* v42 — ذخیرهٔ پوستهٔ پالت (ظاهر و رنگ‌بندی) برای صفحهٔ آفلاین:
+       کلید بر اساس پنل فعلی (admin/org/coffeenet/operator) */
+    try {
+        var apEl = document.getElementById('appearance-css');
+        if (apEl) {
+            var p = (location.pathname || '');
+            var panelKey = p.indexOf('/admin') === 0 ? 'admin'
+                : p.indexOf('/organization') === 0 ? 'org'
+                : p.indexOf('/coffeenet') === 0 ? 'coffeenet'
+                : p.indexOf('/operator') === 0 ? 'operator' : 'app';
+            localStorage.setItem('cn-appearance-css:' + panelKey, apEl.textContent);
+        }
+    } catch (e) { /* حافظه در دسترس نیست */ }
 
     /* ---------- API عمومی ---------- */
     window.PanelUI.alert = function (opts, onClose) { return dialog(opts, 'alert', { onClosed: onClose }); };

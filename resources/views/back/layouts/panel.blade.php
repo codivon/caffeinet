@@ -6,7 +6,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- تم ذخیره‌شده قبل از رندر اعمال می‌شود (ضد-FOUC) --}}
-    <script src="{{ asset('assets/js/theme-boot.js') }}?v=1"></script>
+    <script src="{{ asset('assets/js/theme-boot.js') }}?v=2"></script>
+    {{-- v42 — پیکربندی فشرده‌سازی آپلودها (خوانده‌شده توسط core.js/App) --}}
+    <meta name="upload-config" content='@json(\App\Support\UploadConfig::client())'>
 
     <title>@yield('title', $htmlTitle ?? 'پنل مدیریت') — {{ config('app.name') }}</title>
 
@@ -53,7 +55,7 @@
 
         <div class="px-5 py-5 border-b border-white/10 flex items-center gap-3">
             <span class="grid place-items-center size-10 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-700 shadow-lg shadow-black/30 shrink-0">
-                <svg class="size-5 text-blue-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                <img src="{{ asset('icons/icon-96.png') }}" alt="" width="22" height="22" loading="lazy" style="width:22px;height:22px;object-fit:contain">
             </span>
             <div class="leading-tight min-w-0">
                 <strong class="block text-sm font-extrabold tracking-tight text-blue-50 truncate">کافی‌نت آنلاین</strong>
@@ -229,7 +231,7 @@
 <script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1" data-navigate-once></script>
 <script src="{{ asset('assets/js/realtime.js') }}?v=7" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(auth()->user()))'></script>
 <script src="{{ asset('back/assets/js/core.js') }}?v=15" data-navigate-once></script>
-<script src="{{ asset('back/assets/js/ui.js') }}?v=12" data-navigate-once></script>
+<script src="{{ asset('back/assets/js/ui.js') }}?v=13" data-navigate-once></script>
 <script src="{{ asset('back/assets/js/pages/layout.js') }}?v=14" data-navigate-once></script>
 {{-- اطلاعیه‌های پنل (فاز ۱۵) — بدون once (ری‌ران امن؛ بدون interval) --}}
 <script src="{{ asset('back/assets/js/pages/panel-announcements.js') }}?v=16"></script>

@@ -97,6 +97,17 @@ class SettingsController extends Controller
             'notification.push.beams.instance_id',
             'notification.push.beams.primary_key',
         ],
+        // v42 — فشرده‌سازی آپلودها (تصویر/ویدیو/همهٔ فایل‌ها)
+        'uploads' => [
+            'uploads.compression.enabled',
+            'uploads.compression.preset',
+            'uploads.compression.images.max_side',
+            'uploads.compression.images.quality',
+            'uploads.compression.images.format',
+            'uploads.compression.videos.enabled',
+            'uploads.compression.videos.crf',
+            'uploads.compression.server_batch',
+        ],
     ];
 
     public function edit(): View
@@ -317,6 +328,35 @@ class SettingsController extends Controller
 
             if (($pairs['finnotech.client_secret'] ?? '') === '') {
                 unset($pairs['finnotech.client_secret']); // خالی = بدون تغییر
+            }
+        }
+
+        /* v42 — اعتبارسنجی گروه فشرده‌سازی آپلودها */
+        if ($data['group'] === 'uploads') {
+            if (isset($pairs['uploads.compression.preset'])
+                && ! in_array($pairs['uploads.compression.preset'], ['lossless', 'balanced', 'max', 'custom'], true)) {
+                return response()->json(['message' => 'حالت فشرده‌سازی معتبر نیست.'], 422);
+            }
+
+            if (isset($pairs['uploads.compression.images.format'])
+                && ! in_array($pairs['uploads.compression.images.format'], ['auto', 'keep', 'jpeg', 'webp'], true)) {
+                return response()->json(['message' => 'فرمت تصویر معتبر نیست.'], 422);
+            }
+
+            if (isset($pairs['uploads.compression.images.max_side']) && $pairs['uploads.compression.images.max_side'] !== '') {
+                $pairs['uploads.compression.images.max_side'] = (string) max(400, min(8000, (int) $pairs['uploads.compression.images.max_side']));
+            }
+
+            if (isset($pairs['uploads.compression.images.quality']) && $pairs['uploads.compression.images.quality'] !== '') {
+                $pairs['uploads.compression.images.quality'] = (string) max(50, min(100, (int) $pairs['uploads.compression.images.quality']));
+            }
+
+            if (isset($pairs['uploads.compression.videos.crf']) && $pairs['uploads.compression.videos.crf'] !== '') {
+                $pairs['uploads.compression.videos.crf'] = (string) max(18, min(34, (int) $pairs['uploads.compression.videos.crf']));
+            }
+
+            if (isset($pairs['uploads.compression.server_batch']) && $pairs['uploads.compression.server_batch'] !== '') {
+                $pairs['uploads.compression.server_batch'] = (string) max(1, min(50, (int) $pairs['uploads.compression.server_batch']));
             }
         }
 

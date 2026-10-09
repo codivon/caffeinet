@@ -69,6 +69,8 @@ Route::prefix('v1')->name('api.')->group(function () {
         /* پروفایل */
         Route::get('me', [ProfileController::class, 'me'])->name('me');
         Route::post('profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
+        // v42 — آواتار پروفایل (کراپ ۷۵×۷۵ + WebP اجباری)
+        Route::post('profile/avatar', [ProfileController::class, 'avatar'])->name('profile.avatar');
 
         /* کاتالوگ */
         Route::get('categories/tree', [CatalogController::class, 'categoriesTree'])->name('categories.tree');

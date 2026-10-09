@@ -10,7 +10,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- تم ذخیره‌شده قبل از رندر اعمال می‌شود (ضد-FOUC) --}}
-    <script src="{{ asset('assets/js/theme-boot.js') }}?v=1"></script>
+    <script src="{{ asset('assets/js/theme-boot.js') }}?v=2"></script>
 
     <title>ورود اپراتور — {{ config('app.name') }}</title>
     {{-- PWA (فاز ۱۴) --}}
@@ -47,7 +47,7 @@
 
 {{-- [Task 2-a] data-navigate-once: اسکریپت‌های مشترک بین ناوبری‌های SPA دوباره اجرا نشوند --}}
 <script src="{{ asset('back/assets/js/core.js') }}?v=15" data-navigate-once></script>
-<script src="{{ asset('back/assets/js/ui.js') }}?v=12" data-navigate-once></script>
+<script src="{{ asset('back/assets/js/ui.js') }}?v=13" data-navigate-once></script>
 
 {{-- Livewire [Task 2-a] --}}
 @livewireScripts

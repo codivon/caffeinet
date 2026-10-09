@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- تم ذخیره‌شده قبل از رندر اعمال می‌شود (ضد-FOUC) --}}
-    <script src="{{ asset('assets/js/theme-boot.js') }}?v=1"></script>
+    <script src="{{ asset('assets/js/theme-boot.js') }}?v=2"></script>
 
     <title>ورود سازمان — {{ config('app.name') }}</title>
     {{-- PWA (فاز ۱۴) --}}
@@ -97,7 +97,7 @@
 </main>
 
 <script src="{{ asset('back/assets/js/core.js') }}?v=15"></script>
-<script src="{{ asset('back/assets/js/ui.js') }}?v=12"></script>
+<script src="{{ asset('back/assets/js/ui.js') }}?v=13"></script>
 <script src="{{ asset('back/assets/js/pages/org/auth/login.js') }}?v=10"></script>
 </body>
 </html>

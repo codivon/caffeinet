@@ -55,7 +55,7 @@
     <div class="container header-inner">
         <a class="brand" href="{{ url('/') }}" aria-label="کافی‌نت آنلاین — صفحه اصلی">
             <span class="brand-mark">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                <img src="{{ asset('icons/icon-96.png') }}" alt="" width="22" height="22" style="width:22px;height:22px;object-fit:contain">
                 <span class="dot"></span>
             </span>
             <span class="brand-text">
@@ -581,7 +581,7 @@
             <div>
                 <a class="brand" href="{{ url('/') }}" aria-label="کافی‌نت آنلاین">
                     <span class="brand-mark">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                        <img src="{{ asset('icons/icon-96.png') }}" alt="" width="22" height="22" style="width:22px;height:22px;object-fit:contain">
                         <span class="dot"></span>
                     </span>
                     <span class="brand-text">

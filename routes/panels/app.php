@@ -30,6 +30,10 @@ Route::prefix('app')->name('app.')->group(function () {
 
     /* [Task 7] صفحات به کامپوننت‌های Livewire */
     Route::get('auth', Login::class)->name('auth');
+
+    // v42 — سرو آواتار پروفایل (عمومی، قابل کش؛ بدون نیاز به storage:link)
+    Route::get('avatar/{user}', [\App\Http\Controllers\Front\App\AvatarController::class, 'show'])
+        ->whereNumber('user')->name('avatar');
     Route::get('home', Home::class)->name('home');
     Route::get('services', Services::class)->name('services');
     Route::get('service/{service}', ServiceDetail::class)

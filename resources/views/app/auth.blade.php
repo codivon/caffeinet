@@ -8,8 +8,7 @@
 <div class="auth-wrap">
     <div class="auth-brand fade-up">
         <div class="mark">
-            <div class="steam" aria-hidden="true"><span></span><span></span><span></span></div>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            <img src="{{ asset('icons/icon-96.png') }}" alt="" width="44" height="44" loading="lazy" style="width:44px;height:44px;object-fit:contain">
         </div>
         <h1>کافی‌نت آنلاین</h1>
         <p>خدمات کافی‌نت، آنلاین و در جیب شما</p>

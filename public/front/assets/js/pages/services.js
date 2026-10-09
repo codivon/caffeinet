@@ -58,6 +58,11 @@
                 '</button>';
         });
 
+        /* v42 — دکمهٔ «همهٔ دسته‌ها»: دیدن همهٔ دسته‌بندی‌ها یکجا (گرید در شیت) */
+        html += '<button class="chip chip-allcats" id="allCatsBtn" type="button" aria-haspopup="dialog" aria-controls="allCatsSheet" title="مشاهدهٔ همهٔ دسته‌بندی‌ها">' +
+            '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="3" rx="1.5"/><rect width="7" height="7" x="3" y="14" rx="1.5"/><rect width="7" height="7" x="14" y="14" rx="1.5"/></svg>' +
+            ' همهٔ دسته‌ها</button>';
+
         if (row) {
             row.innerHTML = html;
             /* [Task 9] حذف aria-selected از ردیف (مقدار null در ستر قدیمی یعنی حذف attribute) */
@@ -67,6 +72,43 @@
         /* [Task 9] جایگزین اتصالِ delegate تکراری روی ردیف چیپ‌ها:
            شنونده یک‌بار در بخش رویدادها به #categoryChips بسته می‌شود
            و با بازرندر چیپ‌ها پابرجاست (رفتار عین قبل: هر لحظه فقط یک شنونده). */
+    }
+
+    /* ---------- v42 — شیت «همهٔ دسته‌بندی‌ها» ---------- */
+    function renderAllCats() {
+        var grid = document.getElementById('allCatsGrid');
+        if (!grid) { return; }
+
+        var html = '<button type="button" class="ac-tile' + (state.categoryId === 0 ? ' on' : '') + '" data-cat="0" role="option" aria-selected="' + (state.categoryId === 0) + '">' +
+            '<span class="ac-ico" aria-hidden="true">✨</span>' +
+            '<span class="ac-name">همه</span>' +
+            '<span class="ac-count">همهٔ خدمات</span>' +
+            '</button>';
+
+        tree.forEach(function (c) {
+            html += '<button type="button" class="ac-tile' + (state.categoryId === c.id ? ' on' : '') + '" data-cat="' + c.id + '" role="option" aria-selected="' + (state.categoryId === c.id) + '">' +
+                '<span class="ac-ico" aria-hidden="true">' + CN.esc(c.icon || '📁') + '</span>' +
+                '<span class="ac-name">' + CN.esc(c.name) + '</span>' +
+                '<span class="ac-count">' + CN.toFaDigits(c.services_count || 0) + ' خدمت</span>' +
+                '</button>';
+        });
+
+        grid.innerHTML = html;
+    }
+
+    function openAllCats() {
+        renderAllCats();
+        var sheet = document.getElementById('allCatsSheet');
+        var backdrop = document.getElementById('allCatsBackdrop');
+        if (sheet) { sheet.classList.add('open'); }
+        if (backdrop) { backdrop.classList.add('show'); }
+    }
+
+    function closeAllCats() {
+        var sheet = document.getElementById('allCatsSheet');
+        var backdrop = document.getElementById('allCatsBackdrop');
+        if (sheet) { sheet.classList.remove('open'); }
+        if (backdrop) { backdrop.classList.remove('show'); }
     }
 
     /* ---------- رندر سکشن‌ها ---------- */
@@ -202,12 +244,43 @@
     var categoryChipsRow = document.getElementById('categoryChips');
     if (categoryChipsRow) {
         categoryChipsRow.addEventListener('click', function (e) {
+            /* v42 — دکمهٔ «همهٔ دسته‌ها» → شیت گرید */
+            if (e.target.closest && e.target.closest('#allCatsBtn')) {
+                openAllCats();
+                return;
+            }
+
             var chip = e.target.closest ? e.target.closest('.chip') : null;
             if (!chip || !categoryChipsRow.contains(chip)) { return; }
 
             state.categoryId = +chip.dataset.cat;
             renderChips();
             render();
+        });
+    }
+
+    /* v42 — رویدادهای شیت همهٔ دسته‌ها */
+    var allCatsCloseBtn = document.getElementById('allCatsClose');
+    if (allCatsCloseBtn) { allCatsCloseBtn.addEventListener('click', closeAllCats); }
+    var allCatsBackdropEl = document.getElementById('allCatsBackdrop');
+    if (allCatsBackdropEl) { allCatsBackdropEl.addEventListener('click', closeAllCats); }
+    var allCatsGridEl = document.getElementById('allCatsGrid');
+    if (allCatsGridEl) {
+        allCatsGridEl.addEventListener('click', function (e) {
+            var tile = e.target.closest ? e.target.closest('.ac-tile') : null;
+            if (!tile) { return; }
+            state.categoryId = +tile.dataset.cat;
+            closeAllCats();
+            renderChips();
+            render();
+            /* پرش نرم به سکشن دستهٔ انتخاب‌شده */
+            window.setTimeout(function () {
+                var sec = document.querySelector('[data-cat="' + state.categoryId + '"]');
+                if (sec) {
+                    var top = sec.getBoundingClientRect().top + (window.pageYOffset || document.documentElement.scrollTop) - 70;
+                    window.scrollTo({ top: top, behavior: 'smooth' });
+                }
+            }, 120);
         });
     }
 

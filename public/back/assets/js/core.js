@@ -16,6 +16,18 @@ const APP_IMG_PNG_KEEP_BYTES = 1536 * 1024; // PNG زیر ۱.۵MB همان PNG �
 const APP_IMG_MAX_SIDE = 2048;              // بزرگ‌ترین ضلع مجاز (پیش‌فرض)
 const APP_IMG_QUALITY = 0.85;
 
+/* v42 — پیکربندی فشرده‌سازی از تنظیمات مدیر (meta «upload-config») */
+let __uploadCfg = null;
+function uploadCfg() {
+    if (__uploadCfg !== null) { return __uploadCfg; }
+    __uploadCfg = {};
+    try {
+        const meta = document.querySelector('meta[name="upload-config"]');
+        if (meta && meta.content) { __uploadCfg = JSON.parse(meta.content) || {}; }
+    } catch (e) { /* پیش‌فرض */ }
+    return __uploadCfg;
+}
+
 window.App = {
     /**
      * پارامتر گیت‌وی پیش‌نمایش (در پروداکشن null است)
@@ -174,8 +186,13 @@ window.App = {
             if (file.size <= APP_IMG_MIN_BYTES) { return keep(); }
             if (!window.URL || typeof window.URL.createObjectURL !== 'function' || typeof window.File !== 'function') { return keep(); }
 
-            const maxSide = Number(opts.maxSide) > 0 ? Number(opts.maxSide) : APP_IMG_MAX_SIDE;
-            const quality = (typeof opts.quality === 'number' && opts.quality > 0 && opts.quality <= 1) ? opts.quality : APP_IMG_QUALITY;
+            const uc = uploadCfg();
+            if (uc.enabled === false) { return keep(); } // v42 — فشرده‌سازی خاموش
+            const maxSide = Number(opts.maxSide) > 0 ? Number(opts.maxSide)
+                : (Number(uc.max_side) > 0 ? Number(uc.max_side) : APP_IMG_MAX_SIDE);
+            const quality = (typeof opts.quality === 'number' && opts.quality > 0 && opts.quality <= 1) ? opts.quality
+                : (Number(uc.quality) > 0 ? Math.min(1, Number(uc.quality) / 100) : APP_IMG_QUALITY);
+            const fmt = String(uc.format || 'auto');
 
             url = window.URL.createObjectURL(file);
             const img = new Image();
@@ -219,8 +236,8 @@ window.App = {
 
             if (type === 'image/png') {
                 ctx.drawImage(img, 0, 0, cw, ch);
-                if (file.size < APP_IMG_PNG_KEEP_BYTES || alphaSeen()) {
-                    // PNG می‌ماند — شفافیت حفظ می‌شود
+                if (file.size < APP_IMG_PNG_KEEP_BYTES || alphaSeen() || fmt === 'keep') {
+                    // PNG می‌ماند — شفافیت/فرمت حفظ می‌شود
                     blob = await toBlob('image/png');
                 } else {
                     // PNG بزرگ بدون شفافیت → JPEG با پس‌زمینهٔ سفید

@@ -9,6 +9,15 @@
 (function () {
     'use strict';
 
+    /* v42 — کوکی «cn_theme» برای سرور (مانیفست PWA: رنگ اسپلش/نوار روشن/تاریک).
+       همهٔ سیستم‌های تعویض تم (اپ/پنل‌ها/لندینگ) هم با همین تابع همگام می‌مانند. */
+    window.CNThemeCookie = function (mode) {
+        try {
+            document.cookie = 'cn_theme=' + (mode === 'dark' ? 'dark' : 'light') +
+                '; path=/; max-age=31536000; SameSite=Lax';
+        } catch (e) { /* noop */ }
+    };
+
     try {
         var stored = localStorage.getItem('caffeinet-theme');
 
@@ -17,6 +26,7 @@
         if (wantsDark) {
             document.documentElement.classList.add('dark');
         }
+        window.CNThemeCookie(wantsDark ? 'dark' : 'light');
 
         // اگر تم سیستم عوض شود و کاربر انتخاب صریح نداشته باشد، همگام بمان (فقط اولین لود)
         if (!stored && window.matchMedia) {

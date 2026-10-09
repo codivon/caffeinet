@@ -11,6 +11,8 @@
     @include('partials.pwa', ['panel' => 'app'])
     @include('partials.vpn-modal')
 
+    {{-- v42 — پیکربندی فشرده‌سازی آپلودها (خوانده‌شده توسط core.js/App) --}}
+    <meta name="upload-config" content='@json(\App\Support\UploadConfig::client())'>
     {{-- بوت تم شب/روز (ضد-FOUC) — قبل از استایل‌ها؛ کلید ذخیره مشترک با پنل‌ها --}}
     <script src="{{ asset('assets/js/theme-boot.js') }}"></script>
 
@@ -42,7 +44,8 @@
         <header class="app-header">
             <a class="brand" href="{{ route('app.home') }}" wire:navigate>
                 <span class="brand-mark" aria-hidden="true">
-                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                    {{-- v42 — آیکون برند جدید (رندر سه‌بعدی کامپیوتر) به‌جای گلوب --}}
+                    <img src="{{ asset('icons/icon-96.png') }}" alt="" width="22" height="22" style="width:22px;height:22px;object-fit:contain">
                 </span>
                 <span>
                     <span class="brand-name">کافی‌نت آنلاین</span>

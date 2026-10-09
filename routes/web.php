@@ -103,8 +103,9 @@ Route::get('{panel}/manifest.webmanifest', function (string $panel) {
      * کاربر واردشده → داشبورد (یا صفحه انتخاب زمینه) همان پنل. */
     $panels = [
         'app' => [
-            'title'       => $name.' — اپ مشتریان',
-            'short'       => 'کافی‌نت',
+            // v42 — عنوان PWA طبق درخواست مالک: «کافی‌نت آنلاین» (بدون پسوند)
+            'title'       => $name,
+            'short'       => 'کافی‌نت آنلاین',
             'description' => 'سفارش خدمات کافی‌نت آنلاین؛ فرم‌ساز پویا، پرداخت آنلاین، پیگیری لحظه‌ای سفارش و چت مستقیم با اپراتور.',
             'start'       => '/app',
             'scope'       => '/',
@@ -155,10 +156,18 @@ Route::get('{panel}/manifest.webmanifest', function (string $panel) {
     $cfg = $panels[$panel];
 
     /* ظاهر پویا — theme_color/background_color از پالت رنگی همان پنل
-       (تنظیمات ← ظاهر و رنگ‌بندی) — سازمان → کلید org در سیستم پوسته */
+       (تنظیمات ← ظاهر و رنگ‌بندی) — سازمان → کلید org در سیستم پوسته.
+       v42 — تم روشن/تاریک: کوکی «cn_theme» (theme-boot.js روی همهٔ صفحات
+       می‌نویسد) رنگ اسپلش/نوار را عوض می‌کند؛ بدون کوکی = تیره (رفتار قبلی). */
     $appearancePanel = $panel === 'organization' ? 'org' : $panel;
-    $themeColor = \App\Support\Appearance::manifestThemeColor($appearancePanel);
-    $bgColor = \App\Support\Appearance::tokensFor($appearancePanel)['ramp']['950'] ?? '#172554';
+    $tokens = \App\Support\Appearance::tokensFor($appearancePanel);
+    $isDark = ($_COOKIE['cn_theme'] ?? '') !== 'light';
+    $themeColor = $isDark
+        ? ($tokens['ramp']['800'] ?? '#1e3a8a')
+        : ($tokens['ramp']['600'] ?? '#2563eb');
+    $bgColor = $isDark
+        ? ($tokens['ramp']['950'] ?? '#172554')
+        : ($tokens['page_bg'] ?? '#ffffff');
 
     /* آیکون اختصاصی پنل (icons/panels/…) — در نبود فایل‌ها → آیکون برند */
     $usePanelIcons = $cfg['panel_icons'] !== null
@@ -188,14 +197,14 @@ Route::get('{panel}/manifest.webmanifest', function (string $panel) {
         'categories'             => ['business', 'productivity', 'shopping'],
         'prefer_related_applications' => false,
 
-        // آیکون‌ها — any + maskable (ترکیب تمام‌صفحه با حاشیه امن)
+        // آیکون‌ها — فقط purpose «any» (v42): آیکون پس‌زمینهٔ شفاف دارد؛
+        // در لانچر اندروید لانچر خودش قاب مربع‌گوشه‌گرد می‌گذارد (نه دایرهٔ maskable)
+        // و در iOS گوشه‌ها توسط خود سیستم گرد می‌شود؛ اسپلش هم بدون قاب جدا رندر می‌شود.
         'icons' => [
             ['src' => $iconUrl(48),   'sizes' => '48x48',   'type' => 'image/png', 'purpose' => 'any'],
             ['src' => $iconUrl(96),   'sizes' => '96x96',   'type' => 'image/png', 'purpose' => 'any'],
             ['src' => $iconUrl(192),  'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
             ['src' => $iconUrl(512),  'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => $iconUrl(192),  'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'maskable'],
-            ['src' => $iconUrl(512),  'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
         ],
     ];
 
@@ -245,7 +254,9 @@ Route::get('{panel}/manifest.webmanifest', function (string $panel) {
 
     return response()->json($manifest)
         ->header('Content-Type', 'application/manifest+json')
-        ->header('Cache-Control', 'public, max-age=3600');
+        // v42 — با کوکی تم (روشن/تاریک) عوض می‌شود؛ کش کوتاه خصوصی
+        ->header('Cache-Control', 'private, max-age=300')
+        ->header('Vary', 'Cookie');
 })->where('panel', 'app|admin|organization|coffeenet|operator')->name('pwa.manifest');
 
 /* مانیفست قدیمی ریشه → مانیفست اپ مشتری (مهاجرت نصب‌های قبلی، ۳۰۱ دائمی) */

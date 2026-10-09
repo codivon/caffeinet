@@ -6,7 +6,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- تم ذخیره‌شده قبل از رندر اعمال می‌شود (ضد-FOUC) --}}
-    <script src="{{ asset('assets/js/theme-boot.js') }}?v=1"></script>
+    <script src="{{ asset('assets/js/theme-boot.js') }}?v=2"></script>
+    {{-- v42 — پیکربندی فشرده‌سازی آپلودها (خوانده‌شده توسط core.js/App) --}}
+    <meta name="upload-config" content='@json(\App\Support\UploadConfig::client())'>
 
     <title>@yield('title', $htmlTitle ?? 'پنل سازمان') — {{ config('app.name') }}</title>
 
@@ -52,9 +54,7 @@
 
         <div class="px-5 py-5 border-b border-white/10 flex items-center gap-3">
             <span class="grid place-items-center size-10 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-700 shadow-lg shadow-black/30 shrink-0">
-                <svg class="size-5 text-sky-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect width="4" height="16" x="4" y="2" rx="1"/><rect width="4" height="16" x="10" y="2" rx="1"/><path d="M20 4v14"/><path d="M2 20h20"/>
-                </svg>
+                <img src="{{ asset('icons/icon-96.png') }}" alt="" width="22" height="22" style="width:22px;height:22px;object-fit:contain">
             </span>
             <div class="leading-tight min-w-0">
                 <strong class="block text-sm font-extrabold tracking-tight text-teal-50 truncate">{{ $organization->name }}</strong>
@@ -179,7 +179,7 @@
 <script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1" data-navigate-once></script>
 <script src="{{ asset('assets/js/realtime.js') }}?v=7" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(auth()->user()))'></script>
 <script src="{{ asset('back/assets/js/core.js') }}?v=15" data-navigate-once></script>
-<script src="{{ asset('back/assets/js/ui.js') }}?v=12" data-navigate-once></script>
+<script src="{{ asset('back/assets/js/ui.js') }}?v=13" data-navigate-once></script>
 <script src="{{ asset('back/assets/js/pages/layout.js') }}?v=14" data-navigate-once></script>
 {{-- اطلاعیه‌های پنل (فاز ۱۵) — بدون once (ری‌ران امن؛ بدون interval) --}}
 <script src="{{ asset('back/assets/js/pages/panel-announcements.js') }}?v=16"></script>

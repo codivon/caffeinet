@@ -46,6 +46,22 @@ class User extends Authenticatable
         ];
     }
 
+    /** v42 — URL آواتار پروفایل (75×75 WebP)؛ نال = آواتار ندارد */
+    public function avatarUrl(): ?string
+    {
+        if (! $this->avatar_path) {
+            return null;
+        }
+
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+
+        if (! $disk->exists($this->avatar_path)) {
+            return null;
+        }
+
+        return \Illuminate\Support\Facades\URL::route('app.avatar', ['user' => $this->id, 'v' => substr(md5($this->avatar_path.$disk->lastModified($this->avatar_path)), 0, 8)]);
+    }
+
     public function province(): BelongsTo
     {
         return $this->belongsTo(Province::class);

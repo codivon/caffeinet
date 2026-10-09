@@ -3,7 +3,7 @@
      همان AJAX قبلی به PUT/POST settings (کنترلر) می‌رود؛ اسکریپت صفحه
      back/assets/js/pages/admin/settings/index.js بدون تغییر bind می‌شود. --}}
 @push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/pages/settings.css') }}?v=22">
+<link rel="stylesheet" href="{{ asset('assets/css/pages/settings.css') }}?v=23">
 @endpush
 
 <div>
@@ -154,6 +154,17 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 <span class="flex-1 text-start">پاداش معرفی</span>
                 @if ($referral->is_active)
+                    <span class="st-nav-dot st-nav-dot--on" title="فعال"></span>
+                @else
+                    <span class="st-nav-dot" title="غیرفعال"></span>
+                @endif
+            </button>
+
+            {{-- v42 — آپلود و فشرده‌سازی --}}
+            <button type="button" role="tab" class="st-nav-item" data-section="uploads">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></svg>
+                <span class="flex-1 text-start">آپلود و فشرده‌سازی</span>
+                @if ($uploadCfg['enabled'])
                     <span class="st-nav-dot st-nav-dot--on" title="فعال"></span>
                 @else
                     <span class="st-nav-dot" title="غیرفعال"></span>
@@ -2011,6 +2022,103 @@
     </div>
 </div>
 
+{{-- ================== v42 — آپلود و فشرده‌سازی ================== --}}
+        <form data-group="uploads" class="st-section card ui-lift animate-fade-up" id="sec-uploads">
+            <div class="st-section-head">
+                <span class="st-section-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></svg>
+                </span>
+                <div class="flex-1">
+                    <h2 class="st-section-title">آپلود و فشرده‌سازی</h2>
+                    <p class="st-section-desc">تصمیم بدهید تصاویر و فایل‌های آپلودی همهٔ بخش‌ها (چت، تیکت، سفارش، خدمات و…) فشرده شوند یا نه؛ به چه شدتی و به چه فرمتی. لایهٔ اول سمت مرورگر کاربر انجام می‌شود (حجم کمتر آپلود و سرعت بیشتر) و لایهٔ دوم به‌تدریج روی سرور و در دسته‌های کوچک — بدون فشار به CPU هاست.</p>
+                </div>
+            </div>
+
+            <div class="st-switch-row">
+                <div>
+                    <p class="text-xs font-bold text-stone-700">فشرده‌سازی آپلودها فعال باشد؟</p>
+                    <p class="text-[11px] text-stone-400 mt-0.5 leading-5">اگر خاموش کنید، هیچ فایلی دست نمی‌خورد و همه‌چیز مثل قبل اصل آپلود می‌شود.</p>
+                </div>
+                <label class="st-switch" for="up-enabled">
+                    <input type="checkbox" id="up-enabled" data-key="uploads.compression.enabled" value="1" class="sr-only" {{ $settings->get('uploads.compression.enabled', '1') ? 'checked' : '' }}>
+                    <span class="st-switch-track" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            <div class="st-field-row">
+                <label class="lbl">حالت فشرده‌سازی تصاویر</label>
+                <div class="grid grid-cols-2 gap-2" id="up-presets" role="radiogroup" aria-label="حالت فشرده‌سازی">
+                    @foreach ([
+                        'lossless' => ['بدون افت کیفیت', 'کیفیت ۹۲٪ — فقط فشرده‌سازی امن؛ عکس دست‌نخورده می‌ماند (پیش‌فرض)'],
+                        'balanced' => ['متعادل', 'کیفیت ۸۵٪ + حداکثر ضلع ۲۰۴۸ — توصیه‌شده برای حجم کمتر'],
+                        'max' => ['حداکثر فشرده‌سازی', 'کیفیت ۷۸٪ + حداکثر ضلع ۱۶۰۰ — کمترین حجم'],
+                        'custom' => ['سفارشی', 'تنظیم دستی کیفیت، ابعاد و فرمت'],
+                    ] as $key => $preset)
+                        <label class="up-preset {{ $settings->get('uploads.compression.preset', 'lossless') === $key ? 'on' : '' }}" data-preset="{{ $key }}">
+                            <input type="radio" name="up-preset" data-key="uploads.compression.preset" value="{{ $key }}" class="sr-only" {{ $settings->get('uploads.compression.preset', 'lossless') === $key ? 'checked' : '' }}>
+                            <span class="block text-xs font-bold">{{ $preset[0] }}</span>
+                            <span class="block text-[10.5px] text-stone-400 mt-1 leading-4">{{ $preset[1] }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                <p class="st-hint">هر تصویر فقط وقتی جایگزین می‌شود که خروجی «واقعاً کوچک‌تر» شود؛ در غیر این صورت فایل اصلی حفظ می‌شود.</p>
+            </div>
+
+            <div class="st-field-row" id="up-custom-box" style="{{ $settings->get('uploads.compression.preset', 'lossless') !== 'custom' ? 'opacity:.45;pointer-events:none' : '' }}">
+                <label class="lbl">تنظیمات سفارشی تصویر</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="text-[11px] text-stone-500 mb-1 block" for="up-max-side">حداکثر ضلع (px)</label>
+                        <input id="up-max-side" type="number" min="400" max="8000" data-key="uploads.compression.images.max_side" class="field" value="{{ $settings->get('uploads.compression.images.max_side', '4096') }}">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-stone-500 mb-1 block" for="up-quality">کیفیت (۵۰–۱۰۰)</label>
+                        <input id="up-quality" type="number" min="50" max="100" data-key="uploads.compression.images.quality" class="field" value="{{ $settings->get('uploads.compression.images.quality', '92') }}">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-stone-500 mb-1 block" for="up-format">فرمت تبدیل</label>
+                        <select id="up-format" data-key="uploads.compression.images.format" class="field">
+                            @foreach (['keep' => 'همان فرمت اصلی', 'auto' => 'هوشمند (کوچک‌ترین)', 'jpeg' => 'JPEG', 'webp' => 'WebP'] as $k => $v)
+                                <option value="{{ $k }}" {{ $settings->get('uploads.compression.images.format', 'keep') === $k ? 'selected' : '' }}>{{ $v }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <p class="st-hint">«هوشمند» تصاویر شفاف را WebP و بقیه را JPEG می‌کند — کمترین حجم با حفظ شفافیت.</p>
+            </div>
+
+            <div class="st-switch-row">
+                <div>
+                    <p class="text-xs font-bold text-stone-700">فشرده‌سازی ویدیوها</p>
+                    <p class="text-[11px] text-stone-400 mt-0.5 leading-5">
+                        @if ($uploadCfg['videos']['ffmpeg'])
+                            ✓ ffmpeg روی سرور پیدا شد — ویدیوها به H.264 سبک (سازگار با همهٔ گوشی‌ها) تبدیل می‌شوند؛ در هر اجرای کرون فقط «یک» ویدیو.
+                        @else
+                            باینری ffmpeg روی این سرور پیدا نشد؛ تا نصب نشود ویدیوها دست‌نخورده می‌مانند (به سرور فشار نمی‌آید).
+                        @endif
+                    </p>
+                </div>
+                <label class="st-switch" for="up-video-enabled">
+                    <input type="checkbox" id="up-video-enabled" data-key="uploads.compression.videos.enabled" value="1" class="sr-only" {{ $settings->get('uploads.compression.videos.enabled', '0') ? 'checked' : '' }}>
+                    <span class="st-switch-track" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            <div class="st-field-row">
+                <label class="lbl" for="up-crf">سطح فشرده‌سازی ویدیو (CRF)</label>
+                <input id="up-crf" type="number" min="18" max="34" data-key="uploads.compression.videos.crf" class="field" value="{{ $settings->get('uploads.compression.videos.crf', '28') }}">
+                <p class="st-hint">عدد کمتر = کیفیت بهتر و حجم بیشتر (۱۸ بهترین، ۳۴ سبک‌ترین). پیش‌فرض ۲۸.</p>
+            </div>
+
+            <div class="st-field-row">
+                <label class="lbl" for="up-batch">تعداد تصویر در هر اجرای خودکار</label>
+                <input id="up-batch" type="number" min="1" max="50" data-key="uploads.compression.server_batch" class="field" value="{{ $settings->get('uploads.compression.server_batch', '8') }}">
+                <p class="st-hint">هر دقیقه فقط همین تعداد فایل فشرده می‌شود تا CPU هاست سرِ بازی نماند — پیش‌فرض ۸. فایل‌های چت/تیکت/سفارش (رمزنگاری‌شده) هم پشتیبانی می‌شوند.</p>
+            </div>
+
+            <button type="submit" class="btn-primary btn-shine ui-press !py-2.5 px-7">ذخیرهٔ تنظیمات فشرده‌سازی</button>
+        </form>
+
 {{-- مودال پیامک آزمایشی --}}
 <div id="sms-modal" class="ui-modal-backdrop hidden">
     <div data-close class="absolute inset-0" aria-hidden="true"></div>
@@ -2035,6 +2143,6 @@
 </div>
 </div>
 @push('scripts')
-<script src="{{ asset('back/assets/js/pages/admin/settings/index.js') }}?v=30"></script>
+<script src="{{ asset('back/assets/js/pages/admin/settings/index.js') }}?v=31"></script>
 @endpush
 

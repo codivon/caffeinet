@@ -8,6 +8,14 @@
 (function () {
     'use strict';
 
+    /* v42 — کوکی «cn_theme» برای سرور (مانیفست PWA: رنگ اسپلش روشن/تاریک) */
+    window.CNThemeCookie = function (mode) {
+        try {
+            document.cookie = 'cn_theme=' + (mode === 'dark' ? 'dark' : 'light') +
+                '; path=/; max-age=31536000; SameSite=Lax';
+        } catch (e) { /* noop */ }
+    };
+
     try {
         var stored = null;
         try { stored = localStorage.getItem('caffeinet-theme'); } catch (e) { /* noop */ }
@@ -17,7 +25,9 @@
         } else {
             document.documentElement.classList.remove('dark');
         }
+        window.CNThemeCookie(stored === 'dark' ? 'dark' : 'light');
     } catch (e) { /* localStorage در دسترس نیست — روز (پیش‌فرض) می‌ماند */
         document.documentElement.classList.remove('dark');
+        window.CNThemeCookie('light');
     }
 })();

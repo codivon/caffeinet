@@ -190,6 +190,10 @@
             }
             if (showThumb) {
                 chipThumbUrl = URL.createObjectURL(file);
+                chipThumb.onerror = function () {
+                    chipThumb.setAttribute('hidden', '');
+                    if (chip) { chip.classList.remove('has-thumb'); }
+                };
                 chipThumb.src = chipThumbUrl;
                 chipThumb.removeAttribute('hidden');
             }

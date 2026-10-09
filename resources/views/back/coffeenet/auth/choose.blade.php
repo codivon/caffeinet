@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- تم ذخیره‌شده قبل از رندر اعمال می‌شود (ضد-FOUC) --}}
-    <script src="{{ asset('assets/js/theme-boot.js') }}?v=1"></script>
+    <script src="{{ asset('assets/js/theme-boot.js') }}?v=2"></script>
 
     <title>انتخاب کافی‌نت — {{ config('app.name') }}</title>
     {{-- PWA (فاز ۱۴) --}}
@@ -46,7 +46,7 @@
 
         <div class="text-center mb-7 animate-fade-up">
             <span class="inline-grid place-items-center size-14 rounded-3xl bg-gradient-to-br from-amber-400 to-amber-700 shadow-xl shadow-amber-950/40 mb-4">
-                <svg class="size-7 text-amber-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                <img src="{{ asset('icons/icon-96.png') }}" alt="" width="32" height="32" loading="lazy" style="width:32px;height:32px;object-fit:contain">
             </span>
             <h1 class="text-xl font-extrabold text-amber-50 tracking-tight">کافی‌نت خود را انتخاب کنید</h1>
             <p class="mt-1.5 text-xs text-amber-200/50 font-light">{{ auth()->user()?->full_name }} عزیز، مدیریت چند کافی‌نت با حساب شما ثبت شده است</p>
@@ -79,7 +79,7 @@
 </main>
 
 <script src="{{ asset('back/assets/js/core.js') }}?v=15"></script>
-<script src="{{ asset('back/assets/js/ui.js') }}?v=12"></script>
+<script src="{{ asset('back/assets/js/ui.js') }}?v=13"></script>
 <script src="{{ asset('back/assets/js/pages/coffeenet/auth/choose.js') }}?v=10"></script>
 </body>
 </html>

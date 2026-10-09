@@ -190,7 +190,27 @@
     if (hiringInput) { hiringInput.value = hiringInput.value || 'auto'; }
 
     /* ---------- ذخیره هر فرم (AJAX) ---------- */
-    document.querySelectorAll('form[data-group]').forEach(form => {
+    /* v42 — تب «آپلود و فشرده‌سازی»: کارت‌های حالت فشرده‌سازی + قفل فیلدهای سفارشی */
+  (function () {
+    const box = document.getElementById('up-presets');
+    if (!box) return;
+
+    function sync() {
+      const checked = box.querySelector('input[type=radio]:checked');
+      const isCustom = checked && checked.value === 'custom';
+      box.querySelectorAll('.up-preset').forEach(l => l.classList.toggle('on', l.contains(checked)));
+      const custom = document.getElementById('up-custom-box');
+      if (custom) {
+        custom.style.opacity = isCustom ? '1' : '.45';
+        custom.style.pointerEvents = isCustom ? 'auto' : 'none';
+      }
+    }
+
+    box.addEventListener('change', sync);
+    sync();
+  })();
+
+document.querySelectorAll('form[data-group]').forEach(form => {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const values = {};

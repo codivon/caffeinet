@@ -12,9 +12,7 @@
 
     <div class="text-center mb-8 animate-fade-up">
         <span class="inline-grid place-items-center size-16 rounded-3xl bg-brand-gradient shadow-2xl shadow-black/30 mb-4">
-            <svg class="size-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>
-            </svg>
+            <img src="{{ asset('icons/icon-96.png') }}" alt="" width="32" height="32" style="width:32px;height:32px;object-fit:contain">
         </span>
         <h1 class="text-2xl font-extrabold text-white tracking-tight">کافی‌نت آنلاین</h1>
         <p class="mt-1.5 text-sm text-brand-muted font-light">ورود به پنل اپراتور / کارمند</p>

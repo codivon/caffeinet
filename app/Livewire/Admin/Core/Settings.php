@@ -56,6 +56,8 @@ class Settings extends Component
             // ظاهر و رنگ‌بندی — پالت‌ها + انتخاب فعلی هر پنل + توکن‌های شخصی
             // (همهٔ محاسبات در PHP انجام می‌شود تا Blade ساده بماند)
             'appearance' => \App\Support\Appearance::settingsViewData(),
+            // v42 — پیکربندی فشرده‌سازی آپلودها (وضعیت ffmpeg و…)
+            'uploadCfg' => \App\Support\UploadConfig::server(),
         ])->layoutData([
             'user' => auth()->user(),
             'pageTitle' => 'تنظیمات سیستم',

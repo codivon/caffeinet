@@ -35,8 +35,24 @@
     <div class="e-title">خدمتی پیدا نشد</div>
     <div class="e-desc">عبارت دیگری را جستجو کنید یا فیلتر دسته را بردارید.</div>
 </div>
+
+{{-- v42 — شیت «همهٔ دسته‌بندی‌ها»: دیدن همهٔ دسته‌ها یکجا به‌صورت گرید --}}
+<div class="sheet-backdrop" id="allCatsBackdrop" aria-hidden="true"></div>
+<div class="sheet allcats-sheet" id="allCatsSheet" role="dialog" aria-modal="true" aria-labelledby="allCatsTitle">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <div class="sheet-head">
+        <h2 id="allCatsTitle">همهٔ دسته‌بندی‌ها</h2>
+        <button type="button" class="sheet-x" id="allCatsClose" aria-label="بستن">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+    </div>
+    <div class="allcats-grid" id="allCatsGrid" role="listbox" aria-label="انتخاب دسته‌بندی">
+        <div class="skeleton" style="height:84px"></div>
+        <div class="skeleton" style="height:84px"></div>
+    </div>
+</div>
 </div>
 
 @push('page')
-    <script src="{{ asset('front/assets/js/pages/services.js') }}?v=3" defer></script>
+    <script src="{{ asset('front/assets/js/pages/services.js') }}?v=4" defer></script>
 @endpush

@@ -79,7 +79,7 @@
 </main>
 
 <script src="{{ asset('back/assets/js/core.js') }}?v=15"></script>
-<script src="{{ asset('back/assets/js/ui.js') }}?v=12"></script>
+<script src="{{ asset('back/assets/js/ui.js') }}?v=13"></script>
 <script src="{{ asset('back/assets/js/pages/operator/auth/choose.js') }}?v=10"></script>
 </body>
 </html>

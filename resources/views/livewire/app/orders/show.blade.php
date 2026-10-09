@@ -75,7 +75,8 @@
                     </p>
                     <p class="assign-desc" id="queuedAtNote" style="margin-top:8px;color:var(--ink-faint)"></p>
 
-                    {{-- v39 — راه‌های ارتباطی ما با شما (پس از پایان مهلت پخش بدون پذیرش اپراتور) --}}
+                    {{-- v42 — راه‌های ارتباطی: یک گرید واحد؛ تماس اولِ لیست و بعد
+                         پیام‌رسان‌ها — هر گزینه مستقل تیک می‌خورد («فرقی ندارد» حذف شد) --}}
                     <div class="cpref" id="contactPrefBox" hidden>
                         <div class="cpref-head">
                             <span class="cpref-ico" aria-hidden="true">📮</span>

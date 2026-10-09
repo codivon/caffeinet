@@ -419,6 +419,20 @@ window.CN = (function () {
     function updateAvatar(u) {
         var targets = document.querySelectorAll('#headerAvatar, #profileAvatar');
         if (!targets.length || !u) { return; }
+
+        /* v42 — آواتار تصویری (کراپ ۷۵×۷۵ WebP) مقدار دارد → نمایش تصویر */
+        if (u.avatar_url) {
+            Array.prototype.forEach.call(targets, function (a) {
+                a.textContent = '';
+                a.classList.add('is-avatar');
+                a.style.backgroundImage = 'url("' + u.avatar_url + '")';
+                a.style.backgroundSize = 'cover';
+                a.style.backgroundPosition = 'center';
+                if (a.getAttribute('title') !== null) { a.setAttribute('title', u.full_name || ''); }
+            });
+            return;
+        }
+
         var initials;
         if (u.name && u.family) {
             initials = (u.name.trim().charAt(0) || '؟') + (u.family.trim().charAt(0) || '');
@@ -426,6 +440,8 @@ window.CN = (function () {
             initials = '؟';
         }
         Array.prototype.forEach.call(targets, function (a) {
+            a.classList.remove('is-avatar');
+            a.style.backgroundImage = '';
             a.textContent = initials;
             if (a.getAttribute('title') !== null) { a.setAttribute('title', u.full_name || ''); }
         });
@@ -526,6 +542,8 @@ window.CN = (function () {
         if (options.persist !== false) {
             try { window.localStorage.setItem(THEME_KEY, mode); } catch (e) { /* noop */ }
         }
+        /* v42 — کوکی تم برای مانیفست PWA (رنگ اسپلش روشن/تاریک) */
+        if (window.CNThemeCookie) { window.CNThemeCookie(isDark ? 'dark' : 'light'); }
         syncThemeButtons();
     }
 
@@ -738,6 +756,14 @@ window.CN = (function () {
         refreshBottomNavActive();
     });
 
+    /* v42 — ذخیرهٔ پوستهٔ پالت (ظاهر و رنگ‌بندی) برای صفحهٔ آفلاین:
+       offline.js همین CSS را از localStorage تزریق می‌کند تا صفحهٔ
+       «اتصال قطع» هم دقیقاً هم‌رنگ پالت انتخابی باشد. */
+    try {
+        var apEl = document.getElementById('appearance-css');
+        if (apEl) { window.localStorage.setItem('cn-appearance-css:app', apEl.textContent); }
+    } catch (e) { /* حافظه در دسترس نیست */ }
+
     /* ---------- [F-4] فشرده‌سازی تصویر در سمت کاربر ----------
        ورودی: File تصویر (jpeg/png/webp) — خروجی: Promise که «همیشه» resolve می‌شود
        (هیچ‌وقت reject نمی‌شود تا آپلود هرگز مسدود نشود؛ در هر خطا فایل اصلی برمی‌گردد).
@@ -811,10 +837,14 @@ window.CN = (function () {
                 return false;
             }
 
-            function swapJpgName(name) {
+            function swapExtName(name, ext) {
                 name = String(name || 'image');
-                if (/\.png$/i.test(name)) { return name.replace(/\.png$/i, '.jpg'); }
-                return name + '.jpg';
+                if (/\.(png|jpe?g|webp)$/i.test(name)) { return name.replace(/\.(png|jpe?g|webp)$/i, '.' + ext); }
+                return name + '.' + ext;
+            }
+
+            function swapJpgName(name) {
+                return swapExtName(name, 'jpg');
             }
 
             try {
@@ -827,8 +857,15 @@ window.CN = (function () {
                 if (type !== 'image/jpeg' && type !== 'image/png' && type !== 'image/webp') { return keep(); }
                 if (file.size <= COMPRESS_MIN_BYTES) { return keep(); }
 
-                var maxSide = Number(opts.maxSide) > 0 ? Number(opts.maxSide) : COMPRESS_DEFAULT_SIDE;
-                var quality = (typeof opts.quality === 'number' && opts.quality > 0 && opts.quality <= 1) ? opts.quality : COMPRESS_DEFAULT_QUALITY;
+                /* v42 — پیکربندی مدیر: خاموش = اصل فایل؛ وگرنه حداکثر ضلع/کیفیت/فرمت */
+                var uc = uploadCfg();
+                if (uc.enabled === false) { return keep(); }
+
+                var maxSide = Number(opts.maxSide) > 0 ? Number(opts.maxSide)
+                    : (Number(uc.max_side) > 0 ? Number(uc.max_side) : COMPRESS_DEFAULT_SIDE);
+                var quality = (typeof opts.quality === 'number' && opts.quality > 0 && opts.quality <= 1) ? opts.quality
+                    : (Number(uc.quality) > 0 ? Math.min(1, Number(uc.quality) / 100) : COMPRESS_DEFAULT_QUALITY);
+                var fmt = String(uc.format || 'auto');
 
                 url = window.URL.createObjectURL(file);
                 var img = new Image();
@@ -850,17 +887,37 @@ window.CN = (function () {
 
                         if (type === 'image/png') {
                             ctx.drawImage(img, 0, 0, cw, ch);
-                            if (file.size < COMPRESS_PNG_KEEP_BYTES || alphaSeen(ctx, cw, ch)) {
-                                /* PNG می‌ماند — شفافیت حفظ می‌شود */
-                                canvas.toBlob(function (blob) { finish(blob, 'image/png', file.name); }, 'image/png');
-                            } else {
-                                /* PNG بزرگ بدون شفافیت → JPEG با پس‌زمینهٔ سفید */
-                                ctx.clearRect(0, 0, cw, ch);
-                                ctx.fillStyle = '#ffffff';
-                                ctx.fillRect(0, 0, cw, ch);
-                                ctx.drawImage(img, 0, 0, cw, ch);
-                                canvas.toBlob(function (blob) { finish(blob, 'image/jpeg', swapJpgName(file.name)); }, 'image/jpeg', quality);
+                            var alpha = alphaSeen(ctx, cw, ch);
+
+                            /* v42 — فرمت WebP خواسته شده (حتی با شفافیت) */
+                            if (fmt === 'webp' && typeof canvas.toBlob === 'function') {
+                                canvas.toBlob(function (blob) {
+                                    if (blob && blob.type === 'image/webp') {
+                                        finish(blob, 'image/webp', swapExtName(file.name, 'webp'));
+                                    } else {
+                                        /* انکودر WebP نبود — مثل قبل */
+                                        finishPngOrJpeg();
+                                    }
+                                }, 'image/webp', quality);
+                                return;
                             }
+
+                            function finishPngOrJpeg() {
+                                ctx.drawImage(img, 0, 0, cw, ch);
+                                if (file.size < COMPRESS_PNG_KEEP_BYTES || alpha || fmt === 'keep') {
+                                    /* PNG می‌ماند — شفافیت/فرمت حفظ می‌شود */
+                                    canvas.toBlob(function (blob) { finish(blob, 'image/png', file.name); }, 'image/png');
+                                } else {
+                                    /* PNG بزرگ بدون شفافیت → JPEG با پس‌زمینهٔ سفید */
+                                    ctx.clearRect(0, 0, cw, ch);
+                                    ctx.fillStyle = '#ffffff';
+                                    ctx.fillRect(0, 0, cw, ch);
+                                    ctx.drawImage(img, 0, 0, cw, ch);
+                                    canvas.toBlob(function (blob) { finish(blob, 'image/jpeg', swapExtName(file.name, 'jpg')); }, 'image/jpeg', quality);
+                                }
+                            }
+
+                            finishPngOrJpeg();
                         } else {
                             /* JPEG → JPEG و WebP → WebP (نوع حفظ می‌شود، شفافیت WebP پاک نمی‌شود) */
                             ctx.drawImage(img, 0, 0, cw, ch);
@@ -907,6 +964,124 @@ window.CN = (function () {
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', apply);
         }
+    })();
+
+    /* ---------- v42 — اسکلتون فوری ناوبری (لودر مدرن) ----------
+       با کلیک روی منوی پایین/هدر، پوستهٔ صفحهٔ مقصد (ساختار ثابت) همان لحظه
+       با شیمر موجی نمایش داده می‌شود؛Livewire صفحهٔ تازه را که سواپ کرد،
+       پوسته پنهان و محتوا با انیمیشن ملایم وارد می‌شود. */
+    (function initNavSkeleton() {
+        var overlay = null;
+        var hideTimer = null;
+
+        function pageKey(href) {
+            try {
+                var p = new URL(href, window.location.origin).pathname.replace(/\/+$/, '');
+                if (p === '/app' || p === '') { return 'home'; }
+                var m = p.match(/^\/app\/([^/]+)/);
+                return m ? m[1] : null;
+            } catch (e) { return null; }
+        }
+
+        function block(h, w, extra) {
+            return '<div class="skb' + (extra ? ' ' + extra : '') + '" style="height:' + h + 'px;' +
+                (w ? 'width:' + w + ';' : '') + '"></div>';
+        }
+
+        function row(h, wIcon) {
+            return '<div class="sk-row"><div class="skb circle" style="width:' + wIcon + 'px;height:' + wIcon + 'px;flex:none"></div>' +
+                '<div class="grow">' + block(h, '100%') + block(h - 6, '62%') + '</div></div>';
+        }
+
+        /* پوستهٔ ثابت هر صفحه — فقط ساختار؛ دیتا بعد از باز شدن لود می‌شود */
+        var SHAPES = {
+            home: function () {
+                return block(22, '55%') + block(96) + '<div class="sk-row">' +
+                    block(64, 'calc(33% - 7px)') + block(64, 'calc(33% - 7px)') + block(64, 'calc(33% - 7px)') +
+                    '</div>' + block(16, '40%', 'sk-gap') + row(72, 44) + row(72, 44);
+            },
+            services: function () {
+                return block(44) + '<div class="sk-row sk-gap">' +
+                    block(30, '64px', 'circle') + block(30, '84px', 'circle') + block(30, '76px', 'circle') + block(30, '70px', 'circle') +
+                    '</div>' + block(16, '38%', 'sk-gap') + row(82, 48) + row(82, 48) + row(82, 48);
+            },
+            orders: function () {
+                return block(22, '42%') + block(120) + block(120) + block(120);
+            },
+            support: function () {
+                return block(84) + '<div class="sk-row sk-gap">' +
+                    block(30, '58px', 'circle') + block(30, '84px', 'circle') + block(30, '70px', 'circle') +
+                    '</div>' + block(72, '100%', 'sk-gap') + block(72);
+            },
+            wallet: function () {
+                return block(130) + block(34, '100%', 'circle') + block(56, '100%', 'sk-gap') +
+                    block(56) + block(56);
+            },
+            profile: function () {
+                return '<div class="sk-row"><div class="skb circle" style="width:64px;height:64px;flex:none"></div>' +
+                    '<div class="grow">' + block(20, '52%') + block(14, '36%') + '</div></div>' +
+                    '<div class="sk-row sk-gap">' + block(64, 'calc(25% - 8px)') + block(64, 'calc(25% - 8px)') +
+                    block(64, 'calc(25% - 8px)') + block(64, 'calc(25% - 8px)') + '</div>' +
+                    row(64, 40) + row(64, 40) + row(64, 40);
+            }
+        };
+
+        function ensureOverlay() {
+            if (overlay) { return overlay; }
+            overlay = document.createElement('div');
+            overlay.className = 'nav-sk-overlay';
+            overlay.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(overlay);
+            return overlay;
+        }
+
+        function show(key) {
+            var shape = SHAPES[key];
+            if (!shape) { return; }
+            var el = ensureOverlay();
+
+            /* ارتفاع = بین هدر و ناوبری پایین تا پوستهٔ صفحه پوشانده شود */
+            var head = document.querySelector('.app-header');
+            var nav = document.querySelector('.bottom-nav');
+            el.style.top = head ? head.offsetHeight + 'px' : '0';
+            el.style.bottom = nav ? (nav.offsetHeight + 'px') : '0';
+            if (nav && window.CSS && CSS.supports && CSS.supports('padding', 'env(safe-area-inset-bottom)')) {
+                el.style.bottom = 'calc(' + nav.offsetHeight + 'px + env(safe-area-inset-bottom, 0px))';
+            }
+
+            el.innerHTML = shape();
+            el.classList.add('show');
+            window.clearTimeout(hideTimer);
+            hideTimer = window.setTimeout(hide, 6000); /* ضدهنگ */
+        }
+
+        function hide() {
+            window.clearTimeout(hideTimer);
+            if (overlay) { overlay.classList.remove('show'); }
+        }
+
+        /* کلیک روی لینک‌های منوی پایین/هدر (فاز ضبط — قبل از wire:navigate) */
+        document.addEventListener('click', function (e) {
+            if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) { return; }
+            var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+            if (!a || !a.hasAttribute('wire:navigate')) { return; }
+            if (!(a.closest('.bottom-nav') || a.closest('.app-header'))) { return; }
+
+            var key = pageKey(a.getAttribute('href'));
+            if (!key || key === pageKey(window.location.href)) { return; } /* همان صفحه */
+            show(key);
+        }, true);
+
+        /* پایان ناوبری → پوسته پنهان + انیمیشن ورود محتوا */
+        document.addEventListener('livewire:navigated', function () {
+            hide();
+            var main = document.getElementById('appMain');
+            if (main) {
+                main.classList.remove('page-enter');
+                void main.offsetWidth;
+                main.classList.add('page-enter');
+            }
+        });
     })();
 
     return {

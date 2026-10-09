@@ -123,6 +123,13 @@
                     var img = document.createElement('img');
                     img.alt = '';
                     url = URL.createObjectURL(file);
+                    /* v42 — اگر مرورگر گوشی فرمت را نتوانست (مثل HEIC) → آیکن */
+                    img.onerror = function () {
+                        img.remove();
+                        if (url) { try { URL.revokeObjectURL(url); } catch (e) { /* noop */ } }
+                        var svg2 = el.querySelector('svg');
+                        if (svg2) { svg2.style.display = ''; }
+                    };
                     img.src = url;
                     el.appendChild(img);
                 } catch (e) { /* noop */ }
@@ -516,15 +523,14 @@
         var svcTimeEl = document.getElementById('svcTime');
         if (svcTimeEl) { svcTimeEl.textContent = d.estimated_time_label && d.estimated_time_label !== '—' ? d.estimated_time_label : ''; }
 
-        /* ردیف‌های قیمت */
+        /* ردیف‌های قیمت — v42: بج «مشمول کمیسیون» طبق درخواست مالک حذف شد */
         var rows = '';
-        rows += priceRow('💰', 'کارمزد خدمت', d.base_price, false);
+        rows += priceRow('💰', 'کارمزد خدمت', d.base_price);
         (d.costs || []).forEach(function (c) {
             rows += priceRow(
                 c.type === 'fee' ? '🧾' : '📦',
-                c.title + (c.is_commission ? '' : ''),
-                c.amount,
-                !!c.is_commission
+                c.title,
+                c.amount
             );
         });
         rows += '<div class="price-row total"><span class="pr-title">هزینهٔ درخواست</span><span class="pr-amount">' + CN.faMoney(d.total_amount) + ' تومان</span></div>';
@@ -557,8 +563,8 @@
         if (submitBtnEl) { submitBtnEl.disabled = false; }
     }
 
-    function priceRow(icon, title, amount, commission) {
-        return '<div class="price-row' + (commission ? ' commission' : '') + '">' +
+    function priceRow(icon, title, amount) {
+        return '<div class="price-row">' +
             '<span class="pr-title">' + CN.esc(icon) + ' ' + CN.esc(title) + '</span>' +
             '<span class="pr-amount">' + CN.faMoney(amount) + ' تومان</span>' +
             '</div>';

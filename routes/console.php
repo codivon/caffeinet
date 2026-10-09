@@ -83,3 +83,18 @@ Schedule::call(fn () => \App\Support\CronHeartbeat::touch('cron-heartbeat'))
 */
 
 Schedule::command(CleanupSystem::class)->dailyAt('03:30')->withoutOverlapping()->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| v42 — فشرده‌سازی تدریجی آپلودها (سرور-پسند)
+|--------------------------------------------------------------------------
+| هر دقیقه حداکثر «batch» تصویر یا «یک» ویدیو فشرده می‌شود (تنظیمات ←
+| آپلود و فشرده‌سازی). فایل‌ها از دفتر media_files خوانده می‌شوند؛
+| بدون queue worker و بدون فشار لحظه‌ای به CPU هاست.
+|
+*/
+
+Schedule::command(\App\Console\Commands\MediaCompress::class)
+    ->everyMinute()
+    ->runInBackground()
+    ->withoutOverlapping(10);
