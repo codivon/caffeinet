@@ -5,7 +5,7 @@
 @section('breadcrumb', 'پنل مدیریت کل ← مستندات API')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/pages/api-docs.css') }}?v=13">
+<link rel="stylesheet" href="{{ asset('assets/css/pages/api-docs.css') }}?v=14">
 @endpush
 
 @section('content')

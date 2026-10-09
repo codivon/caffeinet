@@ -180,9 +180,9 @@
 
         var html = '';
         featured.slice(0, 6).forEach(function (s) {
-            /* فاز ۴۶ — طبق درخواست مالک: داخل کارت ویژه فقط عنوان (به‌همراه آیکون دسته) */
+            /* فاز ۴۷ — طبق درخواست مالک: داخل کارت ویژه «فقط عنوان» —
+               آیکون دسته و ستارهٔ گوشهٔ کارت هم حذف شد. */
             html += '<a class="featured-card" href="' + CN.withPort('/app/service/' + s.id) + '">' +
-                '<div class="f-icon">' + CN.esc((s.category && s.category.icon) || '⭐') + '</div>' +
                 '<div class="f-name">' + CN.esc(s.name) + '</div>' +
                 '</a>';
         });

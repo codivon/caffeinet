@@ -20,9 +20,14 @@ use Illuminate\Support\Facades\Route;
 | احراز هویت با Sanctum (توکن Bearer). اپ موبایل و اپ وب مشتری
 | هر دو از همین اندپوینت‌ها استفاده می‌کنند.
 |
+| فاز ۴۷ — الزام کلید وب‌سرویس: همهٔ مسیرهای v1 (به‌جز health) باید
+| هدر «X-Api-Key» معتبر بفرستند (میدل‌ویر api.key). کلیدها از
+| پنل ادمین ← «کلیدهای وب‌سرویس» خودکار ساخته می‌شوند؛ کلید داخلی
+| وب‌اپ در صفحات تزریق شده و اپ/پنل‌ها خودکار با آن صدا می‌زنند.
+|
 */
 
-Route::prefix('v1')->name('api.')->group(function () {
+Route::prefix('v1')->name('api.')->middleware('api.key')->group(function () {
 
     Route::get('health', fn () => response()->json([
         'ok' => true,

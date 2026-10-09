@@ -93,6 +93,7 @@
                     ['route' => 'admin.audit.index', 'label' => 'لاگ فعالیت', 'icon' => 'history', 'section' => 'audit', 'active' => request()->routeIs('admin.audit.*')],
                     ['route' => 'admin.system.index', 'label' => 'وضعیت سیستم', 'icon' => 'shield', 'section' => 'system', 'active' => request()->routeIs('admin.system.*')],
                     ['route' => 'admin.api-docs.index', 'label' => 'مستندات API', 'icon' => 'book', 'section' => 'api-docs', 'active' => request()->routeIs('admin.api-docs.*')],
+                    ['route' => 'admin.api-keys.index', 'label' => 'کلیدهای وب‌سرویس', 'icon' => 'apikey', 'section' => 'api-keys', 'active' => request()->routeIs('admin.api-keys.*')],
                     ['route' => 'admin.guide.index', 'label' => 'راهنمای پنل', 'icon' => 'guide', 'section' => 'guide', 'active' => request()->routeIs('admin.guide.*')],
                 ], fn ($item) => \App\Policies\AdminAccessPolicy::canSection($user ?? auth()->user(), $item['section'])));
             @endphp
@@ -141,6 +142,9 @@
                         <svg class="size-4.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
                     @elseif ($item['icon'] === 'book')
                         <svg class="size-4.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                    @elseif ($item['icon'] === 'apikey')
+                        {{-- فاز ۴۷ — کلیدهای وب‌سرویس --}}
+                        <svg class="size-4.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4"/><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/></svg>
                     @elseif ($item['icon'] === 'chat')
                         <svg class="size-4.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
                     @elseif ($item['icon'] === 'star')

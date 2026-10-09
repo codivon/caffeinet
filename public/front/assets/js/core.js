@@ -130,6 +130,12 @@ window.CN = (function () {
         xhr.timeout = opts.timeout || 20000; /* v40 — هیچ درخواستی بی‌مهلت نیست */
         xhr.responseType = 'text';
         xhr.setRequestHeader('Accept', 'application/json');
+        /* فاز ۴۷ — الزام کلید وب‌سرویس: هدر «X-Api-Key» از متای صفحه
+           (partials/vpn-modal) — بدون آن API با 401 جواب می‌دهد. */
+        var apiKeyMeta = document.querySelector('meta[name="api-key"]');
+        if (apiKeyMeta && apiKeyMeta.content) {
+            xhr.setRequestHeader('X-Api-Key', apiKeyMeta.content);
+        }
         if (token()) {
             xhr.setRequestHeader('Authorization', 'Bearer ' + token());
         }

@@ -47,6 +47,7 @@ class AdminAccessPolicy
         'audit' => 'audit.view',
         'system' => 'settings.manage',
         'api-docs' => null, // مستندات برای همهٔ مدیران پنل قابل مشاهده است
+        'api-keys' => null, // فاز ۴۷ — کلیدهای وب‌سرویس برای همهٔ مدیران پنل
         'guide' => null, // راهنمای پنل برای همهٔ مدیران قابل مشاهده است (فاز ۱۳)
     ];
 
@@ -76,6 +77,7 @@ class AdminAccessPolicy
         'audit' => 'لاگ فعالیت',
         'system' => 'وضعیت سیستم',
         'api-docs' => 'مستندات API',
+        'api-keys' => 'کلیدهای وب‌سرویس',
         'guide' => 'راهنمای پنل',
     ];
 

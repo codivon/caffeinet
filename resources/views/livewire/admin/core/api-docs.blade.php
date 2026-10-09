@@ -1,7 +1,7 @@
 {{-- مستندات API v1 — کامپوننت Livewire [Task 3-b]
      محتوای ثابت مستندات + جستجو/کپی/چاپ با JS قبلی صفحه. --}}
 @push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/pages/api-docs.css') }}?v=13">
+<link rel="stylesheet" href="{{ asset('assets/css/pages/api-docs.css') }}?v=14">
 @endpush
 
 <div>
@@ -49,6 +49,19 @@
                 سقف کلی: ۱۲۰ درخواست در دقیقه برای هر کاربر احرازشده.
                 پاسخ‌ها همیشه JSON با کلید <code>message</code> برای متن فارسی خطا/موفقیت.
             </p>
+
+            {{-- فاز ۴۷ — الزام کلید وب‌سرویس --}}
+            <div class="ad-apikey-note" role="note">
+                <b>الزام کلید وب‌سرویس (فاز ۴۷):</b>
+                همهٔ اندپوینت‌ها بدون هدر
+                <code>X-Api-Key</code>
+                پاسخ <b>۴۰۱</b> می‌دهند — به‌جز <code>GET /api/v1/health</code> (مانیتورینگ).
+                کلیدها خودکار ساخته می‌شوند و از صفحهٔ
+                <a href="{{ route('admin.api-keys.index') }}">کلیدهای وب‌سرویس</a>
+                مدیریت می‌شوند. اپ وب و پنل‌ها کلید داخلی را خودکار می‌فرستند.
+                نمونه:
+                <code dir="ltr">curl -H "X-Api-Key: cnk_…" https://YOUR-DOMAIN/api/v1/geo/provinces</code>
+            </div>
         </section>
 
         {{-- گروه‌ها --}}

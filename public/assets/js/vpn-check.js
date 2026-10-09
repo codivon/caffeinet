@@ -145,8 +145,21 @@
 
     /* ---------- بررسی وضعیت (GET /api/v1/vpn-status) ---------- */
 
+    /* فاز ۴۷ — کلید وب‌سرویس داخلی از متای صفحه؛ همهٔ درخواست‌های API
+       باید هدر «X-Api-Key» بفرستند (میدل‌ویر VerifyApiKey). */
+    function apiKey() {
+        try {
+            var m = document.querySelector('meta[name="api-key"]');
+            return (m && m.content) || '';
+        } catch (e) { return ''; }
+    }
+
     function check(force) {
-        fetch(API_URL, { credentials: 'same-origin', cache: 'no-store' })
+        fetch(API_URL, {
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: { 'X-Api-Key': apiKey() }
+            })
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (body) {
                 lastCheckAt = Date.now();

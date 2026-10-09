@@ -40,6 +40,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'coffeenet.context' => \App\Http\Middleware\EnsureCoffeenetContext::class,
             'operator.context' => \App\Http\Middleware\EnsureOperatorContext::class,
             'admin.access' => \App\Http\Middleware\AdminSectionAccess::class,
+            // فاز ۴۷ — الزام کلید وب‌سرویس روی API (هدر X-Api-Key)
+            'api.key' => \App\Http\Middleware\VerifyApiKey::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

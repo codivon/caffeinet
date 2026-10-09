@@ -145,4 +145,8 @@ Route::middleware(['admin.access'])->group(function () {
             ->name('system.encrypt');
         Route::get('api-docs', \App\Livewire\Admin\Core\ApiDocs::class)
             ->name('api-docs.index');
+
+        /* ---------- فاز ۴۷ — کلیدهای وب‌سرویس (API Keys) ---------- */
+        Route::get('api-keys', \App\Livewire\Admin\Core\ApiKeys::class)
+            ->name('api-keys.index');
     });

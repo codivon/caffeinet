@@ -7,4 +7,9 @@
 | نمایش: حداکثر یک بار در هر مراجعه (sessionStorage)؛ بستنِ ساده
 | چیزی ذخیره نمی‌کند — در مراجعهٔ بعدی دوباره نمایش؛ چک‌باکس
 | «دیگه نمایش نده» → localStorage (دیگر هرگز). --}}
-<script src="{{ asset('assets/js/vpn-check.js') }}?v=3" defer></script>
+{{-- فاز ۴۷ — کلید وب‌سرویس داخلی: همهٔ صفحاتی که API را صدا می‌زنند
+| (اپ مشتری با core.js + پنل‌ها/ورودها با vpn-check.js) کلید را از این
+| متا می‌خوانند و در هدر «X-Api-Key» می‌فرستند (VerifyApiKey).
+| کلید داخلی خودکار ساخته/ترمیم می‌شود (ApiKey::internalKey). --}}
+<meta name="api-key" content="{{ \App\Models\ApiKey::internalKey() }}">
+<script src="{{ asset('assets/js/vpn-check.js') }}?v=4" defer></script>
