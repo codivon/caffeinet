@@ -190,24 +190,49 @@
     if (hiringInput) { hiringInput.value = hiringInput.value || 'auto'; }
 
     /* ---------- ذخیره هر فرم (AJAX) ---------- */
-    /* v42 — تب «آپلود و فشرده‌سازی»: کارت‌های حالت فشرده‌سازی + قفل فیلدهای سفارشی */
+    /* v43 — تب «آپلود و فشرده‌سازی»: کارت‌های حالت + گرید فرمت + خلاصهٔ زندهٔ کارت وضعیت */
   (function () {
     const box = document.getElementById('up-presets');
-    if (!box) return;
+    const fmtBox = document.getElementById('up-formats');
+    const FMT_LABELS = { keep: 'اصل', auto: 'هوشمند', jpeg: 'JPG', png: 'PNG', webp: 'WebP', gif: 'GIF', avif: 'AVIF' };
 
     function sync() {
-      const checked = box.querySelector('input[type=radio]:checked');
+      const checked = box ? box.querySelector('input[type=radio]:checked') : null;
       const isCustom = checked && checked.value === 'custom';
-      box.querySelectorAll('.up-preset').forEach(l => l.classList.toggle('on', l.contains(checked)));
+      if (box) { box.querySelectorAll('.up2-preset').forEach(l => l.classList.toggle('on', l.contains(checked))); }
       const custom = document.getElementById('up-custom-box');
-      if (custom) {
-        custom.style.opacity = isCustom ? '1' : '.45';
-        custom.style.pointerEvents = isCustom ? 'auto' : 'none';
-      }
+      if (custom) { custom.classList.toggle('is-locked', !isCustom); }
+
+      // خلاصهٔ زندهٔ کارت وضعیت
+      const sumMode = document.getElementById('up2-sum-mode');
+      if (sumMode) { sumMode.textContent = (checked && checked.dataset.label) || '—'; }
+      const fmtChecked = fmtBox ? fmtBox.querySelector('input[type=radio]:checked') : null;
+      if (fmtBox) { fmtBox.querySelectorAll('.up2-fmt').forEach(l => l.classList.toggle('on', l.contains(fmtChecked))); }
+      const sumFmt = document.getElementById('up2-sum-fmt');
+      if (sumFmt) { sumFmt.textContent = FMT_LABELS[fmtChecked ? fmtChecked.value : ''] || '—'; }
+      const ms = document.getElementById('up-max-side');
+      const q = document.getElementById('up-quality');
+      const sumDim = document.getElementById('up2-sum-dim');
+      if (sumDim) { sumDim.textContent = (ms && ms.value ? ms.value + 'px' : '—') + ' / ' + (q && q.value ? '٪' + q.value : '—'); }
+      const dimChip = document.getElementById('up2-chip-dim');
+      if (dimChip) { dimChip.classList.toggle('is-muted', !isCustom); }
     }
 
-    box.addEventListener('change', sync);
+    if (box) { box.addEventListener('change', sync); }
+    if (fmtBox) { fmtBox.addEventListener('change', sync); }
+    ['up-max-side', 'up-quality'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.addEventListener('input', sync); }
+    });
+
+    // v43 — نمایش/قفل CRF ویدیو بر اساس کلید ویدیو
+    const vsw = document.getElementById('up-video-enabled');
+    const crfRow = document.getElementById('up2-crf-row');
+    function syncVideo() { if (crfRow) { crfRow.classList.toggle('is-locked', !(vsw && vsw.checked)); } }
+    if (vsw) { vsw.addEventListener('change', syncVideo); }
+
     sync();
+    syncVideo();
   })();
 
 document.querySelectorAll('form[data-group]').forEach(form => {

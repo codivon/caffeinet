@@ -42,4 +42,36 @@
             } catch (err) { /* Safari قدیمی */ }
         }
     } catch (e) { /* localStorage در دسترس نیست — تم سیستم اعمال نمی‌شود */ }
+
+    /* ═══════ v43 — نگهبان تم (رفع «فلش سفید» بعد از ناوبری SPA) ═══════
+       Livewire در هر wire:navigate اتریبیوت‌های <html> را با نسخهٔ
+       سرور-رندر (بدون کلاس dark) جایگزین می‌کند → یک فریم با تم اشتباه
+       رندر می‌شد (آیکون‌های نوتیف/تم در اپ لحظه‌ای سفید می‌شدند).
+       این ناظر هر تغییر کلاس <html> را در همان microtask (قبل از paint)
+       با انتخاب واقعی کاربر مقایسه و اصلاح می‌کند:
+         • اگر state با localStorage/سیستم هم‌خوان باشد (تعویض دستی کاربر)
+           هیچ دخالتی نمی‌کند.
+         • اگر Livewire کلاس را قپ کرده باشد، همان لحظه برمی‌گرداند. */
+    try {
+        var themeWantsDark = function () {
+            var s = null;
+            try { s = localStorage.getItem('caffeinet-theme'); } catch (err) { /* noop */ }
+            return s === 'dark' || (!s && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+        };
+        var themeSync = function () {
+            var wants = false;
+            try { wants = themeWantsDark(); } catch (err) { return; }
+            var html = document.documentElement;
+            if (html.classList.contains('dark') !== wants) {
+                html.classList.toggle('dark', wants);
+                if (window.CNThemeCookie) { window.CNThemeCookie(wants ? 'dark' : 'light'); }
+            }
+        };
+        if (window.MutationObserver) {
+            var themeGuard = new MutationObserver(function () { themeSync(); });
+            themeGuard.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+            /* بعد از هر ناوبری SPA هم یک بررسی قطعی */
+            window.addEventListener('livewire:navigated', themeSync, true);
+        }
+    } catch (e) { /* ناظر تم حیاتی نیست */ }
 })();

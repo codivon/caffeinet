@@ -10,7 +10,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- تم ذخیره‌شده قبل از رندر اعمال می‌شود (ضد-FOUC) --}}
-    <script src="{{ asset('assets/js/theme-boot.js') }}?v=2"></script>
+    <script src="{{ asset('assets/js/theme-boot.js') }}?v=4"></script>
 
     <title>ورود سازمان — {{ config('app.name') }}</title>
     {{-- PWA (فاز ۱۴) --}}

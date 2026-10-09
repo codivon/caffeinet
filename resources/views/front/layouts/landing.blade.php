@@ -23,7 +23,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/apple-touch-icon.png') }}">
 
     {{-- بوت تم روز/شب — قبل از استایل‌ها (ضد-FLUC)؛ پیش‌فرض: روز --}}
-    <script src="{{ asset('assets/js/landing-theme-boot.js') }}?v=2"></script>
+    <script src="{{ asset('assets/js/landing-theme-boot.js') }}?v=4"></script>
 
     {{-- فونت وزیرمتن --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">

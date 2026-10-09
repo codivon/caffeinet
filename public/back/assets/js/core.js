@@ -192,7 +192,11 @@ window.App = {
                 : (Number(uc.max_side) > 0 ? Number(uc.max_side) : APP_IMG_MAX_SIDE);
             const quality = (typeof opts.quality === 'number' && opts.quality > 0 && opts.quality <= 1) ? opts.quality
                 : (Number(uc.quality) > 0 ? Math.min(1, Number(uc.quality) / 100) : APP_IMG_QUALITY);
-            const fmt = String(uc.format || 'auto');
+
+            /* v43 — فرمت پیش‌فرض مدیر: keep|auto|jpeg|png|webp|gif|avif
+               (کانواس GIF انکود نمی‌کند → PNG با حفظ شفافیت) */
+            let fmt = String(uc.format || 'auto').toLowerCase();
+            if (fmt === 'gif') { fmt = 'png'; }
 
             url = window.URL.createObjectURL(file);
             const img = new Image();
@@ -215,7 +219,9 @@ window.App = {
             const ctx = canvas.getContext('2d');
             if (!ctx || typeof canvas.toBlob !== 'function') { return keep(); }
 
-            /* نمونه‌گیری ارزان شفافیت: ۴ گوشه + مرکز */
+            ctx.drawImage(img, 0, 0, cw, ch);
+
+            /* نمونه‌گیری ارزان شفافیت: ۴ گوشه + مرکز (فقط png/webp ممکن است آلفا داشته باشند) */
             const alphaSeen = () => {
                 const pts = [[0, 0], [cw - 1, 0], [0, ch - 1], [cw - 1, ch - 1], [cw >> 1, ch >> 1]];
                 try {
@@ -225,39 +231,64 @@ window.App = {
                 } catch (e) { return true; } // خواندن پیکسل ممکن نشد → محافظه‌کار: PNG بماند
                 return false;
             };
+            const alpha = (type !== 'image/jpeg') && alphaSeen();
 
             const toBlob = (mime, q) => new Promise((res) => {
                 try { canvas.toBlob(res, mime, q); } catch (e) { res(null); }
             });
 
-            let outType = type;
-            let outName = file.name;
-            let blob = null;
+            const swapExt = (name, ext) => {
+                name = String(name || 'image');
+                if (/\.(png|jpe?g|webp|avif|gif)$/i.test(name)) { return name.replace(/\.(png|jpe?g|webp|avif|gif)$/i, '.' + ext); }
+                return name + '.' + ext;
+            };
 
-            if (type === 'image/png') {
+            /* انکود PNG — شفافیت حفظ می‌شود */
+            const outPng = async () => ({ blob: await toBlob('image/png'), type: 'image/png', name: file.name });
+            /* انکود JPEG — پس‌زمینهٔ سفید (آلفا از قبل رد شده است) */
+            const outJpeg = async () => {
+                ctx.clearRect(0, 0, cw, ch);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, cw, ch);
                 ctx.drawImage(img, 0, 0, cw, ch);
-                if (file.size < APP_IMG_PNG_KEEP_BYTES || alphaSeen() || fmt === 'keep') {
-                    // PNG می‌ماند — شفافیت/فرمت حفظ می‌شود
-                    blob = await toBlob('image/png');
-                } else {
-                    // PNG بزرگ بدون شفافیت → JPEG با پس‌زمینهٔ سفید
-                    ctx.clearRect(0, 0, cw, ch);
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(0, 0, cw, ch);
-                    ctx.drawImage(img, 0, 0, cw, ch);
-                    outType = 'image/jpeg';
-                    outName = /\.png$/i.test(outName) ? outName.replace(/\.png$/i, '.jpg') : outName + '.jpg';
-                    blob = await toBlob('image/jpeg', quality);
+                return { blob: await toBlob('image/jpeg', quality), type: 'image/jpeg', name: swapExt(file.name, 'jpg') };
+            };
+            /* انکود typed (webp/avif) — اگر انکودر نبود fallback */
+            const outTyped = async (mime, ext) => ({ blob: await toBlob(mime, quality), type: mime, name: swapExt(file.name, ext) });
+
+            /* تصمیم فرمت مقصد طبق تنظیمات مدیر */
+            let target;
+            if (fmt === 'keep') { target = type; }
+            else if (fmt === 'jpeg') { target = alpha ? 'auto' : 'image/jpeg'; } // آلفا سمت کلاینت JPEG نمی‌شود
+            else if (fmt === 'png') { target = 'image/png'; }
+            else if (fmt === 'webp') { target = 'image/webp'; }
+            else if (fmt === 'avif') { target = 'image/avif'; }
+            else { target = alpha ? 'image/webp' : 'image/jpeg'; } // auto
+            if (target === 'auto') { target = alpha ? 'image/webp' : 'image/jpeg'; }
+
+            let out = null;
+            if (target === 'image/avif') {
+                out = await outTyped('image/avif', 'avif');
+                if (!out.blob || out.blob.type !== 'image/avif') {
+                    out = await outTyped('image/webp', 'webp');
+                    if (!out.blob || out.blob.type !== 'image/webp') { out = alpha ? await outPng() : await outJpeg(); }
                 }
+            } else if (target === 'image/webp') {
+                out = await outTyped('image/webp', 'webp');
+                if (!out.blob || out.blob.type !== 'image/webp') { out = alpha ? await outPng() : await outJpeg(); }
+            } else if (target === 'image/png') {
+                out = await outPng();
+            } else if (target === 'image/jpeg') {
+                out = await outJpeg();
             } else {
-                // JPEG → JPEG و WebP → WebP (نوع حفظ می‌شود، شفافیت WebP پاک نمی‌شود)
-                ctx.drawImage(img, 0, 0, cw, ch);
-                blob = await toBlob(type, quality);
+                out = await outTyped(type, type === 'image/jpeg' ? 'jpg' : (type === 'image/png' ? 'png' : 'webp'));
+                if (!out.blob || (out.blob.type && out.blob.type.toLowerCase() !== type)) { out = null; }
             }
 
-            if (!blob || blob.size >= file.size) { return keep(); }          // کوچک‌تر نشد
-            if (blob.type && blob.type.toLowerCase() !== outType) { return keep(); } // انکودر نوع خواسته‌شده را نداشت
-            return new window.File([blob], outName, { type: outType, lastModified: Date.now() });
+            if (!out || !out.blob || out.blob.size >= file.size) { return keep(); }          // کوچک‌تر نشد
+            const outType = String(out.blob.type || out.type).toLowerCase();
+            if (outType !== String(out.type).toLowerCase()) { return keep(); }               // انکودر نداشت
+            return new window.File([out.blob], out.name, { type: out.type, lastModified: Date.now() });
         } catch (e) {
             return keep();
         } finally {

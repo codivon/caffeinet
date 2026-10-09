@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- تم ذخیره‌شده قبل از رندر اعمال می‌شود (ضد-FOUC) --}}
-    <script src="{{ asset('assets/js/theme-boot.js') }}?v=2"></script>
+    <script src="{{ asset('assets/js/theme-boot.js') }}?v=4"></script>
     {{-- v42 — پیکربندی فشرده‌سازی آپلودها (خوانده‌شده توسط core.js/App) --}}
     <meta name="upload-config" content='@json(\App\Support\UploadConfig::client())'>
 
@@ -178,7 +178,7 @@
 {{-- [Task 2-a] data-navigate-once: اسکریپت‌های مشترک در هر ناوبری دوباره اجرا نشوند --}}
 <script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1" data-navigate-once></script>
 <script src="{{ asset('assets/js/realtime.js') }}?v=7" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(auth()->user()))'></script>
-<script src="{{ asset('back/assets/js/core.js') }}?v=15" data-navigate-once></script>
+<script src="{{ asset('back/assets/js/core.js') }}?v=16" data-navigate-once></script>
 <script src="{{ asset('back/assets/js/ui.js') }}?v=13" data-navigate-once></script>
 <script src="{{ asset('back/assets/js/pages/layout.js') }}?v=14" data-navigate-once></script>
 {{-- اطلاعیه‌های پنل (فاز ۱۵) — بدون once (ری‌ران امن؛ بدون interval) --}}

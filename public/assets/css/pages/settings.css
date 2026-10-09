@@ -1084,3 +1084,271 @@ html.dark .ap-custom { background: color-mix(in srgb, var(--ui-brand-600, #2563e
 }
 .up-preset.on .text-xs { color: var(--brand-700, #1d4ed8); }
 html.dark .up-preset { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .12); }
+
+/* ═══════════════════ v43 — بازطراحی «آپلود و فشرده‌سازی» ═══════════════════ */
+
+/* ① کارت وضعیت */
+.up2-hero {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1.05rem 1.1rem;
+    border-radius: 1.1rem;
+    border: 1px solid color-mix(in srgb, var(--brand-200, #bfdbfe) 65%, var(--th-line, #e7e5e4));
+    background:
+        radial-gradient(120% 150% at 100% 0%, color-mix(in srgb, var(--brand-50, #eff6ff) 85%, transparent), transparent 55%),
+        linear-gradient(180deg, color-mix(in srgb, var(--brand-50, #eff6ff) 40%, #fff), #fff);
+    margin-bottom: 0.4rem;
+    transition: opacity .3s ease, filter .3s ease;
+}
+html.dark .up2-hero {
+    background:
+        radial-gradient(120% 150% at 100% 0%, color-mix(in srgb, var(--brand-900, #1e3a8a) 55%, transparent), transparent 55%),
+        linear-gradient(180deg, color-mix(in srgb, var(--brand-950, #172554) 45%, #0b1120), #0b1120);
+    border-color: color-mix(in srgb, var(--brand-700, #1d4ed8) 45%, var(--th-line, #292524));
+}
+.up2-hero.is-off { filter: grayscale(.55); opacity: .78; }
+.up2-hero-tile {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.95rem;
+    flex-shrink: 0;
+    color: #fff;
+    background: linear-gradient(135deg, var(--brand-500, #3b82f6), var(--brand-700, #1d4ed8));
+    box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--brand-600, #2563eb) 75%, transparent);
+}
+.up2-hero-tile svg { width: 1.4rem; height: 1.4rem; }
+.up2-hero-body { flex: 1; min-width: 0; }
+.up2-hero-title { font-size: 0.86rem; font-weight: 800; color: var(--th-ink, #1c1917); }
+html.dark .up2-hero-title { color: #e7e5e4; }
+.up2-hero-sub { font-size: 11px; color: var(--th-ink-faint, #a8a29e); margin-top: 2px; line-height: 1.7; }
+.up2-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.55rem; }
+.up2-chip {
+    font-size: 10.5px;
+    color: var(--th-ink-soft, #78716c);
+    background: color-mix(in srgb, var(--brand-50, #eff6ff) 75%, #fff);
+    border: 1px solid color-mix(in srgb, var(--brand-200, #bfdbfe) 70%, transparent);
+    padding: 0.22rem 0.6rem;
+    border-radius: 999px;
+    line-height: 1.5;
+}
+html.dark .up2-chip {
+    color: #c7d2fe;
+    background: color-mix(in srgb, var(--brand-900, #1e3a8a) 45%, #0b1120);
+    border-color: color-mix(in srgb, var(--brand-700, #1d4ed8) 55%, transparent);
+}
+.up2-chip b { font-weight: 800; color: var(--brand-700, #1d4ed8); }
+html.dark .up2-chip b { color: #93c5fd; }
+.up2-chip-dim.is-muted { opacity: .45; }
+
+/* ② بلوک‌ها */
+.up2-block {
+    padding: 0.95rem 1.05rem 1rem;
+    border: 1px solid var(--th-line, #e7e5e4);
+    border-radius: 1.05rem;
+    margin-top: 0.8rem;
+    background: var(--th-card, #fff);
+}
+html.dark .up2-block { background: rgba(255, 255, 255, .03); }
+.up2-label { font-size: 0.78rem; font-weight: 800; color: var(--th-ink, #1c1917); margin-bottom: 0.6rem; }
+html.dark .up2-label { color: #e7e5e4; }
+.up2-label-sub { font-size: 11px; color: var(--th-ink-faint, #a8a29e); line-height: 1.8; margin: -0.25rem 0 0.7rem; }
+.up2-only-custom { font-weight: 600; font-size: 10.5px; color: var(--th-ink-faint, #a8a29e); }
+.up2-mt3 { margin-top: 0.75rem; }
+.up2-soft {
+    background: color-mix(in srgb, var(--th-line, #e7e5e4) 30%, transparent);
+    border: 1px dashed var(--th-line, #d6d3d1);
+    border-radius: 0.9rem;
+    padding: 0.8rem 0.9rem 0.9rem;
+    transition: opacity .25s ease;
+}
+html.dark .up2-soft { background: rgba(255, 255, 255, .04); }
+.up2-soft.is-locked { opacity: .45; pointer-events: none; }
+.up2-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.up2-rowline { display: flex; align-items: flex-start; gap: 0.9rem; justify-content: space-between; }
+.up2-pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 0.12rem 0.5rem;
+    border-radius: 999px;
+    background: var(--th-line, #e7e5e4);
+    color: var(--th-ink-soft, #78716c);
+    margin-inline-end: 4px;
+}
+.up2-pill--ok { background: #dcfce7; color: #15803d; }
+html.dark .up2-pill--ok { background: rgba(34, 197, 94, .16); color: #4ade80; }
+
+/* ② کارت‌های حالت فشرده‌سازی */
+.up2-presets { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; }
+@media (max-width: 560px) { .up2-presets { grid-template-columns: 1fr; } }
+.up2-preset {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.7rem 0.75rem;
+    border-radius: 0.9rem;
+    border: 1.5px solid var(--th-line, #e7e5e4);
+    background: var(--th-card, #fff);
+    cursor: pointer;
+    transition: border-color .2s ease, box-shadow .2s ease, transform .15s ease;
+}
+html.dark .up2-preset { background: rgba(255, 255, 255, .03); }
+.up2-preset:hover { border-color: color-mix(in srgb, var(--brand-400, #60a5fa) 60%, var(--th-line, #e7e5e4)); transform: translateY(-1px); }
+.up2-preset.on {
+    border-color: var(--brand-500, #3b82f6);
+    box-shadow: 0 0 0 3.5px color-mix(in srgb, var(--brand-500, #3b82f6) 16%, transparent);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--brand-50, #eff6ff) 55%, #fff), #fff);
+}
+html.dark .up2-preset.on { background: color-mix(in srgb, var(--brand-900, #1e3a8a) 40%, #0b1120); }
+.up2-preset-icon {
+    display: grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 0.7rem;
+    flex-shrink: 0;
+    color: var(--th-ink-faint, #a8a29e);
+    background: var(--th-line, #f5f5f4);
+    transition: all .2s ease;
+}
+.up2-preset-icon svg { width: 1.05rem; height: 1.05rem; }
+.up2-preset.on .up2-preset-icon {
+    color: #fff;
+    background: linear-gradient(135deg, var(--brand-500, #3b82f6), var(--brand-700, #1d4ed8));
+}
+.up2-preset-body { min-width: 0; flex: 1; }
+.up2-preset-name { display: block; font-size: 0.74rem; font-weight: 800; color: var(--th-ink, #1c1917); }
+html.dark .up2-preset-name { color: #e7e5e4; }
+.up2-preset-desc { display: block; font-size: 10.5px; color: var(--th-ink-faint, #a8a29e); line-height: 1.7; margin-top: 2px; }
+.up2-preset-check {
+    position: absolute;
+    top: -7px;
+    inset-inline-start: -7px;
+    display: grid;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    background: var(--brand-500, #3b82f6);
+    color: #fff;
+    opacity: 0;
+    transform: scale(.4);
+    transition: all .18s cubic-bezier(.34, 1.56, .64, 1);
+    box-shadow: 0 3px 8px -2px color-mix(in srgb, var(--brand-600, #2563eb) 70%, transparent);
+}
+.up2-preset-check svg { width: 0.7rem; height: 0.7rem; }
+.up2-preset.on .up2-preset-check { opacity: 1; transform: scale(1); }
+
+/* ③ چیپ‌های فرمت */
+.up2-formats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.5rem; }
+.up2-fmt {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.55rem 0.6rem;
+    border-radius: 0.85rem;
+    border: 1.5px solid var(--th-line, #e7e5e4);
+    background: var(--th-card, #fff);
+    cursor: pointer;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+html.dark .up2-fmt { background: rgba(255, 255, 255, .03); }
+.up2-fmt:hover { border-color: color-mix(in srgb, var(--brand-400, #60a5fa) 60%, var(--th-line, #e7e5e4)); }
+.up2-fmt.on {
+    border-color: var(--brand-500, #3b82f6);
+    box-shadow: 0 0 0 3.5px color-mix(in srgb, var(--brand-500, #3b82f6) 16%, transparent);
+}
+.up2-fmt-badge {
+    display: grid;
+    place-items: center;
+    min-width: 2.6rem;
+    height: 1.7rem;
+    padding: 0 0.3rem;
+    border-radius: 0.55rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: .02em;
+    flex-shrink: 0;
+    background: var(--th-line, #f5f5f4);
+    color: var(--th-ink-soft, #78716c);
+    transition: all .2s ease;
+}
+.up2-fmt-badge[data-fmt="webp"] { background: #e8f5ee; color: #047857; }
+.up2-fmt-badge[data-fmt="avif"] { background: #fef3f2; color: #b91c1c; }
+.up2-fmt-badge[data-fmt="jpeg"] { background: #eef2ff; color: #4338ca; }
+.up2-fmt-badge[data-fmt="png"] { background: #ecfeff; color: #0e7490; }
+.up2-fmt-badge[data-fmt="gif"] { background: #fdf4ff; color: #a21caf; }
+.up2-fmt-badge[data-fmt="auto"] { background: #fffbeb; color: #b45309; }
+html.dark .up2-fmt-badge { filter: saturate(.85) brightness(.92); }
+.up2-fmt.on .up2-fmt-badge { background: linear-gradient(135deg, var(--brand-500, #3b82f6), var(--brand-700, #1d4ed8)); color: #fff; }
+.up2-fmt-body { min-width: 0; }
+.up2-fmt-name { display: block; font-size: 0.72rem; font-weight: 800; color: var(--th-ink, #1c1917); }
+html.dark .up2-fmt-name { color: #e7e5e4; }
+.up2-fmt-desc { display: block; font-size: 9.8px; color: var(--th-ink-faint, #a8a29e); line-height: 1.55; margin-top: 1px; }
+
+/* ⑥ خط‌لوله */
+.up2-flow {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    overflow-x: auto;
+    padding: 0.35rem 0.1rem 0.55rem;
+    scrollbar-width: thin;
+}
+.up2-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--th-ink-soft, #78716c);
+    background: var(--th-line, #f5f5f4);
+    border: 1px solid var(--th-line, #e7e5e4);
+    border-radius: 999px;
+    padding: 0.3rem 0.65rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+html.dark .up2-step { background: rgba(255, 255, 255, .05); }
+.up2-step i {
+    font-style: normal;
+    display: grid;
+    place-items: center;
+    width: 1.05rem;
+    height: 1.05rem;
+    border-radius: 50%;
+    font-size: 9px;
+    background: #fff;
+    color: var(--th-ink-soft, #78716c);
+    border: 1px solid var(--th-line, #e7e5e4);
+}
+html.dark .up2-step i { background: rgba(255, 255, 255, .08); }
+.up2-step--hi {
+    color: var(--brand-700, #1d4ed8);
+    border-color: color-mix(in srgb, var(--brand-300, #93c5fd) 80%, transparent);
+    background: color-mix(in srgb, var(--brand-50, #eff6ff) 80%, #fff);
+}
+html.dark .up2-step--hi { color: #93c5fd; background: color-mix(in srgb, var(--brand-900, #1e3a8a) 50%, #0b1120); }
+.up2-step--hi i { background: var(--brand-500, #3b82f6); color: #fff; border-color: var(--brand-500, #3b82f6); }
+.up2-arrow {
+    width: 14px;
+    height: 1.5px;
+    flex-shrink: 0;
+    background: repeating-linear-gradient(90deg, var(--th-line, #d6d3d1) 0 3px, transparent 3px 6px);
+    position: relative;
+}
+.up2-arrow::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 3.5px solid transparent;
+    border-inline-end-color: var(--th-line, #d6d3d1);
+}

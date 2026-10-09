@@ -252,35 +252,43 @@
             var sendBtn = document.getElementById('tkdSend');
             CN.btnLoading(sendBtn, true);
 
-            var fd = new FormData();
-            if (message) { fd.append('message', message); }
-            if (file) { fd.append('file', file); }
+            /* v43 — پیوست تصویری طبق تنظیمات «آپلود و فشرده‌سازی» مدیر قبل از
+               ارسال فشرده/تبدیل می‌شود (کاهش حجم آپلود؛ فایل‌های دیگر دست‌نخورده) */
+            var prep = (file && CN.detectFileType(file) === 'image' && typeof CN.compressImage === 'function')
+                ? CN.compressImage(file)
+                : Promise.resolve(file);
 
-            CN.api('/tickets/' + ticketId + '/messages', {
-                method: 'POST',
-                formData: fd,
-                success: function (resp) {
-                    state.sending = false;
-                    CN.btnLoading(sendBtn, false);
+            prep.then(function (sendFile) {
+                var fd = new FormData();
+                if (message) { fd.append('message', message); }
+                if (sendFile) { fd.append('file', sendFile); }
 
-                    if (tkdMessage) { tkdMessage.value = ''; }
-                    if (fileInput) { fileInput.value = ''; }
-                    renderChip(null);
+                CN.api('/tickets/' + ticketId + '/messages', {
+                    method: 'POST',
+                    formData: fd,
+                    success: function (resp) {
+                        state.sending = false;
+                        CN.btnLoading(sendBtn, false);
 
-                    if (resp.data) {
-                        state.messages.push(resp.data);
-                        state.lastId = Math.max(state.lastId, resp.data.id || 0);
+                        if (tkdMessage) { tkdMessage.value = ''; }
+                        if (fileInput) { fileInput.value = ''; }
+                        renderChip(null);
+
+                        if (resp.data) {
+                            state.messages.push(resp.data);
+                            state.lastId = Math.max(state.lastId, resp.data.id || 0);
+                        }
+                        CN.toast(resp.message || 'پاسخ ثبت شد.', 'success');
+                        renderThread();
+                        // وضعیت ممکن است تغییر کند (بازگشایی)
+                        load();
+                    },
+                    error: function (xhr, msg) {
+                        state.sending = false;
+                        CN.btnLoading(sendBtn, false);
+                        CN.toast(msg || 'ارسال ناموفق بود.', 'error');
                     }
-                    CN.toast(resp.message || 'پاسخ ثبت شد.', 'success');
-                    renderThread();
-                    // وضعیت ممکن است تغییر کند (بازگشایی)
-                    load();
-                },
-                error: function (xhr, msg) {
-                    state.sending = false;
-                    CN.btnLoading(sendBtn, false);
-                    CN.toast(msg || 'ارسال ناموفق بود.', 'error');
-                }
+                });
             });
         });
     }

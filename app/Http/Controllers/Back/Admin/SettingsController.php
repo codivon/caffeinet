@@ -339,7 +339,7 @@ class SettingsController extends Controller
             }
 
             if (isset($pairs['uploads.compression.images.format'])
-                && ! in_array($pairs['uploads.compression.images.format'], ['auto', 'keep', 'jpeg', 'webp'], true)) {
+                && ! in_array($pairs['uploads.compression.images.format'], \App\Support\UploadConfig::FORMATS, true)) {
                 return response()->json(['message' => 'فرمت تصویر معتبر نیست.'], 422);
             }
 

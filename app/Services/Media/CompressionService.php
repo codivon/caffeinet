@@ -137,17 +137,26 @@ class CompressionService
         $dstW = max(1, (int) round($w * $scale));
         $dstH = max(1, (int) round($h * $scale));
 
-        $hasAlpha = $mime === 'image/png' && $this->usesAlpha($src, $w, $h);
-        $target = (string) ($cfg['format'] ?? 'keep');
+        // v43 — شفافیت واقعی PNG و WebP هر دو رعایت می‌شود
+        $hasAlpha = in_array($mime, ['image/png', 'image/webp'], true) && $this->usesAlpha($src, $w, $h);
+        $target = (string) ($cfg['format'] ?? 'auto');
 
-        // فرمت مقصد: keep = همان فرمت؛ auto = شفاف → webp (در نبودش png)، بدون شفاف → jpeg
+        // v43 — فرمت مقصد: هفت گزینهٔ تنظیمات (keep/auto/jpeg/png/webp/gif/avif)
+        // با fallback سخت‌گیرانه در نبود انکودر روی هاست؛ شفافیت هرگز قربانی JPEG نمی‌شود.
         $outMime = match ($target) {
             'jpeg' => $hasAlpha ? $mime : 'image/jpeg',
+            'png' => 'image/png',
             'webp' => function_exists('imagewebp') ? 'image/webp' : $mime,
+            'gif' => $hasAlpha
+                ? 'image/png'                                   // آلفای نرم در GIF (۱-بیتی) خراب می‌شود
+                : (function_exists('imagegif') ? 'image/gif' : $mime),
+            'avif' => function_exists('imageavif')
+                ? 'image/avif'
+                : (function_exists('imagewebp') ? 'image/webp' : $mime),
             'auto' => $hasAlpha
                 ? (function_exists('imagewebp') ? 'image/webp' : 'image/png')
-                : 'image/jpeg',
-            default => $mime,
+                : (function_exists('imagejpeg') ? 'image/jpeg' : $mime),
+            default => $mime, // keep
         };
 
         $dst = imagecreatetruecolor($dstW, $dstH);
@@ -178,6 +187,8 @@ class CompressionService
             'image/jpeg' => imagejpeg($dst, null, $quality),
             'image/png' => imagepng($dst, null, $quality >= 90 ? 6 : 8),
             'image/webp' => imagewebp($dst, null, $quality),
+            'image/gif' => imagegif($dst),
+            'image/avif' => imageavif($dst, null, $quality, 6), // speed=6 — تعادل CPU/حجم روی هاست اشتراکی
             default => false,
         };
         imagedestroy($dst);

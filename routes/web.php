@@ -179,6 +179,13 @@ Route::get('{panel}/manifest.webmanifest', function (string $panel) {
             : url('/icons/icon-'.$size.'.png');
     };
 
+    // نسخهٔ maskable — گرادیان برند + منطقهٔ امن ۸۰٪ (لانچر اندروید)
+    $iconMaskableUrl = function (int $size) use ($cfg, $usePanelIcons) {
+        return $usePanelIcons
+            ? url('/icons/panels/'.$cfg['panel_icons'].'-'.$size.'-maskable.png')
+            : url('/icons/icon-'.$size.'-maskable.png');
+    };
+
     $manifest = [
         'id'                     => url($cfg['id']),
         'name'                   => $cfg['title'],
@@ -197,14 +204,17 @@ Route::get('{panel}/manifest.webmanifest', function (string $panel) {
         'categories'             => ['business', 'productivity', 'shopping'],
         'prefer_related_applications' => false,
 
-        // آیکون‌ها — فقط purpose «any» (v42): آیکون پس‌زمینهٔ شفاف دارد؛
-        // در لانچر اندروید لانچر خودش قاب مربع‌گوشه‌گرد می‌گذارد (نه دایرهٔ maskable)
-        // و در iOS گوشه‌ها توسط خود سیستم گرد می‌شود؛ اسپلش هم بدون قاب جدا رندر می‌شود.
+        // آیکون‌ها — v43: «any» = آیکون سه‌بعدی با پس‌زمینهٔ کاملاً شفاف (رفع
+        // «دو پس‌زمینه»: دیگر قاب/بک‌گراند داخلی درون PNG نیست و آیکون روی
+        // رنگ اسپلش/لانچر شناور می‌شود) + «maskable» = نسخهٔ روی گرادیان برند
+        // با منطقهٔ امن ۸۰٪ برای لانچر اندروید.
         'icons' => [
             ['src' => $iconUrl(48),   'sizes' => '48x48',   'type' => 'image/png', 'purpose' => 'any'],
             ['src' => $iconUrl(96),   'sizes' => '96x96',   'type' => 'image/png', 'purpose' => 'any'],
             ['src' => $iconUrl(192),  'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
             ['src' => $iconUrl(512),  'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => $iconMaskableUrl(192),  'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'maskable'],
+            ['src' => $iconMaskableUrl(512),  'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
         ],
     ];
 

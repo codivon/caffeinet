@@ -29,10 +29,10 @@ class MediaCompress extends Command
 
     protected $description = 'فشرده‌سازی تدریجی آپلودها طبق تنظیمات (تصویر + ویدیو اختیاری)';
 
-    /** ریشه‌های اسکن به تفکیک دیسک */
+    /** ریشه‌های اسکن به تفکیک دیسک — v43: اطلاعیه‌ها هم اضافه شد */
     protected const SCAN_ROOTS = [
         'local' => ['chat', 'orders', 'tickets'],
-        'public' => ['services'],
+        'public' => ['services', 'announcements'],
     ];
 
     /** پسوندهای تصویر/ویدیو */

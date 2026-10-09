@@ -28,10 +28,13 @@ class UploadConfig
 {
     /** کلیدهای تنظیمات این گروه */
     public const PRESETS = [
-        'lossless' => ['max_side' => 4096, 'quality' => 92, 'format' => 'keep'],
-        'balanced' => ['max_side' => 2048, 'quality' => 85, 'format' => 'auto'],
-        'max'      => ['max_side' => 1600, 'quality' => 78, 'format' => 'auto'],
+        'lossless' => ['max_side' => 4096, 'quality' => 92],
+        'balanced' => ['max_side' => 2048, 'quality' => 85],
+        'max'      => ['max_side' => 1600, 'quality' => 78],
     ];
+
+    /** v43 — فرمت‌های مجاز تبدیل (حداقل ۵ فرمت + هوشمند + حفظ اصل) */
+    public const FORMATS = ['auto', 'keep', 'jpeg', 'png', 'webp', 'gif', 'avif'];
 
     /** پیکربندی مؤثر سمت سرور (از تنظیمات) */
     public static function server(): array
@@ -43,17 +46,19 @@ class UploadConfig
         $derived = self::PRESETS[$preset] ?? null;
 
         if ($derived !== null) {
-            // حالت آماده — مقادیر از خود پریست (فیلدهای دستی فقط در «سفارشی» معنا دارند)
+            // حالت آماده — ابعاد/کیفیت از خود پریست
             $maxSide = $derived['max_side'];
             $quality = $derived['quality'];
-            $format = $derived['format'];
         } else {
             $maxSide = max(400, min(8000, (int) $s->get('uploads.compression.images.max_side', '4096')));
             $quality = max(50, min(100, (int) $s->get('uploads.compression.images.quality', '92')));
-            $format = (string) $s->get('uploads.compression.images.format', 'keep');
-            if (! in_array($format, ['auto', 'keep', 'jpeg', 'webp'], true)) {
-                $format = 'keep';
-            }
+        }
+
+        // v43 — فرمت پیش‌فرض آپلودها: تنظیم سراسری، مستقل از پریست —
+        // روی همهٔ بخش‌ها (چت/تیکت/سفارش/خدمات/اطلاعیه‌ها) اعمال می‌شود.
+        $format = (string) $s->get('uploads.compression.images.format', 'auto');
+        if (! in_array($format, self::FORMATS, true)) {
+            $format = 'auto';
         }
 
         return [

@@ -596,39 +596,96 @@ window.CN = (function () {
         navQueue.forEach(function (fn) { runOnNavigate(fn); });
     });
 
-    /* ---------- [Task 8] بازخورد ناوبری SPA ----------
-       ۱) نوار پیشرفت بالای صفحه از شروع واکشی (livewire:navigate) تا جایگذینی
+    /* ---------- v43 — لودر اپ (نوار عبوری + اسکلتون) ----------
+       ۱) نوار برند بالای صفحه از لحظهٔ کلیک تا جایگذینی — با «حداقل زمان دید»
+          تا حتی وقتی صفحه از کش می‌آید، عبور نوار دیده شود (حس اینستاگرام).
        ۲) اعمال دوبارهٔ تم — Livewire در هر ناوبری attributeهای <html> را با
-          نسخهٔ سرور-رندر (بدون کلاس dark) جایگزین می‌کند و تم می‌پرد؛
-          بعد از هر ناوبری تم از localStorage/سیستم دوباره اعمال می‌شود. */
-    var spaBar = null, spaHideTimer = null;
+          نسخهٔ سرور-رندر (بدون کلاس dark) جایگزین می‌کند؛ (theme-boot با
+          MutationObserver همان لحظه برمی‌گرداند — بدون فریم سفید). */
+    var spaBar = null, spaHideTimer = null, spaShownAt = 0, spaMinMs = 350;
 
-    function spaProgressStart() {
+    function spaProgressStart(minMs) {
         if (!spaBar) {
             spaBar = document.createElement('div');
             spaBar.className = 'spa-progress';
             spaBar.setAttribute('aria-hidden', 'true');
-            (document.body || document.documentElement).appendChild(spaBar);
+            /* v43 — به <html> می‌چسبد نه <body>: لایووایر در هر ناوبری کل body را
+               سواپ می‌کند و عنصر نابود می‌شد (به همین دلیل کاربر لودر نمی‌دید!) */
+            (document.documentElement || document.body).appendChild(spaBar);
         }
         window.clearTimeout(spaHideTimer);
-        spaBar.classList.remove('spa-progress--done');
-        spaBar.classList.remove('spa-progress--active');
+        spaMinMs = Number(minMs) > 0 ? Number(minMs) : 350;
+        spaShownAt = Date.now();
+        spaBar.classList.remove('spa-progress--done', 'spa-progress--active');
         void spaBar.offsetWidth; /* ری‌استارت انیمیشن */
         spaBar.classList.add('spa-progress--active');
     }
 
-    function spaProgressDone() {
+    function spaProgressDone(force) {
         if (!spaBar || !spaBar.classList.contains('spa-progress--active')) { return; }
-        spaBar.classList.add('spa-progress--done');
+        /* حداقل زمان دید — کلیک کاربر باید «عبور نوار» را ببیند */
+        var wait = force === true ? 0 : Math.max(0, spaMinMs - (Date.now() - spaShownAt));
         window.clearTimeout(spaHideTimer);
         spaHideTimer = window.setTimeout(function () {
-            if (spaBar) { spaBar.classList.remove('spa-progress--active', 'spa-progress--done'); }
-        }, 420);
+            if (!spaBar) { return; }
+            spaBar.classList.add('spa-progress--done');
+            window.setTimeout(function () {
+                if (spaBar) { spaBar.classList.remove('spa-progress--active', 'spa-progress--done'); }
+            }, 420);
+        }, wait);
     }
 
-    window.addEventListener('livewire:navigate', spaProgressStart);
-    window.addEventListener('alpine:navigate', spaProgressStart);
-    window.addEventListener('livewire:navigated', spaProgressDone);
+    window.addEventListener('livewire:navigate', function () { spaProgressStart(550); });
+    window.addEventListener('alpine:navigate', function () { spaProgressStart(550); });
+    /* بدون force — «حداقل زمان دید» رعایت می‌شود تا عبور نوار دیده شود؛
+       ناوبری‌های کند چون از min عبور کرده‌اند بلافاصله تمام می‌شوند */
+    window.addEventListener('livewire:navigated', function () { spaProgressDone(); });
+
+    /* v43 — لود «داده در جای خود» (تب/فیلتر/اکشن Livewire بدون تعویض صفحه):
+       هر commit که بیش از ۲۸۰ms طول بکشد نوار را نشان می‌دهد؛ سریع‌ها بدون
+       چشمک همان‌جا تمام می‌شوند. hook سراسری Livewire — یک‌بار bind می‌شود. */
+    (function initCommitBar() {
+        if (window.__cnCommitBarBound) { return; }
+        window.__cnCommitBarBound = true;
+        var api = function () {
+            if (!window.Livewire || typeof window.Livewire.hook !== 'function') { return false; }
+            var pending = 0, slowTimer = null;
+            try {
+                window.Livewire.hook('commit', function () {
+                    pending++;
+                    window.clearTimeout(slowTimer);
+                    slowTimer = window.setTimeout(function () {
+                        if (pending > 0) { spaProgressStart(300); }
+                    }, 280);
+                    return {
+                        succeed: function () { commitSettled(); },
+                        fail: function () { commitSettled(); }
+                    };
+                });
+            } catch (e) { return false; }
+            function commitSettled() {
+                pending = Math.max(0, pending - 1);
+                if (pending === 0) {
+                    window.clearTimeout(slowTimer);
+                    spaProgressDone();
+                }
+            }
+            return true;
+        };
+        if (!api()) {
+            /* Livewire هنوز لود نشده — بعد از init دوباره */
+            window.addEventListener('livewire:initialized', api, { once: true });
+        }
+    })();
+
+    /* v43 — قفل اسکرول بدنه برای صفحات fit (تیکت/چت) — fallback بدون :has() */
+    function syncShellLock() {
+        var shell = document.querySelector('.app-shell');
+        var lock = !!(shell && (shell.classList.contains('tk-shell') ||
+            shell.classList.contains('ticket-shell') || shell.classList.contains('chat-shell')));
+        document.body.classList.toggle('cn-shell-lock', lock);
+    }
+    window.addEventListener('livewire:navigated', syncShellLock);
 
     /* ---------- فاز ۱۴ — پیش‌بارگذاری منوهای پایین (حس اپ بومی) ----------
        لینک‌های ناوبری پایین با «wire:navigate.hover» شنوندهٔ hover Livewire را
@@ -805,6 +862,26 @@ window.CN = (function () {
         return 'file';
     }
 
+    /* v43 — پیکربندی فشرده‌سازی از <meta name="upload-config">
+       (تنظیمات ← آپلود و فشرده‌سازی). هر بار تازه خوانده می‌شود تا تغییر
+       مدیر بلافاصله روی همهٔ صفحات SPA اعمال شود. [قبل از این فیکس این
+       تابع وجود نداشت و compressImage بی‌صدا فایل اصل را برمی‌گرداند!] */
+    function uploadCfg() {
+        try {
+            var m = document.querySelector('meta[name="upload-config"]');
+            if (m && m.content) {
+                var d = JSON.parse(m.content);
+                return {
+                    enabled: d.enabled !== false,
+                    max_side: Number(d.max_side) || 0,
+                    quality: Number(d.quality) || 0,
+                    format: String(d.format || 'auto').toLowerCase()
+                };
+            }
+        } catch (e) { /* noop */ }
+        return { enabled: true, max_side: 0, quality: 0, format: 'auto' };
+    }
+
     function compressImage(file, opts) {
         return new Promise(function (resolve) {
             function keep() { resolve(file); }
@@ -839,12 +916,8 @@ window.CN = (function () {
 
             function swapExtName(name, ext) {
                 name = String(name || 'image');
-                if (/\.(png|jpe?g|webp)$/i.test(name)) { return name.replace(/\.(png|jpe?g|webp)$/i, '.' + ext); }
+                if (/\.(png|jpe?g|webp|avif|gif)$/i.test(name)) { return name.replace(/\.(png|jpe?g|webp|avif|gif)$/i, '.' + ext); }
                 return name + '.' + ext;
-            }
-
-            function swapJpgName(name) {
-                return swapExtName(name, 'jpg');
             }
 
             try {
@@ -865,7 +938,11 @@ window.CN = (function () {
                     : (Number(uc.max_side) > 0 ? Number(uc.max_side) : COMPRESS_DEFAULT_SIDE);
                 var quality = (typeof opts.quality === 'number' && opts.quality > 0 && opts.quality <= 1) ? opts.quality
                     : (Number(uc.quality) > 0 ? Math.min(1, Number(uc.quality) / 100) : COMPRESS_DEFAULT_QUALITY);
-                var fmt = String(uc.format || 'auto');
+
+                /* v43 — فرمت پیش‌فرض مدیر: keep|auto|jpeg|png|webp|gif|avif
+                   (کانواس GIF انکود نمی‌کند → PNG با حفظ شفافیت) */
+                var fmt = String(uc.format || 'auto').toLowerCase();
+                if (fmt === 'gif') { fmt = 'png'; }
 
                 url = window.URL.createObjectURL(file);
                 var img = new Image();
@@ -885,44 +962,65 @@ window.CN = (function () {
                         var ctx = canvas.getContext('2d');
                         if (!ctx || typeof canvas.toBlob !== 'function') { safeRevoke(); return keep(); }
 
-                        if (type === 'image/png') {
-                            ctx.drawImage(img, 0, 0, cw, ch);
-                            var alpha = alphaSeen(ctx, cw, ch);
+                        ctx.drawImage(img, 0, 0, cw, ch);
+                        /* شفافیت واقعی منبع (فقط png/webp ممکن است آلفا داشته باشند) */
+                        var alpha = (type !== 'image/jpeg') && alphaSeen(ctx, cw, ch);
 
-                            /* v42 — فرمت WebP خواسته شده (حتی با شفافیت) */
-                            if (fmt === 'webp' && typeof canvas.toBlob === 'function') {
-                                canvas.toBlob(function (blob) {
-                                    if (blob && blob.type === 'image/webp') {
-                                        finish(blob, 'image/webp', swapExtName(file.name, 'webp'));
-                                    } else {
-                                        /* انکودر WebP نبود — مثل قبل */
-                                        finishPngOrJpeg();
-                                    }
-                                }, 'image/webp', quality);
-                                return;
-                            }
-
-                            function finishPngOrJpeg() {
-                                ctx.drawImage(img, 0, 0, cw, ch);
-                                if (file.size < COMPRESS_PNG_KEEP_BYTES || alpha || fmt === 'keep') {
-                                    /* PNG می‌ماند — شفافیت/فرمت حفظ می‌شود */
-                                    canvas.toBlob(function (blob) { finish(blob, 'image/png', file.name); }, 'image/png');
-                                } else {
-                                    /* PNG بزرگ بدون شفافیت → JPEG با پس‌زمینهٔ سفید */
-                                    ctx.clearRect(0, 0, cw, ch);
-                                    ctx.fillStyle = '#ffffff';
-                                    ctx.fillRect(0, 0, cw, ch);
-                                    ctx.drawImage(img, 0, 0, cw, ch);
-                                    canvas.toBlob(function (blob) { finish(blob, 'image/jpeg', swapExtName(file.name, 'jpg')); }, 'image/jpeg', quality);
-                                }
-                            }
-
-                            finishPngOrJpeg();
-                        } else {
-                            /* JPEG → JPEG و WebP → WebP (نوع حفظ می‌شود، شفافیت WebP پاک نمی‌شود) */
-                            ctx.drawImage(img, 0, 0, cw, ch);
-                            canvas.toBlob(function (blob) { finish(blob, type, file.name); }, type, quality);
+                        /* انکود PNG — شفافیت حفظ می‌شود */
+                        function outPng() {
+                            canvas.toBlob(function (blob) { finish(blob, 'image/png', file.name); }, 'image/png');
                         }
+                        /* انکود JPEG — پس‌زمینهٔ سفید (آلفا از قبل رد شده است) */
+                        function outJpeg() {
+                            ctx.clearRect(0, 0, cw, ch);
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(0, 0, cw, ch);
+                            ctx.drawImage(img, 0, 0, cw, ch);
+                            canvas.toBlob(function (blob) { finish(blob, 'image/jpeg', swapExtName(file.name, 'jpg')); }, 'image/jpeg', quality);
+                        }
+                        /* انکود typed (webp/avif) با fallback زنجیره‌ای اگر انکودر نبود */
+                        function outTyped(mime, ext, fallbackFn) {
+                            canvas.toBlob(function (blob) {
+                                if (blob && blob.type === mime) {
+                                    finish(blob, mime, swapExtName(file.name, ext));
+                                } else if (typeof fallbackFn === 'function') {
+                                    fallbackFn();
+                                } else {
+                                    keep();
+                                }
+                            }, mime, quality);
+                        }
+
+                        /* تصمیم فرمت مقصد طبق تنظیمات مدیر */
+                        var target;
+                        if (fmt === 'keep') { target = type; }
+                        else if (fmt === 'jpeg') { target = alpha ? 'auto' : 'image/jpeg'; } /* آلفا نمی‌تواند سمت کلاینت JPEG شود */
+                        else if (fmt === 'png') { target = 'image/png'; }
+                        else if (fmt === 'webp') { target = 'image/webp'; }
+                        else if (fmt === 'avif') { target = 'image/avif'; }
+                        else { /* auto — هوشمند: شفاف → webp/png، بدون شفاف → jpeg */
+                            target = alpha ? 'image/webp' : 'image/jpeg';
+                        }
+
+                        if (target === 'auto') { target = alpha ? 'image/webp' : 'image/jpeg'; }
+
+                        if (target === 'image/avif') {
+                            /* avif → webp → (شفاف؟ png : jpeg) */
+                            outTyped('image/avif', 'avif', function () {
+                                outTyped('image/webp', 'webp', function () {
+                                    if (alpha) { outPng(); } else { outJpeg(); }
+                                });
+                            });
+                            return;
+                        }
+                        if (target === 'image/webp') {
+                            outTyped('image/webp', 'webp', function () {
+                                if (alpha) { outPng(); } else { outJpeg(); }
+                            });
+                            return;
+                        }
+                        if (target === 'image/png') { outPng(); return; }
+                        outJpeg();
                     } catch (err) {
                         safeRevoke();
                         keep();
@@ -973,6 +1071,8 @@ window.CN = (function () {
     (function initNavSkeleton() {
         var overlay = null;
         var hideTimer = null;
+        var shownAt = 0;
+        var SKEL_MIN_MS = 500; /* v43 — حداقل زمان دید پوسته */
 
         function pageKey(href) {
             try {
@@ -1023,6 +1123,12 @@ window.CN = (function () {
                     '<div class="sk-row sk-gap">' + block(64, 'calc(25% - 8px)') + block(64, 'calc(25% - 8px)') +
                     block(64, 'calc(25% - 8px)') + block(64, 'calc(25% - 8px)') + '</div>' +
                     row(64, 40) + row(64, 40) + row(64, 40);
+            },
+            /* v43 — شکل عمومی برای هر بخش دیگر (جزئیات سفارش/خدمات/تیکت و…) */
+            generic: function () {
+                return '<div class="sk-row"><div class="skb circle" style="width:44px;height:44px;flex:none"></div>' +
+                    '<div class="grow">' + block(18, '46%') + block(12, '30%') + '</div></div>' +
+                    block(90, '100%', 'sk-gap') + row(72, 44) + row(72, 44) + row(72, 44);
             }
         };
 
@@ -1031,13 +1137,19 @@ window.CN = (function () {
             overlay = document.createElement('div');
             overlay.className = 'nav-sk-overlay';
             overlay.setAttribute('aria-hidden', 'true');
-            document.body.appendChild(overlay);
+            /* v43 — «حلهٔ عبورکننده»: نوار نور مورب که تا دریافت داده از
+               دیتابیس مرتب از روی کل صفحه رد می‌شود (حس اینستاگرام) */
+            var sheen = document.createElement('div');
+            sheen.className = 'nav-sk-sheen';
+            sheen.setAttribute('aria-hidden', 'true');
+            overlay.appendChild(sheen);
+            /* v43 — به <html> می‌چسبد: body در سواپ ناوبری نابود می‌شود */
+            document.documentElement.appendChild(overlay);
             return overlay;
         }
 
         function show(key) {
-            var shape = SHAPES[key];
-            if (!shape) { return; }
+            var shape = SHAPES[key] || SHAPES.generic;
             var el = ensureOverlay();
 
             /* ارتفاع = بین هدر و ناوبری پایین تا پوستهٔ صفحه پوشانده شود */
@@ -1050,22 +1162,34 @@ window.CN = (function () {
             }
 
             el.innerHTML = shape();
+            /* v43 — حلهٔ عبورکننده روی پوسته (بعد از بلوک‌ها اضافه می‌شود) */
+            var sheen = document.createElement('div');
+            sheen.className = 'nav-sk-sheen';
+            sheen.setAttribute('aria-hidden', 'true');
+            el.appendChild(sheen);
             el.classList.add('show');
+            shownAt = Date.now();
             window.clearTimeout(hideTimer);
             hideTimer = window.setTimeout(hide, 6000); /* ضدهنگ */
         }
 
         function hide() {
             window.clearTimeout(hideTimer);
-            if (overlay) { overlay.classList.remove('show'); }
+            if (!overlay || !overlay.classList.contains('show')) { return; }
+            /* v43 — حداقل زمان دید ~۵۰۰ms؛ حتی با سواپ فوری از کش،
+               کاربر یک موج کامل اسکلتون + حله می‌بیند */
+            var wait = Math.max(0, SKEL_MIN_MS - (Date.now() - shownAt));
+            window.setTimeout(function () {
+                if (overlay) { overlay.classList.remove('show'); }
+            }, wait);
         }
 
-        /* کلیک روی لینک‌های منوی پایین/هدر (فاز ضبط — قبل از wire:navigate) */
+        /* v43 — کلیک روی «هر» لینک wire:navigate (منوی پایین، هدر، کارت‌ها،
+           خدمات، سفارش‌ها و…) → پوستهٔ مقصد همان لحظه نمایش داده می‌شود */
         document.addEventListener('click', function (e) {
             if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) { return; }
-            var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
-            if (!a || !a.hasAttribute('wire:navigate')) { return; }
-            if (!(a.closest('.bottom-nav') || a.closest('.app-header'))) { return; }
+            var a = e.target && e.target.closest ? e.target.closest('a[wire\\:navigate], a[wire\\:navigate\\.hover]') : null;
+            if (!a) { return; }
 
             var key = pageKey(a.getAttribute('href'));
             if (!key || key === pageKey(window.location.href)) { return; } /* همان صفحه */

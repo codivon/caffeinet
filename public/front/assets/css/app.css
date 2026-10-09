@@ -3515,33 +3515,54 @@ html.dark .pf-nid-badge {
    flex در .actions می‌شوند). */
 .app-header .actions > [x-persist] { display: contents; }
 
-/* ---------- ۲) نوار پیشرفت ناوبری SPA (بالای صفحه) ---------- */
+/* ---------- ۲) نوار پیشرفت ناوبری SPA — v43 «حلهٔ عبورکنندهٔ برند» ----------
+   گرادیان از رنگ پالت فعال (--brand-*) + درخشش نرم؛ از راست به چپ می‌دود
+   و با حداقل زمان دید (core.js) همیشه یک موج کامل دیده می‌شود. */
 .spa-progress {
     position: fixed;
     top: 0;
-    inset-inline: 0;
+    inset-inline-start: 0;   /* RTL: چسبیده به راست — به سمت چپ رشد می‌کند */
     z-index: 9999;
-    height: 3px;
+    height: 3.5px;
     pointer-events: none;
     opacity: 0;
-    background: linear-gradient(90deg, #2b6bff, #6d4aff, #38bdf8);
-    background-size: 220% 100%;
-    transform-origin: right; /* RTL — از راست پر می‌شود */
+    width: 0;
+    border-end-end-radius: 999px;
     border-start-end-radius: 999px;
+    background: linear-gradient(90deg,
+        var(--brand-500, #3b82f6), var(--brand-300, #93c5fd) 55%,
+        var(--brand-200, #bfdbfe));
+    background-size: 220% 100%;
+    box-shadow: 0 0 12px color-mix(in srgb, var(--brand-500, #3b82f6) 65%, transparent),
+                0 1px 6px color-mix(in srgb, var(--brand-700, #1d4ed8) 35%, transparent);
+}
+.spa-progress::after {
+    /* سر روشنِ نوار (کامت) */
+    content: '';
+    position: absolute;
+    inset-inline-end: -2px;
+    top: 50%;
+    width: 9px;
+    height: 9px;
+    margin-top: -4.5px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 10px 2px color-mix(in srgb, var(--brand-300, #93c5fd) 85%, transparent);
+    opacity: 0;
 }
 .spa-progress--active {
     opacity: 1;
-    animation: spaBarGrow 1.6s cubic-bezier(.2, .7, .3, 1) forwards,
-               spaBarFlow 1.1s linear infinite;
+    width: 100%;
+    animation: spaBarGrow 1.7s cubic-bezier(.25, .8, .35, 1) forwards,
+               spaBarFlow 1.05s linear infinite;
 }
-.spa-progress--done {
-    animation: spaBarDone .38s ease-in forwards;
-}
+.spa-progress--active::after { opacity: 1; }
+.spa-progress--done { animation: spaBarDone .42s ease-in forwards; }
 @keyframes spaBarGrow {
     0%   { width: 0; }
-    22%  { width: 34%; }
-    55%  { width: 62%; }
-    82%  { width: 86%; }
+    20%  { width: 30%; }
+    48%  { width: 58%; }
+    78%  { width: 82%; }
     100% { width: 94%; }
 }
 @keyframes spaBarFlow {
@@ -3596,53 +3617,87 @@ html.dark .pf-nid-badge {
 /* ---------- ۴) لمس نهایی شبِ یاقوتی ---------- */
 html.dark .support-hero { background: linear-gradient(120deg, #1c2f63, #0d1424); }
 
-/* ═══════════ v42 — فیت موبایل صفحهٔ تیکت ═══════════
-   کل صفحه در ارتفاع پنجره (var(--app-vh)) جا می‌شود؛ خود صفحه هیچ‌وقت
-   اسکرول نمی‌خورد و فقط ناحیهٔ گفتگو (tkd-thread) اسکرول دارد. */
-.tk-shell {
-    height: var(--app-vh, 100dvh);
+/* ═══════════ v43 — فیت موبایل صفحهٔ تیکت (بازنویسی کامل) ═══════════
+   کل صفحه دقیقاً در ارتفاع پنجره جا می‌شود؛ خود صفحه هیچ‌وقت اسکرول
+   نمی‌خورد و فقط ناحیهٔ گفتگو (tkd-thread) اسکرول دارد.
+   • هر دو کلاس ticket-shell (فاز ۱۴) و tk-shell پوشش داده می‌شوند.
+   • fallback زنجیرهٔ ارتفاع: px ← vh ← dvh ← --app-vh (مرورگرهای قدیمی).
+   • زنجیرهٔ flex/min-height:0 تا ریشهٔ کامپوننت Livewire کامل است. */
+.app-shell.tk-shell,
+.app-shell.ticket-shell {
+    height: 100vh;                          /* fallback مرورگرهای خیلی قدیمی */
+    height: 100dvh;                         /* اگر --app-vh ست نشده بود */
+    height: var(--app-vh, 100dvh);          /* ارتفاع واقعی (کیبورد/نوار مرورگر) */
+    min-height: 0;
     overflow: hidden;
 }
-.tk-shell .app-main {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px));
-}
-/* ریشهٔ کامپوننت Livewire (div بدون استایل) بین app-main و محتواست —
-   زنجیرهٔ flex/min-height:0 باید تا wrap ادامه یابد وگرنه گفتگو کش می‌آید */
-.tk-shell .app-main > * {
+.app-shell.tk-shell .app-main,
+.app-shell.ticket-shell .app-main {
     flex: 1;
     display: flex;
     flex-direction: column;
     min-height: 0;
     min-width: 0;
+    overflow: hidden;
+    padding: 10px 14px calc(86px + env(safe-area-inset-bottom, 0px));
 }
-.tk-shell .back-link { flex: none; margin-bottom: 8px; }
-.tk-shell .tkd-head { flex: none; margin-bottom: 8px; }
-.tk-shell .tkd-head .tkd-actions { margin-top: 8px; }
-.tk-shell .tkd-thread-wrap {
-    flex: 1;
-    min-height: 0;
+/* ریشهٔ کامپوننت Livewire (div بی‌استایل بین app-main و محتواست) —
+   اگر این زنجیره بشکند پوسته کش می‌آید و overflow پایین می‌بُرد */
+.app-shell.tk-shell .app-main > *,
+.app-shell.ticket-shell .app-main > * {
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    min-width: 0;
 }
-.tk-shell .tkd-thread {
+.app-shell.tk-shell .back-link,
+.app-shell.ticket-shell .back-link { flex: none; margin-bottom: 6px; }
+.app-shell.tk-shell .tkd-head,
+.app-shell.ticket-shell .tkd-head { flex: none; margin-bottom: 6px; }
+.app-shell.tk-shell .tkd-thread-wrap,
+.app-shell.ticket-shell .tkd-thread-wrap {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+}
+.app-shell.tk-shell .tkd-thread,
+.app-shell.ticket-shell .tkd-thread {
     flex: 1 1 0;
     min-height: 0;
     max-height: none;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     padding: 12px;
     gap: 10px;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
-.tk-shell .tkd-composer { flex: none; padding: 10px; }
-.tk-shell .tkd-input-row textarea { min-height: 44px; }
-/* قفل اسکرول بدنه وقتی صفحهٔ تیکت باز است */
-body:has(.app-shell.tk-shell) { overflow: hidden; }
+.app-shell.tk-shell .tkd-composer,
+.app-shell.ticket-shell .tkd-composer { flex: none; padding: 10px; }
+.app-shell.tk-shell .tkd-input-row textarea,
+.app-shell.ticket-shell .tkd-input-row textarea { min-height: 44px; }
+/* قفل اسکرول بدنه وقتی صفحهٔ تیکت/چت باز است — :has + کلاس JS (fallback) */
+body:has(.app-shell.tk-shell),
+body:has(.app-shell.ticket-shell),
+body.cn-shell-lock { overflow: hidden; }
+/* گوشی‌های کوتاه (آیفون SE و…) — سربرگ فشرده تا گفتگوی بیشتر جا شود */
+@media (max-height: 620px) {
+    .app-shell.tk-shell .back-link,
+    .app-shell.ticket-shell .back-link { margin-bottom: 4px; padding: 4px 0; }
+    .app-shell.tk-shell .tkd-head,
+    .app-shell.ticket-shell .tkd-head { margin-bottom: 4px; }
+    .app-shell.tk-shell .tkd-composer,
+    .app-shell.ticket-shell .tkd-composer { padding: 8px; }
+    .app-shell.tk-shell .tkd-input-row textarea,
+    .app-shell.ticket-shell .tkd-input-row textarea { min-height: 38px; max-height: 96px; }
+}
 
-/* ═══════════ v42 — اسکلتون فوری ناوبری (لودر مدرن اپ مشتری) ═══════════
-   با کلیک روی منوی پایین/هدر، پوستهٔ صفحهٔ مقصد با شیمر موجی همان لحظه
-   نمایش داده می‌شود تا حس باز شدن فوری اپ بدهد؛ بعد از تعویض صفحه پنهان می‌شود. */
+/* ═══════════ v43 — اسکلتون فوری ناوبری (لودر مدرن اپ مشتری) ═══════════
+   با کلیک روی هر لینک wire:navigate، پوستهٔ صفحهٔ مقصد با شیمر موجی همان
+   لحظه نمایش داده می‌شود + «حلهٔ نور» مورب مرتب از روی کل صفحه رد می‌شود
+   (حس اینستاگرام)؛ بعد از تعویض صفحه با حداقل زمان دید پنهان می‌شود. */
 .nav-sk-overlay {
     position: fixed;
     inset-inline: 0;
@@ -3668,19 +3723,35 @@ body:has(.app-shell.tk-shell) { overflow: hidden; }
 .nav-sk-overlay .sk-row { display: flex; gap: 10px; align-items: center; }
 .nav-sk-overlay .sk-row .grow { flex: 1; }
 
-/* موج شیمر روی کل پوسته (حس «یه حاله رد می‌شه») */
-.nav-sk-overlay::after {
-    content: '';
+/* v43 — «حلهٔ عبورکننده» روی کل پوسته: نوار نور مورب برند که تا
+   دریافت داده از دیتابیس مرتب از روی صفحه رد می‌شود (المان JS) */
+.nav-sk-overlay .nav-sk-sheen {
     position: absolute;
-    inset: 0;
-    background: linear-gradient(100deg, transparent 30%, var(--brand-50, rgba(219, 234, 254, .55)) 50%, transparent 70%);
-    transform: translateX(120%);
-    animation: navSkWave 1.5s ease-in-out infinite;
+    inset: -10% -40%;
     pointer-events: none;
+    background: linear-gradient(100deg,
+        transparent 32%,
+        color-mix(in srgb, var(--brand-100, #dbeafe) 55%, transparent) 46%,
+        rgba(255, 255, 255, .75) 50%,
+        color-mix(in srgb, var(--brand-100, #dbeafe) 55%, transparent) 54%,
+        transparent 68%);
+    filter: blur(1px);
+    transform: translateX(130%) skewX(-8deg);
+    animation: navSkWave 1.35s cubic-bezier(.4, 0, .6, 1) infinite;
+    will-change: transform;
 }
 @keyframes navSkWave {
-    from { transform: translateX(-120%); }
-    to   { transform: translateX(120%); }
+    from { transform: translateX(130%) skewX(-8deg); }
+    to   { transform: translateX(-130%) skewX(-8deg); }
+}
+/* در تم تاریک حله ملایم‌تر و سردتر */
+html.dark .nav-sk-overlay .nav-sk-sheen {
+    background: linear-gradient(100deg,
+        transparent 32%,
+        color-mix(in srgb, var(--brand-700, #1d4ed8) 38%, transparent) 46%,
+        rgba(255, 255, 255, .16) 50%,
+        color-mix(in srgb, var(--brand-700, #1d4ed8) 38%, transparent) 54%,
+        transparent 68%);
 }
 
 /* انیمیشن ورود ملایم محتوای صفحه بعد از تعویض (حس اپ بومی) */
@@ -3691,7 +3762,7 @@ body:has(.app-shell.tk-shell) { overflow: hidden; }
 .app-main.page-enter { animation: pageIn .24s ease; }
 
 @media (prefers-reduced-motion: reduce) {
-    .nav-sk-overlay::after { animation: none; }
+    .nav-sk-overlay .nav-sk-sheen { animation: none; display: none; }
     .app-main.page-enter { animation: none; }
 }
 
