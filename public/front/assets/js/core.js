@@ -689,14 +689,17 @@ window.CN = (function () {
 
     /* ---------- فاز ۱۴ — پیش‌بارگذاری منوهای پایین (حس اپ بومی) ----------
        لینک‌های ناوبری پایین با «wire:navigate.hover» شنوندهٔ hover Livewire را
-       دارند؛ اینجا بعد از هر ناوبری (و هر ۲۵ ثانیه در تبِ باز) به‌صورت مصنوعی
-       mouseenter/mouseleave می‌فرستیم تا Livewire HTML صفحه‌های منو را در کشِ
-       ۳۰ ثانیه‌ای خودش پیش‌بارگذاری کند → کلیک روی منو همان لحظه از کش سواپ
-       می‌شود (بدون انتظار برای پاسخ سرور) — «فقط محتوای لازم از دیتابیس». */
+       دارند؛ اینجا بعد از هر ناوبری (و هر ۲۰ ثانیه در تبِ باز و بعد از هر
+       بازگشت به اپ) به‌صورت مصنوعی mouseenter/mouseleave می‌فرستیم تا Livewire
+       HTML صفحه‌های منو را در کشِ ۳۰ ثانیه‌ای خودش پیش‌بارگذاری کند → کلیک روی
+       منو همان لحظه از کش سواپ می‌شود (بدون انتظار برای پاسخ سرور) —
+       محتوای ثابت (عنوان/وضعیت) فوری دیده می‌شود و فقط دیتا با حله لود می‌شود.
+       v45 — گرم‌کردن اولیه هنگام لود + بعد از هر بازگشت به اپ (PWA) +
+       گرم‌کردن فوری لینک با pointerdown (قبل از کلیک، سرآغاز ناوبری سرد). */
     var navWarmTimer = null;
     var navWarmInterval = null;
     var NAV_WARM_IDLE_MS = 900;
-    var NAV_WARM_EVERY_MS = 25000;
+    var NAV_WARM_EVERY_MS = 20000;
 
     function warmBottomNav() {
         try {
@@ -721,6 +724,20 @@ window.CN = (function () {
         }
     }
     window.addEventListener('livewire:navigated', scheduleNavWarmup);
+    window.addEventListener('visibilitychange', function () {
+        if (!document.hidden) { scheduleNavWarmup(); }
+    });
+    /* v45 — لمس/کلیک روی منو → همان لینک فوراً گرم می‌شود (قبل از event کلیک) */
+    document.addEventListener('pointerdown', function (e) {
+        try {
+            var a = e.target && e.target.closest ? e.target.closest('.bottom-nav a[href]') : null;
+            if (!a || a.getAttribute('aria-current') === 'page') { return; }
+            a.dispatchEvent(new MouseEvent('mouseenter'));
+            window.setTimeout(function () { a.dispatchEvent(new MouseEvent('mouseleave')); }, 400);
+        } catch (err) { /* noop */ }
+    }, { passive: true });
+    /* اولین لود هم گرم شود (livewire:navigated در بعضی مسیرها دیر می‌آید) */
+    scheduleNavWarmup();
 
     function reapplyThemeAfterNavigation() {
         var stored = null;
@@ -1064,133 +1081,18 @@ window.CN = (function () {
         }
     })();
 
-    /* ---------- v42 — اسکلتون فوری ناوبری (لودر مدرن) ----------
-       با کلیک روی منوی پایین/هدر، پوستهٔ صفحهٔ مقصد (ساختار ثابت) همان لحظه
-       با شیمر موجی نمایش داده می‌شود؛ Livewire صفحهٔ تازه را که سواپ کرد،
-       پوسته پنهان و محتوا با انیمیشن ملایم وارد می‌شود.
-       v44 — «حلهٔ نور» دیگر روی کل صفحه نیست (درخواست مالک): از این به بعد
-       حله فقط روی ناحیهٔ دیتای هر صفحه (کلاس sk-zone در app.css + :has)
-       تا رسیدن دیتا از دیتابیس مرتب از روی همان ناحیه رد می‌شود. */
+    /* ---------- v42→v45 — حذف پوستهٔ اسکلتون تمام‌صفحهٔ ناوبری ----------
+       درخواست مالک: «موارد ثابت صفحه (عنوان/وضعیت) نباید هر بار لود شوند —
+       فقط دیتا با لودر حله‌ای بارگذاری شود.»
+       پس از این نسخه:
+       • هیچ اسکلتون تمام‌صفحه‌ای روی ناوبری نمایش داده نمی‌شود؛ محتوای ثابت
+         صفحهٔ مقصد (سربرگ/تب‌ها/چیپ‌های وضعیت) همان لحظهٔ سواپ دیده می‌شود —
+         با کشِ ۳۰ ثانیه‌ای Livewire + گرم‌کردن منوهای پایین، سواپ فوری است.
+       • فقط ناحیهٔ دیتای هر صفحه (کلاس sk-zone + اسکلتون‌های درون‌صفحه‌ای)
+         تا رسیدن دیتا حلهٔ نور دارد.                                    */
     (function initNavSkeleton() {
-        var overlay = null;
-        var hideTimer = null;
-        var shownAt = 0;
-        var SKEL_MIN_MS = 500; /* v43 — حداقل زمان دید پوسته */
-
-        function pageKey(href) {
-            try {
-                var p = new URL(href, window.location.origin).pathname.replace(/\/+$/, '');
-                if (p === '/app' || p === '') { return 'home'; }
-                var m = p.match(/^\/app\/([^/]+)/);
-                return m ? m[1] : null;
-            } catch (e) { return null; }
-        }
-
-        function block(h, w, extra) {
-            return '<div class="skb' + (extra ? ' ' + extra : '') + '" style="height:' + h + 'px;' +
-                (w ? 'width:' + w + ';' : '') + '"></div>';
-        }
-
-        function row(h, wIcon) {
-            return '<div class="sk-row"><div class="skb circle" style="width:' + wIcon + 'px;height:' + wIcon + 'px;flex:none"></div>' +
-                '<div class="grow">' + block(h, '100%') + block(h - 6, '62%') + '</div></div>';
-        }
-
-        /* پوستهٔ ثابت هر صفحه — فقط ساختار؛ دیتا بعد از باز شدن لود می‌شود */
-        var SHAPES = {
-            home: function () {
-                return block(22, '55%') + block(96) + '<div class="sk-row">' +
-                    block(64, 'calc(33% - 7px)') + block(64, 'calc(33% - 7px)') + block(64, 'calc(33% - 7px)') +
-                    '</div>' + block(16, '40%', 'sk-gap') + row(72, 44) + row(72, 44);
-            },
-            services: function () {
-                return block(44) + '<div class="sk-row sk-gap">' +
-                    block(30, '64px', 'circle') + block(30, '84px', 'circle') + block(30, '76px', 'circle') + block(30, '70px', 'circle') +
-                    '</div>' + block(16, '38%', 'sk-gap') + row(82, 48) + row(82, 48) + row(82, 48);
-            },
-            orders: function () {
-                return block(22, '42%') + block(120) + block(120) + block(120);
-            },
-            support: function () {
-                return block(84) + '<div class="sk-row sk-gap">' +
-                    block(30, '58px', 'circle') + block(30, '84px', 'circle') + block(30, '70px', 'circle') +
-                    '</div>' + block(72, '100%', 'sk-gap') + block(72);
-            },
-            wallet: function () {
-                return block(130) + block(34, '100%', 'circle') + block(56, '100%', 'sk-gap') +
-                    block(56) + block(56);
-            },
-            profile: function () {
-                return '<div class="sk-row"><div class="skb circle" style="width:64px;height:64px;flex:none"></div>' +
-                    '<div class="grow">' + block(20, '52%') + block(14, '36%') + '</div></div>' +
-                    '<div class="sk-row sk-gap">' + block(64, 'calc(25% - 8px)') + block(64, 'calc(25% - 8px)') +
-                    block(64, 'calc(25% - 8px)') + block(64, 'calc(25% - 8px)') + '</div>' +
-                    row(64, 40) + row(64, 40) + row(64, 40);
-            },
-            /* v43 — شکل عمومی برای هر بخش دیگر (جزئیات سفارش/خدمات/تیکت و…) */
-            generic: function () {
-                return '<div class="sk-row"><div class="skb circle" style="width:44px;height:44px;flex:none"></div>' +
-                    '<div class="grow">' + block(18, '46%') + block(12, '30%') + '</div></div>' +
-                    block(90, '100%', 'sk-gap') + row(72, 44) + row(72, 44) + row(72, 44);
-            }
-        };
-
-        function ensureOverlay() {
-            if (overlay) { return overlay; }
-            overlay = document.createElement('div');
-            overlay.className = 'nav-sk-overlay';
-            overlay.setAttribute('aria-hidden', 'true');
-            /* v44 — به <html> می‌چسبد: body در سواپ ناوبری نابود می‌شود */
-            document.documentElement.appendChild(overlay);
-            return overlay;
-        }
-
-        function show(key) {
-            var shape = SHAPES[key] || SHAPES.generic;
-            var el = ensureOverlay();
-
-            /* ارتفاع = بین هدر و ناوبری پایین تا پوستهٔ صفحه پوشانده شود */
-            var head = document.querySelector('.app-header');
-            var nav = document.querySelector('.bottom-nav');
-            el.style.top = head ? head.offsetHeight + 'px' : '0';
-            el.style.bottom = nav ? (nav.offsetHeight + 'px') : '0';
-            if (nav && window.CSS && CSS.supports && CSS.supports('padding', 'env(safe-area-inset-bottom)')) {
-                el.style.bottom = 'calc(' + nav.offsetHeight + 'px + env(safe-area-inset-bottom, 0px))';
-            }
-
-            el.innerHTML = shape();
-            el.classList.add('show');
-            shownAt = Date.now();
-            window.clearTimeout(hideTimer);
-            hideTimer = window.setTimeout(hide, 6000); /* ضدهنگ */
-        }
-
-        function hide() {
-            window.clearTimeout(hideTimer);
-            if (!overlay || !overlay.classList.contains('show')) { return; }
-            /* v43 — حداقل زمان دید ~۵۰۰ms؛ حتی با سواپ فوری از کش،
-               کاربر یک موج کامل اسکلتون + حله می‌بیند */
-            var wait = Math.max(0, SKEL_MIN_MS - (Date.now() - shownAt));
-            window.setTimeout(function () {
-                if (overlay) { overlay.classList.remove('show'); }
-            }, wait);
-        }
-
-        /* v43 — کلیک روی «هر» لینک wire:navigate (منوی پایین، هدر، کارت‌ها،
-           خدمات، سفارش‌ها و…) → پوستهٔ مقصد همان لحظه نمایش داده می‌شود */
-        document.addEventListener('click', function (e) {
-            if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) { return; }
-            var a = e.target && e.target.closest ? e.target.closest('a[wire\\:navigate], a[wire\\:navigate\\.hover]') : null;
-            if (!a) { return; }
-
-            var key = pageKey(a.getAttribute('href'));
-            if (!key || key === pageKey(window.location.href)) { return; } /* همان صفحه */
-            show(key);
-        }, true);
-
-        /* پایان ناوبری → پوسته پنهان + انیمیشن ورود محتوا */
+        /* ورود ملایم محتوای صفحه بعد از تعویض (حس اپ بومی) — تنها بقای این ماژول */
         document.addEventListener('livewire:navigated', function () {
-            hide();
             var main = document.getElementById('appMain');
             if (main) {
                 main.classList.remove('page-enter');

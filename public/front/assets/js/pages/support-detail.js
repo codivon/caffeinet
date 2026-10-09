@@ -55,24 +55,22 @@
     setTimeout(bindRealtime, 1500);
     setTimeout(bindRealtime, 4000);
 
-    /* ---------- هدر تیکت ---------- */
+    /* ---------- هدر تیکت (v45 — داخل #tkdHeadMain؛ دکمهٔ بک جدا در #tkdHead) ---------- */
     function renderHead(t) {
         state.closed = t.status === 'closed';
 
-        var tkdHead = document.getElementById('tkdHead');
+        var tkdHead = document.getElementById('tkdHeadMain');
         if (tkdHead) {
             tkdHead.innerHTML =
-                '<div class="tkd-main">' +
-                '  <div class="tkd-title-row">' +
-                '    <h1>' + CN.esc(t.subject) + '</h1>' +
-                '    <span class="sup-badge" data-status="' + CN.esc(t.status) + '" id="tkdStatusBadge">' + CN.esc(STATUS_LABEL[t.status] || t.status) + '</span>' +
-                '  </div>' +
-                '  <div class="tkd-meta">' +
-                '    <span class="sup-num" dir="ltr">' + CN.esc(t.ticket_number) + '</span>' +
+                '<div class="tkd-title-row">' +
+                '  <h1>' + CN.esc(t.subject) + '</h1>' +
+                '  <span class="sup-badge" data-status="' + CN.esc(t.status) + '" id="tkdStatusBadge">' + CN.esc(STATUS_LABEL[t.status] || t.status) + '</span>' +
+                '</div>' +
+                '<div class="tkd-meta">' +
+                '  <span class="sup-num" dir="ltr">' + CN.esc(t.ticket_number) + '</span>' +
                 (t.order_number ? ' · سفارش <span dir="ltr">' + CN.esc(t.order_number) + '</span>' : '') +
                 (t.priority === 'high' ? ' · <b class="sup-prio">' + CN.esc(PRIO_LABEL.high) + '</b>' : '') +
-                '    · ثبت: ' + CN.esc(t.created_at || '') +
-                '  </div>' +
+                '  · ثبت: ' + CN.esc(t.created_at || '') +
                 '</div>' +
                 '<div class="tkd-actions">' +
                 (state.closed
@@ -109,7 +107,8 @@
         var attach = '';
         if (m.file && m.file.url) {
             if (m.file.is_image || /^image\//.test(m.file.mime || '')) {
-                attach = '<a href="' + CN.esc(m.file.url) + '" target="_blank" rel="noopener"><img class="tkd-thumb" src="' + CN.esc(m.file.url) + '" alt="' + CN.esc(m.file.name || 'پیوست') + '"></a>';
+                /* v45 — تصویر با کلیک لایت‌باکس تمام‌صفحه باز می‌شود (CNLightbox) */
+                attach = '<img class="tkd-thumb" data-lightbox src="' + CN.esc(m.file.url) + '" alt="' + CN.esc(m.file.name || 'پیوست') + '">';
             } else {
                 attach = '<a class="tkd-attach" href="' + CN.esc(m.file.url) + '" target="_blank" rel="noopener" download>' +
                     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>' +

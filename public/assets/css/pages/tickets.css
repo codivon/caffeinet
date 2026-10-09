@@ -378,6 +378,143 @@ html.dark .tk-internal-check { color: #fbbf24; }
 }
 
 /* ============================================================
+   v45 — موبایل صفحهٔ گفتگوی تیکت (ادمین):
+   • گفتگو و پاسخ‌دهنده تمام‌صفحه — ثابت زیر نوار بالای پنل
+   • کارت اطلاعات/عملیات داخل شیت «اطلاعات تیکت» (دکمهٔ ⓘ نوار چت)
+   ============================================================ */
+@media (max-width: 1023.98px) {
+    .tk-thread-wrap { display: block; }
+
+    /* گفتگو تمام‌صفحه — زیر نوار بالای پنل (h-16 = 4rem) */
+    .tk-chat-card {
+        position: fixed;
+        top: 4rem;
+        inset-inline: 0;
+        bottom: 0;
+        z-index: 25;
+        margin: 0;
+        border-radius: 0;
+        border-inline: none;
+        border-bottom: none;
+    }
+    .tk-chat-card .tk-thread {
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: none;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+    .tk-chat-card .tk-composer { flex: none; }
+
+    /* نوار سربرگ موبایل چت */
+    .tk-mob-head {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.55rem 0.8rem;
+        border-bottom: 1px solid var(--th-line, #dbeafe);
+        background: color-mix(in srgb, var(--ui-brand, #2563eb) 4%, var(--th-surface, #fff));
+        flex: none;
+    }
+    .tk-mob-back {
+        flex: none;
+        width: 2.2rem;
+        height: 2.2rem;
+        display: grid;
+        place-items: center;
+        border-radius: 0.8rem;
+        color: var(--th-ink-soft, #2563eb);
+        background: color-mix(in srgb, var(--ui-brand, #2563eb) 8%, transparent);
+        text-decoration: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .tk-mob-back:active { transform: scale(0.94); }
+    .tk-mob-back svg { width: 1.1rem; height: 1.1rem; }
+    .tk-mob-title {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: var(--th-ink, #2d2d4a);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .tk-mob-info {
+        flex: none;
+        width: 2.2rem;
+        height: 2.2rem;
+        display: grid;
+        place-items: center;
+        border-radius: 0.8rem;
+        border: 1px dashed var(--th-line, #bfdbfe);
+        color: var(--th-ink-soft, #2563eb);
+        background: transparent;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .tk-mob-info:active { transform: scale(0.94); }
+    .tk-mob-info svg { width: 1.15rem; height: 1.15rem; }
+
+    /* کارت اطلاعات — در موبایل فقط داخل شیت */
+    .tk-info-card { display: none; }
+    body.tk-info-open .tk-info-card {
+        display: block;
+        position: fixed;
+        inset-inline: 0;
+        bottom: 0;
+        top: auto;
+        z-index: 60;
+        max-height: 82dvh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0;
+        border-radius: 1.25rem 1.25rem 0 0;
+        border-bottom: none;
+        box-shadow: 0 -12px 40px rgba(2, 6, 23, 0.28);
+        animation: tkSheetUp 0.26s cubic-bezier(0.32, 0.72, 0.3, 1);
+    }
+    .tk-sheet-x {
+        position: absolute;
+        top: 0.6rem;
+        inset-inline-end: 0.7rem;
+        z-index: 2;
+        width: 2rem;
+        height: 2rem;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        border: 1px solid var(--th-line, #dbeafe);
+        background: var(--th-surface, #fff);
+        color: var(--th-ink-soft, #64748b);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .tk-sheet-x:active { transform: scale(0.92); }
+    .tk-sheet-x svg { width: 0.85rem; height: 0.85rem; }
+}
+@media (min-width: 1024px) {
+    .tk-mob-head, .tk-sheet-x { display: none !important; }
+    body.tk-info-open .tk-info-card { display: revert; }
+}
+@keyframes tkSheetUp {
+    from { transform: translateY(14%); opacity: 0.6; }
+    to   { transform: none; opacity: 1; }
+}
+
+/* پردهٔ شیت اطلاعات تیکت (فقط موبایل) */
+#tk-info-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: rgba(15, 23, 42, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+#tk-info-overlay.show { opacity: 1; pointer-events: auto; }
+
+/* ============================================================
    قالب‌های پیامک (ادمین — فاز ۱۰)
    ============================================================ */
 .tpl-card {

@@ -1564,8 +1564,35 @@ html.dark .cpref-item.active { background: rgba(59, 130, 246, .18); }
     background: var(--bg-card, #fff);
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
-    padding: 16px;
+    padding: 12px 14px;
     margin-bottom: 12px;
+    /* v45 — دکمهٔ بازگشت داخل هدر، سمت چپ (انتهای رج در RTL) */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.tkd-head .tkd-main { flex: 1; min-width: 0; }
+.tkd-back {
+    flex: none;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    color: var(--ink-soft, #475569);
+    background: var(--line-soft, #f1f5f9);
+    border: 1px solid var(--line, #e2e8f0);
+    text-decoration: none;
+    transition: transform .15s ease, color .15s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.tkd-back:active { transform: scale(.92); }
+.tkd-back svg { width: 18px; height: 18px; display: block; }
+.tkd-back:hover { color: var(--brand-600, #2563eb); }
+html.dark .tkd-back {
+    color: var(--ink-soft, #94a3b8);
+    background: color-mix(in srgb, var(--line, #293548) 55%, transparent);
+    border-color: var(--line, #293548);
 }
 .tkd-skeleton .skeleton { margin: 4px 0; }
 .tkd-title-row {
@@ -3694,34 +3721,10 @@ body.cn-shell-lock { overflow: hidden; }
     .app-shell.ticket-shell .tkd-input-row textarea { min-height: 38px; max-height: 96px; }
 }
 
-/* ═══════════ v43 — اسکلتون فوری ناوبری (لودر مدرن اپ مشتری) ═══════════
-   با کلیک روی هر لینک wire:navigate، پوستهٔ صفحهٔ مقصد با شیمر موجی همان
-   لحظه نمایش داده می‌شود + «حلهٔ نور» مورب مرتب از روی کل صفحه رد می‌شود
-   (حس اینستاگرام)؛ بعد از تعویض صفحه با حداقل زمان دید پنهان می‌شود. */
-.nav-sk-overlay {
-    position: fixed;
-    inset-inline: 0;
-    z-index: 35;
-    display: none;
-    background: var(--paper, #f6f8fd);
-    padding: 16px;
-    overflow: hidden;
-    pointer-events: none;
-}
-.nav-sk-overlay.show { display: block; animation: navSkIn .16s ease; }
-@keyframes navSkIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-
-.nav-sk-overlay .skb {
-    border-radius: 14px;
-    background: linear-gradient(90deg, var(--line-soft, #e8edf6) 25%, var(--brand-100, #dbeafe) 45%, var(--line-soft, #e8edf6) 65%);
-    background-size: 200% 100%;
-    animation: shimmer 1.4s ease-in-out infinite;
-}
-.nav-sk-overlay .skb.circle { border-radius: 999px; }
-.nav-sk-overlay .skb + .skb,
-.nav-sk-overlay .sk-gap { margin-top: 10px; }
-.nav-sk-overlay .sk-row { display: flex; gap: 10px; align-items: center; }
-.nav-sk-overlay .sk-row .grow { flex: 1; }
+/* ═══════════ v43→v45 — اسکلتون تمام‌صفحهٔ ناوبری حذف شد ═══════════
+   درخواست مالک: موارد ثابت (عنوان/وضعیت) نباید هر بار «لود» دیده شوند —
+   پوستهٔ اسکلتون همه‌جایی حذف شد؛ فقط اسکلتون/حلهٔ ناحیهٔ دیتا (sk-zone)
+   باقی است. اسکلتون‌های درون‌صفحه‌ای از کلاس .skeleton استفاده می‌کنند. */
 
 /* v43 — «حلهٔ عبورکننده» (المان JS روی کل پوسته)
    v44 — حله از کل صفحه به «ناحیهٔ دیتا» منتقل شد (sk-zone پایین‌تر)؛
@@ -3974,45 +3977,23 @@ html.dark .sk-zone:has(.skeleton)::after {
         transparent 68%);
 }
 
-/* ═══════════ v44 — تیکت تمام‌صفحه (بدون هدر/منو) ═══════════
-   صفحهٔ گفتگوی تیکت حالا chrome=false است: هدر و منوی پایین حذف شدند تا
-   بیشترین فضا برای گفتگو باشد؛ دکمهٔ بازگشتِ شناورِ شیشه‌ای گوشهٔ
-   بالا-«چپ» (طبق درخواست مالک) شناور است. */
+/* ═══════════ v45 — تیکت تمام‌صفحه (بدون هدر/منو) ═══════════
+   صفحهٔ گفتگوی تیکت chrome=false است: هدر و منوی پایین حذف شدند.
+   v45 — دکمهٔ بازگشت داخل کارت هدر تیکت نشست (tkd-back) و فاصلهٔ بالای
+   هدر حذف شد: فقط safe-area بالای گوشی رعایت می‌شود. */
 .app-shell.tk-full .app-main {
-    padding-top: calc(env(safe-area-inset-top, 0px) + 50px);
+    padding-top: calc(env(safe-area-inset-top, 0px));
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
 }
-.tk-float-back {
-    position: fixed;
-    top: calc(env(safe-area-inset-top, 0px) + 10px);
-    left: max(12px, env(safe-area-inset-left, 0px));
-    z-index: 40;
-    width: 40px;
-    height: 40px;
-    display: grid;
-    place-items: center;
-    border-radius: 999px;
-    color: var(--ink, #0f172a);
-    background: color-mix(in srgb, var(--bg-card, #fff) 84%, transparent);
-    border: 1px solid var(--line, #e2e8f0);
-    -webkit-backdrop-filter: blur(10px) saturate(1.4);
-    backdrop-filter: blur(10px) saturate(1.4);
-    box-shadow: 0 4px 16px rgba(2, 6, 23, .12);
-    transition: transform .15s ease, box-shadow .15s ease;
-    -webkit-tap-highlight-color: transparent;
-}
-.tk-float-back:active { transform: scale(.92); }
-.tk-float-back svg { width: 19px; height: 19px; display: block; }
-html.dark .tk-float-back {
-    color: var(--ink, #e2e8f0);
-    background: color-mix(in srgb, var(--bg-card, #0f172a) 84%, transparent);
-    border-color: var(--line, #293548);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, .45);
-}
-/* روی گوشی‌های کوتاه هم دکمه و سربرگ تداخل نداشته باشند */
+/* روی گوشی‌های کوتاه هم سربرگ و پاسخ‌دهنده فشرده می‌شوند */
 @media (max-height: 620px) {
-    .app-shell.tk-full .app-main { padding-top: calc(env(safe-area-inset-top, 0px) + 46px); }
-    .tk-float-back { width: 36px; height: 36px; top: calc(env(safe-area-inset-top, 0px) + 8px); }
+    .app-shell.tk-full .app-main { padding-top: env(safe-area-inset-top, 0px); }
+    .app-shell.tk-shell .tkd-head,
+    .app-shell.ticket-shell .tkd-head { padding: 9px 11px; }
+    .app-shell.tk-shell .tkd-composer,
+    .app-shell.ticket-shell .tkd-composer { padding: 8px; }
+    .app-shell.tk-shell .tkd-input-row textarea,
+    .app-shell.ticket-shell .tkd-input-row textarea { min-height: 38px; max-height: 96px; }
 }
 
 /* v44 — ماشهٔ «همهٔ دسته‌ها» کنار عنوان بخش خدمات (به‌جای چیپ داخل ردیف اسکرولی) */

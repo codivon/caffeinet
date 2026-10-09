@@ -1,21 +1,24 @@
 {{-- [Task 7] نسخهٔ Livewire 4 «تیکت پشتیبانی» — تبدیل از app/support-detail.blade.php
      ساختار/کلاس‌ها/آیدی‌ها عیناً حفظ شده (JS صفحهٔ Vanilla با CN.api → API v1 دست‌نخورده).
      تنظیمات لایه از کامپوننت با layoutData پاس داده می‌شود؛ این ویو فقط یک ریشهٔ <div> دارد.
-     v44 — صفحهٔ تمام‌صفحه (chrome=false): بدون هدر/منو؛ دکمهٔ بازگشت شناور بالا-چپ. --}}
+     v44 — صفحهٔ تمام‌صفحه (chrome=false): بدون هدر/منو.
+     v45 — دکمهٔ بازگشت داخل کارت هدر تیکت نشست (نه شناور بالای آن) و
+     فاصلهٔ بالای هدر حذف شد — هدر دقیقاً زیر نوار وضعیت گوشی می‌نشیند. --}}
 
 
 <div>
-<a href="{{ route('app.support') }}" class="tk-float-back" id="backLink" wire:navigate
-   aria-label="بازگشت به تیکت‌های پشتیبانی" title="بازگشت به تیکت‌ها">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-</a>
-
-{{-- هدر تیکت --}}
+{{-- هدر تیکت — دکمهٔ بازگشت داخل هدر، سمت چپ (انتهای رج در RTL) --}}
 <div class="tkd-head fade-up sk-zone" id="tkdHead">
-    <div class="tkd-skeleton">
-        <div class="skeleton" style="height:18px;width:60%"></div>
-        <div class="skeleton" style="height:12px;width:40%;margin-top:8px"></div>
+    <div class="tkd-main" id="tkdHeadMain">
+        <div class="tkd-skeleton">
+            <div class="skeleton" style="height:18px;width:60%"></div>
+            <div class="skeleton" style="height:12px;width:40%;margin-top:8px"></div>
+        </div>
     </div>
+    <a href="{{ route('app.support') }}" class="tkd-back" id="backLink" wire:navigate
+       aria-label="بازگشت به تیکت‌های پشتیبانی" title="بازگشت به تیکت‌ها">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+    </a>
 </div>
 
 {{-- گفتگو --}}
@@ -60,5 +63,5 @@
 
 @push('page')
 <div id="page-data" hidden data-ticket-id="{{ $ticketId }}"></div>
-<script src="{{ asset('front/assets/js/pages/support-detail.js') }}?v=8" defer></script>
+<script src="{{ asset('front/assets/js/pages/support-detail.js') }}?v=9" defer></script>
 @endpush

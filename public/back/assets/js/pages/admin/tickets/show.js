@@ -57,7 +57,7 @@
 
         const attach = m.file ? (
             (m.file.url && (m.file.is_image || /^image\//.test(m.file.mime || '')))
-                ? `<a href="${esc(m.file.url)}" target="_blank" rel="noopener"><img class="tk-thumb" src="${esc(m.file.url)}" alt="${esc(m.file.name || 'پیوست')}"></a>`
+                ? `<img class="tk-thumb" data-lightbox src="${esc(m.file.url)}" alt="${esc(m.file.name || 'پیوست')}">`
                 : `<a class="tk-attach" href="${esc(m.file.url || '#')}" target="_blank" rel="noopener" download>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
                         <span class="tk-file-name">${esc(m.file.name || 'پیوست')}</span>
@@ -305,4 +305,26 @@
 
     /* ---------- شروع ---------- */
     renderAll();
+
+    /* ---------- v45 — موبایل: شیت «اطلاعات و عملیات تیکت» ----------
+       در موبایل گفتگو تمام‌صفحه است؛ اطلاعات/ارجاع/اولویت/بستن داخل شیت
+       با دکمهٔ ⓘ نوار سربرگ چت باز می‌شود. در دسکتاپ بی‌اثر (دکمه مخفی). */
+    const infoToggle = document.getElementById('tk-info-toggle');
+    const infoClose = document.getElementById('tk-info-close');
+    const infoOverlay = document.getElementById('tk-info-overlay');
+
+    function setInfoSheet(open) {
+        document.body.classList.toggle('tk-info-open', open);
+        if (infoOverlay) {
+            infoOverlay.classList.toggle('show', open);
+            infoOverlay.setAttribute('aria-hidden', String(!open));
+        }
+    }
+
+    infoToggle?.addEventListener('click', () => setInfoSheet(true));
+    infoClose?.addEventListener('click', () => setInfoSheet(false));
+    infoOverlay?.addEventListener('click', () => setInfoSheet(false));
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.body.classList.contains('tk-info-open')) { setInfoSheet(false); }
+    });
 })();

@@ -34,6 +34,8 @@
     @include('partials.appearance', ['panel' => 'admin'])
     {{-- تقویم/دیت‌پیکر شمسی (CNJdp) --}}
     <link rel="stylesheet" href="{{ asset('assets/css/jalali-datepicker.css') }}?v=3">
+    {{-- v45 — لایت‌باکس تمام‌صفحهٔ تصاویر (پیوست‌های تیکت) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/lightbox.css') }}?v=1">
     {{-- استایل‌های اختصاصی صفحات (push با @push('styles')) --}}
     {{-- Livewire [Task 2-a] — SPA (wire:navigate) --}}
     @livewireStyles
@@ -233,6 +235,7 @@
 <script src="{{ asset('back/assets/js/core.js') }}?v=16" data-navigate-once></script>
 <script src="{{ asset('back/assets/js/ui.js') }}?v=13" data-navigate-once></script>
 <script src="{{ asset('back/assets/js/pages/layout.js') }}?v=14" data-navigate-once></script>
+<script src="{{ asset('assets/js/lightbox.js') }}?v=1" data-navigate-once></script>
 {{-- اطلاعیه‌های پنل (فاز ۱۵) — بدون once (ری‌ران امن؛ بدون interval) --}}
 <script src="{{ asset('back/assets/js/pages/panel-announcements.js') }}?v=16"></script>
 {{-- نوتیف دستگاه (v25) — قبل از notifications.js تا CNPush آماده باشد --}}

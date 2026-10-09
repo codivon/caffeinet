@@ -9,18 +9,23 @@
 <div>
     @push('styles')
     <link rel="stylesheet" href="{{ asset('assets/css/notifications.css') }}?v=14">
-    <link rel="stylesheet" href="{{ asset('assets/css/pages/tickets.css') }}?v=14">
+    <link rel="stylesheet" href="{{ asset('assets/css/pages/tickets.css') }}?v=15">
     @endpush
 
-    <a href="{{ route('admin.tickets.index') }}" wire:navigate class="inline-flex items-center gap-2 text-xs font-bold text-stone-500 hover:text-amber-600 transition-colors mb-4">
+    {{-- v45 — لینک بازگشت فقط دسکتاپ؛ در موبایل نوار سربرگ چت لینک بازگشت دارد --}}
+    <a href="{{ route('admin.tickets.index') }}" wire:navigate class="hidden lg:inline-flex items-center gap-2 text-xs font-bold text-stone-500 hover:text-amber-600 transition-colors mb-4">
         <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
         بازگشت به لیست تیکت‌ها
     </a>
 
     <div class="tk-thread-wrap">
 
-        {{-- ================== کارت اطلاعات و عملیات ================== --}}
-        <aside class="tk-info-card ui-lift">
+        {{-- ================== کارت اطلاعات و عملیات ==================
+             v45 — در موبایل این کارت داخل شیت «اطلاعات تیکت» (دکمهٔ نوار چت) باز می‌شود --}}
+        <aside class="tk-info-card ui-lift" id="tkInfoCard">
+            <button type="button" id="tk-info-close" class="tk-sheet-x lg:hidden" aria-label="بستن پنل اطلاعات">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
             <div class="tk-info-head">
                 <span class="tk-number" dir="ltr">{{ $ticket->ticket_number }}</span>
                 <h2>{{ $ticket->subject }}</h2>
@@ -79,9 +84,21 @@
             </div>
         </aside>
 
-        {{-- ================== گفتگو ================== --}}
-        <section class="card ui-lift animate-fade-up overflow-hidden flex flex-col">
-            <div class="adm-card-head">
+        {{-- ================== گفتگو ==================
+             v45 — موبایل: گفتگو و ارسال تمام‌صفحه (ثابت زیر نوار بالای پنل) --}}
+        <section class="tk-chat-card card ui-lift animate-fade-up overflow-hidden flex flex-col">
+            {{-- نوار سربرگ موبایل: بازگشت + موضوع + دکمهٔ اطلاعات --}}
+            <div class="tk-mob-head lg:hidden">
+                <a href="{{ route('admin.tickets.index') }}" wire:navigate class="tk-mob-back" aria-label="بازگشت به لیست تیکت‌ها">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                </a>
+                <strong class="tk-mob-title">{{ $ticket->subject }}</strong>
+                <button type="button" id="tk-info-toggle" class="tk-mob-info" aria-label="اطلاعات و عملیات تیکت" title="اطلاعات تیکت">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M12 12v5"/></svg>
+                </button>
+            </div>
+
+            <div class="adm-card-head hidden lg:flex">
                 <div class="flex items-center gap-2">
                     <span class="grid place-items-center size-9 rounded-xl bg-amber-50 text-amber-600 border border-amber-100">
                         <svg class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -131,6 +148,9 @@
         </section>
     </div>
 
+    {{-- پردهٔ شیت اطلاعات (فقط موبایل) --}}
+    <div id="tk-info-overlay" aria-hidden="true"></div>
+
     {{-- داده‌های سرور برای اسکریپت صفحه (بدون JS درون‌خطی) — همان قرارداد قبلی --}}
     <div id="page-data" hidden data-payload="{{ json_encode($payload) }}"></div>
 
@@ -139,5 +159,5 @@
 </div>
 
 @push('scripts')
-<script src="{{ asset('back/assets/js/pages/admin/tickets/show.js') }}?v=15"></script>
+<script src="{{ asset('back/assets/js/pages/admin/tickets/show.js') }}?v=16"></script>
 @endpush

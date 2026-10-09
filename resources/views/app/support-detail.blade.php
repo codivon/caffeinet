@@ -6,17 +6,18 @@
 @section('shell-class', 'tk-shell')
 
 @section('content')
-<a href="{{ route('app.support') }}" class="back-link fade-up" id="backLink">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-    تیکت‌های پشتیبانی
-</a>
-
-{{-- هدر تیکت --}}
+{{-- v45 — دکمهٔ بازگشت داخل هدر تیکت نشست (نه شناور بالای آن) و
+     فاصلهٔ بالای هدر حذف شد — هدر دقیقاً زیر نوار وضعیت گوشی می‌نشیند --}}
 <div class="tkd-head fade-up" id="tkdHead">
-    <div class="tkd-skeleton">
-        <div class="skeleton" style="height:18px;width:60%"></div>
-        <div class="skeleton" style="height:12px;width:40%;margin-top:8px"></div>
+    <div class="tkd-main" id="tkdHeadMain">
+        <div class="tkd-skeleton">
+            <div class="skeleton" style="height:18px;width:60%"></div>
+            <div class="skeleton" style="height:12px;width:40%;margin-top:8px"></div>
+        </div>
     </div>
+    <a href="{{ route('app.support') }}" class="tkd-back" wire:navigate aria-label="بازگشت به تیکت‌ها" title="بازگشت به تیکت‌ها">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+    </a>
 </div>
 
 {{-- گفتگو --}}
@@ -61,5 +62,5 @@
 
 @push('page')
 <div id="page-data" hidden data-ticket-id="{{ $ticketId }}"></div>
-<script src="{{ asset('front/assets/js/pages/support-detail.js') }}?v=8" defer></script>
+<script src="{{ asset('front/assets/js/pages/support-detail.js') }}?v=9" defer></script>
 @endpush
