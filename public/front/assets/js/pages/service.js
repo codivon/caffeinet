@@ -513,15 +513,13 @@
             badges += '<span class="badge badge-amber">⭐ پیشنهاد ویژه</span>';
         }
         if (d.estimated_time_label && d.estimated_time_label !== '—') {
-            badges += '<span class="badge badge-stone">⏱ ' + CN.esc(d.estimated_time_label) + '</span>';
-        }
-        if (d.version) {
-            badges += '<span class="badge badge-stone">نسخه ' + CN.toFaDigits(d.version) + ' فرم</span>';
+            /* فاز ۴۶ — واضح و مفهوم: کاربر باید بفهمد «حدود ۳۰ دقیقه» یعنی زمان انجام کار */
+            badges += '<span class="badge badge-stone">⏱ زمان انجام: ' + CN.esc(d.estimated_time_label) + '</span>';
         }
         var svcBadgesEl = document.getElementById('svcBadges');
         if (svcBadgesEl) { svcBadgesEl.innerHTML = badges; }
         var svcTimeEl = document.getElementById('svcTime');
-        if (svcTimeEl) { svcTimeEl.textContent = d.estimated_time_label && d.estimated_time_label !== '—' ? d.estimated_time_label : ''; }
+        if (svcTimeEl) { svcTimeEl.textContent = d.estimated_time_label && d.estimated_time_label !== '—' ? ('زمان تقریبی انجام: ' + d.estimated_time_label) : ''; }
 
         /* ردیف‌های قیمت — v42: بج «مشمول کمیسیون» طبق درخواست مالک حذف شد */
         var rows = '';
@@ -533,7 +531,7 @@
                 c.amount
             );
         });
-        rows += '<div class="price-row total"><span class="pr-title">هزینهٔ درخواست</span><span class="pr-amount">' + CN.faMoney(d.total_amount) + ' تومان</span></div>';
+        rows += '<div class="price-row total"><span class="pr-title">مبلغ قابل پرداخت</span><span class="pr-amount">' + CN.faMoney(d.total_amount) + ' تومان</span></div>';
         var costRowsEl = document.getElementById('costRows');
         if (costRowsEl) { costRowsEl.innerHTML = rows; }
         var totalAmountEl = document.getElementById('totalAmount');
@@ -653,6 +651,10 @@
                 group = inputShell(f, '<input class="field num" id="f_' + CN.esc(f.name) + '" type="email" placeholder="' + CN.esc(f.placeholder || 'name@mail.com') + '" dir="ltr" style="text-align:center">');
                 break;
 
+            case 'plate': // فاز ۴۶ — شماره پلاک ایران (خونه‌های جدا با ظاهر پلاک واقعی)
+                group = inputShell(f, plateHtml(f));
+                break;
+
             default: // text
                 group = inputShell(f, '<input class="field" id="f_' + CN.esc(f.name) + '" type="text" placeholder="' + CN.esc(f.placeholder || '') + '" maxlength="255">');
         }
@@ -664,6 +666,28 @@
         var req = f.is_required ? ' <span class="req">*</span>' : '';
         var help = f.help_text ? '<p class="help-text">' + CN.esc(f.help_text) + '</p>' : '';
         return shell(f, req, inputHtml, '<p class="field-error" id="err_' + CN.esc(f.name) + '"></p>', help);
+    }
+
+    /* فاز ۴۶ — حروف مجاز پلاک ایران */
+    var PLATE_LETTERS = ['ب', 'پ', 'ت', 'ث', 'ج', 'چ', 'ح', 'د', 'ز', 'ژ', 'س', 'ش', 'ص', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ک', 'گ', 'ل', 'م', 'ن', 'و', 'ه', 'ی'];
+
+    /* پلاک ایران — از چپ به راست: نوار پرچم، دورقمی، حرف (سلکت)، سه‌رقمی، پیچ، ایران + کد استان */
+    function plateHtml(f) {
+        var n = CN.esc(f.name);
+        var letterOpts = '<option value="">–</option>';
+        PLATE_LETTERS.forEach(function (L) {
+            letterOpts += '<option value="' + L + '">' + L + '</option>';
+        });
+        return '<div class="ir-plate" dir="ltr" data-plate="' + n + '">' +
+            '<span class="ir-flag" aria-hidden="true"><i></i><i></i><i></i><b>I.R.IRAN</b></span>' +
+            '<input class="ir-num ir-two" id="f_' + n + '_two" type="tel" inputmode="numeric" maxlength="2" placeholder="۱۲" aria-label="دو رقم اول پلاک">' +
+            '<select class="ir-letter" id="f_' + n + '_letter" aria-label="حرف پلاک">' + letterOpts + '</select>' +
+            '<input class="ir-num ir-three" id="f_' + n + '_three" type="tel" inputmode="numeric" maxlength="3" placeholder="۳۴۵" aria-label="سه رقم میانی پلاک">' +
+            '<span class="ir-sep" aria-hidden="true"></span>' +
+            '<span class="ir-iran"><small>ایران</small>' +
+            '<input class="ir-num ir-prov" id="f_' + n + '_prov" type="tel" inputmode="numeric" maxlength="2" placeholder="۷۹" aria-label="کد استان">' +
+            '</span>' +
+            '</div>';
     }
 
     function shell(f, req, inner, err, help) {
@@ -709,6 +733,24 @@
                     function (cb) { return cb.value; }
                 );
                 value = checked.length ? checked : null;
+            } else if (f.field_type === 'plate') {
+                /* فاز ۴۶ — پلاک: چهار خانه جدا → یک رشتهٔ «۱۲ ب ۳۴۵ ایران ۷۹» */
+                var pTwo = ((document.getElementById('f_' + f.name + '_two') || {}).value || '');
+                var pLetter = ((document.getElementById('f_' + f.name + '_letter') || {}).value || '');
+                var pThree = ((document.getElementById('f_' + f.name + '_three') || {}).value || '');
+                var pProv = ((document.getElementById('f_' + f.name + '_prov') || {}).value || '');
+                pTwo = CN.toEnDigits(pTwo).replace(/\D/g, '');
+                pThree = CN.toEnDigits(pThree).replace(/\D/g, '');
+                pProv = CN.toEnDigits(pProv).replace(/\D/g, '');
+
+                var filled = [pTwo, pLetter, pThree, pProv].filter(function (x) { return x; }).length;
+                if (filled > 0 && filled < 4) {
+                    /* پر کردن ناقص پلاک (حتی اختیاری) خطاست تا داده ناقص ذخیره نشود */
+                    ok = false;
+                    CN.fieldError(f.name, 'پلاک را کامل وارد کنید (هر چهار خانه).');
+                    return;
+                }
+                value = filled === 4 ? (pTwo + ' ' + pLetter + ' ' + pThree + ' ایران ' + pProv) : null;
             } else {
                 var inputEl = document.getElementById('f_' + f.name);
                 value = ((inputEl && inputEl.value) || '').trim() || null;

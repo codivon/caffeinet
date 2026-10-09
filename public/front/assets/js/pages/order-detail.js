@@ -828,8 +828,7 @@
 
             startPolling();
         } else if (queued) {
-            var qAtNoteEl = document.getElementById('queuedAtNote');
-            if (qAtNoteEl) { qAtNoteEl.textContent = o.queued_at_fa ? ('در صف از ' + o.queued_at_fa) : ''; }
+            /* فاز ۴۶ — «در صف از تاریخ» (queuedAtNote) طبق درخواست مالک حذف شد */
 
             /* v39 — انتخاب راه ارتباطی (فقط وقتی مهلت تمام شده و اپراتوری قبول نکرده) */
             renderContactPrefs(o.contact_preference || null);

@@ -10,18 +10,18 @@
     <div class="brand-stripes"></div>
 </div>
 
-<div class="relative w-full max-w-md py-10">
+<div class="relative w-full max-w-md sm:max-w-lg py-10">
 
     <div class="text-center mb-8 animate-fade-up">
         <span class="inline-grid place-items-center size-16 rounded-3xl bg-brand-gradient shadow-2xl shadow-black/30 mb-4">
             <img src="{{ asset('icons/icon-96.png') }}" alt="" width="32" height="32" loading="lazy" style="width:32px;height:32px;object-fit:contain">
         </span>
-        <h1 class="text-2xl font-extrabold text-white tracking-tight">کافی‌نت آنلاین</h1>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">کافی‌نت آنلاین</h1>
         <p class="mt-1.5 text-sm text-brand-muted font-light">ورود به پنل مدیریت کافی‌نت</p>
     </div>
 
     {{-- کارت ورود --}}
-    <form wire:submit="store" class="brand-card animate-fade-up rounded-3xl p-7 space-y-5 relative overflow-hidden" novalidate>
+    <form wire:submit="store" class="brand-card animate-fade-up rounded-3xl p-7 sm:p-8 space-y-5 relative overflow-hidden" novalidate>
 
         {{-- خطای کلی (اعتبارسنجی غیرفیلدی / قفل تلاش / نداشتن دسترسی) --}}
         @error('form')

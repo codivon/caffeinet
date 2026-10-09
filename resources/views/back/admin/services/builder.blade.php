@@ -5,7 +5,7 @@
 @section('breadcrumb', 'پنل مدیریت کل ← کاتالوگ ← خدمات ← فرم‌ساز')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('assets/css/pages/settings.css') }}?v=15">
+    <link rel="stylesheet" href="{{ asset('assets/css/pages/settings.css') }}?v=16">
 @endpush
 
 @section('content')
@@ -235,8 +235,8 @@
                         </div>
                     </div>
 
-                    {{-- مهلت خدمت --}}
-                    <div class="rounded-2xl border border-dashed border-stone-300 p-4 bg-stone-50/60">
+                    {{-- مهلت خدمت — فاز ۴۶: با انتخاب «قطع از سایت اصلی» مخفی می‌شود (svb-expires-group) --}}
+                    <div id="svb-expires-group" class="rounded-2xl border border-dashed border-stone-300 p-4 bg-stone-50/60">
                         <p class="lbl">مهلت خدمت (اختیاری) <span class="font-normal text-stone-400">— مثلاً مهلت ثبت‌نام؛ پس از پایان، مودال «مهلت تمام شد»</span></p>
                         <div class="grid grid-cols-2 gap-3 mt-2">
                             <div>
@@ -344,5 +344,5 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('back/assets/js/pages/admin/services/builder.js') }}?v=16"></script>
+<script src="{{ asset('back/assets/js/pages/admin/services/builder.js') }}?v=17"></script>
 @endpush

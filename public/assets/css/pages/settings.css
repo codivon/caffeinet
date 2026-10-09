@@ -1352,3 +1352,75 @@ html.dark .up2-step--hi { color: #93c5fd; background: color-mix(in srgb, var(--b
     border: 3.5px solid transparent;
     border-inline-end-color: var(--th-line, #d6d3d1);
 }
+
+/* ═══════════ فاز ۴۶ — پیش‌نمایش پلاک ایران در فرم‌ساز ═══════════ */
+.ir-plate {
+    display: inline-flex;
+    align-items: stretch;
+    direction: ltr;
+    background: #fff;
+    border: 2px solid #1e293b;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 46px;
+    min-width: 232px;
+    max-width: 100%;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .18);
+    font-weight: 800;
+    color: #0f172a;
+}
+.ir-plate--static { pointer-events: none; }
+.ir-flag {
+    flex: none;
+    width: 26px;
+    background: linear-gradient(180deg, #33bfff 0%, #33bfff 33%, #f5f7fa 33%, #f5f7fa 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 4px 0 0;
+    gap: 3px;
+    border-inline-end: 1.5px solid #1e293b;
+}
+.ir-flag i { width: 14px; height: 3px; border-radius: 2px; }
+.ir-flag i:nth-child(1) { background: #fff; }
+.ir-flag i:nth-child(2) { background: #d00; }
+.ir-flag i:nth-child(3) { background: #1e293b; }
+.ir-flag b {
+    font-size: 6.5px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    color: #1e293b;
+    writing-mode: vertical-rl;
+    margin-top: 1px;
+}
+.ir-cell {
+    display: grid;
+    place-items: center;
+    padding: 0 6px;
+    font-size: 17px;
+    letter-spacing: .06em;
+}
+.ir-two { min-width: 44px; }
+.ir-letter { min-width: 40px; font-size: 16px; }
+.ir-three { min-width: 54px; }
+.ir-sep {
+    flex: none;
+    width: 8px;
+    margin: 6px 2px;
+    background-image: radial-gradient(circle at 4px 8px, #64748b 2.6px, transparent 3px), radial-gradient(circle at 4px calc(100% - 8px), #64748b 2.6px, transparent 3px);
+    background-repeat: no-repeat;
+    border-inline-start: 1.5px dashed #94a3b8;
+}
+.ir-iran {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 8px 3px;
+    border-inline-start: 1.5px solid #1e293b;
+    background: #f8fafc;
+}
+.ir-iran small { font-size: 8.5px; font-weight: 700; line-height: 1; color: #334155; }
+.ir-iran b { font-size: 15px; line-height: 1.15; letter-spacing: .05em; }

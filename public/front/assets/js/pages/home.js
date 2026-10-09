@@ -180,11 +180,10 @@
 
         var html = '';
         featured.slice(0, 6).forEach(function (s) {
+            /* فاز ۴۶ — طبق درخواست مالک: داخل کارت ویژه فقط عنوان (به‌همراه آیکون دسته) */
             html += '<a class="featured-card" href="' + CN.withPort('/app/service/' + s.id) + '">' +
                 '<div class="f-icon">' + CN.esc((s.category && s.category.icon) || '⭐') + '</div>' +
                 '<div class="f-name">' + CN.esc(s.name) + '</div>' +
-                '<div class="f-meta">' + CN.esc((s.category && s.category.name) || '') + ' · ' + CN.esc(s.estimated_time_label || '') + '</div>' +
-                '<div class="f-price">' + CN.faMoneyUnit(s.total_amount) + '</div>' +
                 '</a>';
         });
 

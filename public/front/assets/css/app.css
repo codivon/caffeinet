@@ -3979,15 +3979,16 @@ html.dark .sk-zone:has(.skeleton)::after {
 
 /* ═══════════ v45 — تیکت تمام‌صفحه (بدون هدر/منو) ═══════════
    صفحهٔ گفتگوی تیکت chrome=false است: هدر و منوی پایین حذف شدند.
-   v45 — دکمهٔ بازگشت داخل کارت هدر تیکت نشست (tkd-back) و فاصلهٔ بالای
-   هدر حذف شد: فقط safe-area بالای گوشی رعایت می‌شود. */
+   v45 — دکمهٔ بازگشت داخل کارت هدر تیکت نشست (tkd-back).
+   v46 — هدر چند پیکسل از بالای صفحه فاصله می‌گیرد (تا نسبت تصویر/کارت هدر
+   حفظ شود و به نوار وضعیت گوشی نچسبد) + safe-area. */
 .app-shell.tk-full .app-main {
-    padding-top: calc(env(safe-area-inset-top, 0px));
+    padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
 }
 /* روی گوشی‌های کوتاه هم سربرگ و پاسخ‌دهنده فشرده می‌شوند */
 @media (max-height: 620px) {
-    .app-shell.tk-full .app-main { padding-top: env(safe-area-inset-top, 0px); }
+    .app-shell.tk-full .app-main { padding-top: calc(env(safe-area-inset-top, 0px) + 5px); }
     .app-shell.tk-shell .tkd-head,
     .app-shell.ticket-shell .tkd-head { padding: 9px 11px; }
     .app-shell.tk-shell .tkd-composer,
@@ -4000,3 +4001,139 @@ html.dark .sk-zone:has(.skeleton)::after {
 .allcats-trigger { flex: none; cursor: pointer; margin-inline-start: 2px; }
 .allcats-trigger .at-caret { transition: transform .18s ease; opacity: .7; }
 .allcats-trigger:active .at-caret { transform: translateY(1px); }
+
+/* ═══════════ فاز ۴۶ — فیلد «شماره پلاک ایران» در فرم سفارش ═══════════
+   ظاهر پلاک واقعی: از چپ به راست — نوار پرچم، دورقمی، حرف (سلکت)، سه‌رقمی،
+   پیچ‌های اتصال، سپس بخش «ایران» + کد استان. سفید در هر دو تم (پلاک واقعی). */
+.ir-plate {
+    display: inline-flex;
+    align-items: stretch;
+    direction: ltr;
+    background: #fff;
+    border: 2px solid #1e293b;
+    border-radius: 9px;
+    overflow: hidden;
+    height: 52px;
+    min-width: 252px;
+    max-width: 100%;
+    box-shadow: 0 3px 10px rgba(15, 23, 42, .16);
+    font-weight: 800;
+    color: #0f172a;
+}
+.ir-plate:focus-within {
+    border-color: var(--brand-600, #1d4ed8);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-600, #1d4ed8) 26%, transparent);
+}
+.ir-flag {
+    flex: none;
+    width: 28px;
+    background: linear-gradient(180deg, #33bfff 0%, #33bfff 34%, #f5f7fa 34%, #f5f7fa 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 5px 0 0;
+    gap: 3px;
+    border-right: 1.5px solid #1e293b;
+}
+.ir-flag i { width: 15px; height: 3.5px; border-radius: 2px; }
+.ir-flag i:nth-child(1) { background: #fff; }
+.ir-flag i:nth-child(2) { background: #d00; }
+.ir-flag i:nth-child(3) { background: #1e293b; }
+.ir-flag b {
+    font-size: 6.5px;
+    font-weight: 800;
+    letter-spacing: .05em;
+    color: #1e293b;
+    writing-mode: vertical-rl;
+    margin-top: 1px;
+}
+.ir-num {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    text-align: center;
+    font: inherit;
+    font-size: 19px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: .08em;
+    padding: 0;
+    min-width: 0;
+}
+.ir-num::placeholder { color: #cbd5e1; font-weight: 700; }
+.ir-num::-webkit-outer-spin-button, .ir-num::-webkit-inner-spin-button { -webkit-appearance: none; }
+.ir-two { flex: 1.1 1 0; padding: 0 2px; }
+.ir-three { flex: 1.6 1 0; padding: 0 2px; }
+.ir-letter {
+    flex: 1.2 1 0;
+    min-width: 44px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    text-align: center;
+    font: inherit;
+    font-size: 17px;
+    font-weight: 800;
+    color: #0f172a;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0 2px;
+}
+.ir-sep {
+    flex: none;
+    width: 9px;
+    margin: 7px 2px;
+    background-image: radial-gradient(circle at 4.5px 9px, #64748b 2.8px, transparent 3.2px), radial-gradient(circle at 4.5px calc(100% - 9px), #64748b 2.8px, transparent 3.2px);
+    background-repeat: no-repeat;
+    border-right: 1.5px dashed #94a3b8;
+}
+.ir-iran {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 9px 4px;
+    border-left: 1.5px solid #1e293b;
+    background: #f8fafc;
+    gap: 0;
+}
+.ir-iran small { font-size: 9px; font-weight: 700; line-height: 1.1; color: #334155; }
+.ir-prov { width: 40px; font-size: 16px !important; line-height: 1.2; }
+
+/* ═══════════ فاز ۴۶ — مرتب‌سازی آیتم‌های گردش حساب کیف پول ═══════════
+   عنوان / تاریخ / موجودی هرکدام خط مستقل — دیگر به هم نمی‌چسبند */
+.tx-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.tx-title {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.55;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.tx-time {
+    display: block;
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    line-height: 1.5;
+}
+.tx-bal {
+    display: block;
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    line-height: 1.5;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.tx-bal b { font-weight: 700; color: var(--ink-soft, #475569); }

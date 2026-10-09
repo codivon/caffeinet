@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap">
 
     {{-- استایل مستقل (بدون نیاز به بیلد Node) --}}
-    <link rel="stylesheet" href="{{ asset('front/assets/css/app.css') }}?v=33">
+    <link rel="stylesheet" href="{{ asset('front/assets/css/app.css') }}?v=34">
     {{-- v45 — لایت‌باکس تمام‌صفحهٔ تصاویر (پیوست‌های تیکت/چت) --}}
     <link rel="stylesheet" href="{{ asset('assets/css/lightbox.css') }}?v=1">
     {{-- پوستهٔ پویا: پالت اختصاصی اپ مشتری (بعد از استایل اصلی) --}}

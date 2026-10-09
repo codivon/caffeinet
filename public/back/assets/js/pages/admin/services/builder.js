@@ -23,6 +23,7 @@
         radio:         { label: 'تک‌انتخابی',   icon: '⭕', hint: 'یک گزینه' },
         checkbox:      { label: 'چندانتخابی',   icon: '☑️', hint: 'چند گزینه' },
         file:          { label: 'فایل',         icon: '📎', hint: 'بارگذاری مدرک' },
+        plate:         { label: 'شماره پلاک',   icon: '🚘', hint: 'پلاک ایران — دو رقم، حرف، سه رقم، کد استان' },
     };
     const OPTION_TYPES = ['select', 'radio', 'checkbox'];
 
@@ -111,6 +112,8 @@
             c.setAttribute('aria-checked', on ? 'true' : 'false');
         });
         el('svb-unavailable-note-group').classList.toggle('hidden', value !== 'unavailable');
+        /* فاز ۴۶ — «قطع از سایت اصلی» یعنی مهلت خدمت هم بی‌معناست: فرم مهلت (تاریخ/ساعت/پیام پایان) مخفی شود */
+        el('svb-expires-group')?.classList.toggle('hidden', value === 'unavailable');
         updateStateBadge();
     }
 
@@ -836,6 +839,18 @@
                     <p class="text-[10px] text-stone-400 mt-0.5">${esc(f.placeholder) || 'انتخاب فایل'}</p>
                 </div>`;
                 break;
+            case 'plate': {
+                /* فاز ۴۶ — پیش‌نمایش پلاک ایران (خواندنی) */
+                control = `<div class="ir-plate ir-plate--static" dir="ltr" aria-hidden="true">` +
+                    `<span class="ir-flag"><i></i><i></i><i></i><b>I.R.IRAN</b></span>` +
+                    `<span class="ir-cell ir-two">۱۲</span>` +
+                    `<span class="ir-cell ir-letter">ب</span>` +
+                    `<span class="ir-cell ir-three">۳۴۵</span>` +
+                    `<span class="ir-sep"></span>` +
+                    `<span class="ir-iran"><small>ایران</small><b>۷۹</b></span>` +
+                    `</div>`;
+                break;
+            }
             case 'mobile':
                 control = `<input class="field !py-2 !text-[12px] font-mono pointer-events-none" tabindex="-1" readonly dir="ltr" placeholder="${esc(f.placeholder) || '09xxxxxxxxx'}">`;
                 break;

@@ -73,7 +73,7 @@
                     <p class="assign-desc" id="queuedDesc">
                         سفارش شما با موفقیت ثبت شد. همکاران ما در اولین فرصت آن را بررسی و به یکی از کافی‌نت‌ها تخصیص می‌دهند و نتیجه را از طریق پیامک و تماس به شما اطلاع می‌دهند.
                     </p>
-                    <p class="assign-desc" id="queuedAtNote" style="margin-top:8px;color:var(--ink-faint)"></p>
+                    {{-- فاز ۴۶ — «در صف از تاریخ» حذف شد (queuedAtNote) --}}
 
                     {{-- v42 — راه‌های ارتباطی: یک گرید واحد؛ تماس اولِ لیست و بعد
                          پیام‌رسان‌ها — هر گزینه مستقل تیک می‌خورد («فرقی ندارد» حذف شد) --}}
@@ -469,6 +469,6 @@
 @endpush
 
 @push('page')
-    <script src="{{ asset('front/assets/js/pages/order-detail.js') }}?v=7" defer></script>
+    <script src="{{ asset('front/assets/js/pages/order-detail.js') }}?v=8" defer></script>
     <script src="{{ asset('front/assets/js/pages/order-chat.js') }}?v=25" defer></script>
 @endpush

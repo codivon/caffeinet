@@ -105,3 +105,11 @@ div[x-persist]{display:contents}
 .hover\:text-blue-100:hover{color:var(--color-blue-100)}
 .selection\:bg-blue-200 ::selection{background-color:var(--color-blue-200)}
 .selection\:text-blue-950 ::selection{color:var(--color-blue-950)}
+/* ═══ فاز ۴۶ — فیکس آیکون داخل فیلد برند (لاگین پنل‌ها) ═══
+   .brand-field بعد از لایهٔ utilities می‌آید و padding shorthand آن
+   pl-10/pr-10 آیکون را می‌پوشاند → متن روی آیکون می‌افتاد. */
+.brand-field.pl-10{padding-left:2.5rem}
+.brand-field.pr-10{padding-right:2.5rem}
+/* فاز ۴۶ — یوتیلیتی‌های رسپانسیو فرم لاگین (در خروجی کامپایل نبودند) */
+.sm\:max-w-lg{max-width:32rem}
+.sm\:p-8{padding:calc(var(--spacing,.25rem)*8)}

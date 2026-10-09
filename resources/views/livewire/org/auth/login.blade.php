@@ -9,12 +9,12 @@
         <span class="inline-grid place-items-center size-16 rounded-3xl bg-gradient-to-br from-teal-400 to-teal-700 shadow-2xl shadow-black/40 mb-4">
             <img src="{{ asset('icons/icon-96.png') }}" alt="" width="32" height="32" style="width:32px;height:32px;object-fit:contain">
         </span>
-        <h1 class="text-2xl font-extrabold text-teal-50 tracking-tight">کافی‌نت آنلاین</h1>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-teal-50 tracking-tight">کافی‌نت آنلاین</h1>
         <p class="mt-1.5 text-sm text-teal-200/60 font-light">ورود به پنل سازمان</p>
     </div>
 
     {{-- کارت ورود --}}
-    <form wire:submit="store" class="ui-auth-card animate-fade-up delay-1 rounded-3xl glass-warm p-7 space-y-5" novalidate>
+    <form wire:submit="store" class="ui-auth-card animate-fade-up delay-1 rounded-3xl glass-warm p-7 sm:p-8 space-y-5" novalidate>
 
         {{-- خطای کلی (اعتبارسنجی غیرفیلدی / قفل تلاش / نداشتن دسترسی) --}}
         @error('form')

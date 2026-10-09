@@ -76,6 +76,8 @@
     function txRow(t) {
         var isCredit = t.type === 'credit';
 
+        /* فاز ۴۶ — ردیف مرتب: عنوان (تک‌خط)، تاریخ زیرش، و «موجودی پس از تراکنش»
+           خط سوم مستقل تا دیگر به هم نچسبند و نامرتب نشوند */
         return '<div class="tx-row">' +
             '<span class="tx-icon ' + (isCredit ? 'credit' : 'debit') + '">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -85,7 +87,8 @@
             '</svg></span>' +
             '<span class="tx-body">' +
             '<span class="tx-title">' + CN.esc(t.description || (isCredit ? 'واریز' : 'برداشت')) + '</span>' +
-            '<span class="tx-time">' + CN.esc(t.created_at_fa || '') + ' · موجودی پس از تراکنش: ' + CN.faMoney(t.balance_after) + '</span>' +
+            '<span class="tx-time">' + CN.esc(t.created_at_fa || '') + '</span>' +
+            '<span class="tx-bal">موجودی پس از تراکنش: <b>' + CN.faMoney(t.balance_after) + ' تومان</b></span>' +
             '</span>' +
             '<span class="tx-amount ' + (isCredit ? 'credit' : 'debit') + '">' + (isCredit ? '+' : '−') + CN.faMoney(t.amount) + '</span>' +
             '</div>';
