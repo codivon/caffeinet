@@ -151,7 +151,7 @@
                     <div class="phone-card">
                         <div class="pc-head">
                             <span class="pc-ic amber">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                                <img src="{{ asset('icons/icon-96.png') }}" alt="" width="16" height="16" style="width:16px;height:16px;object-fit:contain" aria-hidden="true">
                             </span>
                             <div>
                                 <div class="pc-title">تعویض پلاک خودرو تهران</div>
@@ -451,7 +451,7 @@
                 </div>
                 <div class="browsers">
                     <span class="browser-chip">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                        <svg viewBox="0 0 24 24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M10 4v4"/><path d="M2 8h20"/><path d="M6 4v4"/></svg>
                         Chrome / Edge — اندروید
                     </span>
                     <span class="browser-chip">
@@ -552,7 +552,7 @@
     <div class="container">
         <div class="cta-panel reveal">
             <div class="cta-cup" aria-hidden="true">
-                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                <img src="{{ asset('icons/icon-96.png') }}" alt="" width="34" height="34" style="width:34px;height:34px;object-fit:contain" aria-hidden="true">
             </div>
             <h2 class="cta-title">امروز اولین سفارش‌تان را <span class="gold">آنلاین</span> ثبت کنید</h2>
             <p class="cta-desc">

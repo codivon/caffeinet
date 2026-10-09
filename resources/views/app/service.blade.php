@@ -57,7 +57,8 @@
             <p class="field-error" id="filesError"></p>
         </div>
 
-        <div class="price-row total mt-3" id="totalRow">
+        {{-- v42 — «هزینهٔ درخواست» از فرم فاصلهٔ واضح دارد (درخواست مالک) --}}
+        <div class="price-row total mt-4" id="totalRow">
             <span class="pr-title">هزینهٔ درخواست</span>
             <span class="pr-amount" id="totalAmount">—</span>
         </div>

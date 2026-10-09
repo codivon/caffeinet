@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap">
 
     {{-- استایل مستقل (بدون نیاز به بیلد Node) --}}
-    <link rel="stylesheet" href="{{ asset('front/assets/css/app.css') }}?v=29">
+    <link rel="stylesheet" href="{{ asset('front/assets/css/app.css') }}?v=30">
     {{-- پوستهٔ پویا: پالت اختصاصی اپ مشتری (بعد از استایل اصلی) --}}
     @include('partials.appearance', ['panel' => 'app'])
     {{-- تقویم/دیت‌پیکر شمسی (CNJdp) --}}

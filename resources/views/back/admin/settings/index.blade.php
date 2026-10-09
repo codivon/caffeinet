@@ -82,7 +82,7 @@
 
         <nav class="st-nav-list" role="tablist">
             <button type="button" role="tab" class="st-nav-item is-active" data-section="general">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                <img src="{{ asset('icons/icon-96.png') }}" alt="" width="18" height="18" style="width:18px;height:18px;object-fit:contain" aria-hidden="true">
                 <span class="flex-1 text-start">عمومی</span>
                 <span class="st-nav-hint">۲</span>
             </button>
@@ -178,7 +178,7 @@
         <form data-group="general" class="st-section card ui-lift animate-fade-up" id="sec-general">
             <div class="st-section-head">
                 <span class="st-section-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                    <img src="{{ asset('icons/icon-96.png') }}" alt="" width="18" height="18" style="width:18px;height:18px;object-fit:contain" aria-hidden="true">
                 </span>
                 <div class="flex-1">
                     <h2 class="st-section-title">تنظیمات عمومی</h2>
