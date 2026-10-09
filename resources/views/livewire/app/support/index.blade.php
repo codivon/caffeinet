@@ -27,7 +27,7 @@
 </div>
 
 <div class="card fade-up d2">
-    <div id="ticketList" aria-live="polite">
+    <div id="ticketList" class="sk-zone" aria-live="polite">
         <div class="skeleton" style="height:72px"></div>
         <div class="skeleton" style="height:72px"></div>
     </div>

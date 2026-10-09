@@ -31,7 +31,8 @@
     <span class="more" id="servicesCount"></span>
 </div>
 
-<div id="servicesList" aria-live="polite">
+{{-- v44 — sk-zone: حلهٔ نور تا رسیدن خدمات فقط روی همین ناحیه --}}
+<div id="servicesList" class="sk-zone" aria-live="polite">
     <div class="skeleton svc"></div>
     <div class="skeleton svc"></div>
     <div class="skeleton svc"></div>

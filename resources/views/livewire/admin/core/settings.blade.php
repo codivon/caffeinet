@@ -2019,11 +2019,12 @@
             </div>
         </section>
 
-    </div>
-</div>
-
-{{-- ================== v43 — آپلود و فشرده‌سازی (بازطراحی مدرن) ================== --}}
-        <form data-group="uploads" class="st-section card ui-lift animate-fade-up" id="sec-uploads">
+        {{-- ================== v43 — آپلود و فشرده‌سازی (بازطراحی مدرن) ==================
+             v44 — فیکس چیدمان: این فرم تا حالا «بیرون» از st-sections/st-layout رندر
+             می‌شد (دو </div> زودهنگام بالای آن) و به همین دلیل زیر تب‌ها و تمام‌عرض
+             می‌افتاد. حالا داخل ستون سکشن‌هاست تا کنار تب‌ها (ستون ۱fr گرید) بنشیند
+             + کلاس hidden اولیه مثل بقیهٔ سکشن‌ها. --}}
+        <form data-group="uploads" class="st-section card ui-lift animate-fade-up hidden" id="sec-uploads">
             <div class="st-section-head">
                 <span class="st-section-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></svg>
@@ -2167,6 +2168,8 @@
             <button type="submit" class="btn-primary btn-shine ui-press !py-2.5 px-7">ذخیرهٔ تنظیمات فشرده‌سازی</button>
         </form>
 
+    </div><!-- /st-sections — v44: سکشن آپلود حالا داخل ستون سکشن‌هاست -->
+
 {{-- مودال پیامک آزمایشی --}}
 <div id="sms-modal" class="ui-modal-backdrop hidden">
     <div data-close class="absolute inset-0" aria-hidden="true"></div>
@@ -2190,6 +2193,7 @@
     </form>
 </div>
 </div>
+</div><!-- /root — v44: بسته‌شدن ریشهٔ کامپوننت (st-layout + ریشه) -->
 @push('scripts')
 <script src="{{ asset('back/assets/js/pages/admin/settings/index.js') }}?v=32"></script>
 @endpush

@@ -34,7 +34,7 @@
     </h2>
 
     <form id="orderForm" novalidate>
-        <div id="dynamicFields" aria-live="polite">
+        <div id="dynamicFields" class="sk-zone" aria-live="polite">
             <div class="skeleton" style="height:56px"></div>
             <div class="skeleton" style="height:56px"></div>
         </div>

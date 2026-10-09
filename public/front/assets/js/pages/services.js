@@ -58,10 +58,8 @@
                 '</button>';
         });
 
-        /* v42 — دکمهٔ «همهٔ دسته‌ها»: دیدن همهٔ دسته‌بندی‌ها یکجا (گرید در شیت) */
-        html += '<button class="chip chip-allcats" id="allCatsBtn" type="button" aria-haspopup="dialog" aria-controls="allCatsSheet" title="مشاهدهٔ همهٔ دسته‌بندی‌ها">' +
-            '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="3" rx="1.5"/><rect width="7" height="7" x="3" y="14" rx="1.5"/><rect width="7" height="7" x="14" y="14" rx="1.5"/></svg>' +
-            ' همهٔ دسته‌ها</button>';
+        /* v44 — دکمهٔ «همهٔ دسته‌ها» از ردیف چیپ‌ها حذف شد؛ ماشهٔ آن کنار عنوان
+           بخش (servicesTitle) در blade قرار گرفت (‎#allCatsTrigger → openAllCats) */
 
         if (row) {
             row.innerHTML = html;
@@ -244,12 +242,6 @@
     var categoryChipsRow = document.getElementById('categoryChips');
     if (categoryChipsRow) {
         categoryChipsRow.addEventListener('click', function (e) {
-            /* v42 — دکمهٔ «همهٔ دسته‌ها» → شیت گرید */
-            if (e.target.closest && e.target.closest('#allCatsBtn')) {
-                openAllCats();
-                return;
-            }
-
             var chip = e.target.closest ? e.target.closest('.chip') : null;
             if (!chip || !categoryChipsRow.contains(chip)) { return; }
 
@@ -258,6 +250,10 @@
             render();
         });
     }
+
+    /* v44 — دکمهٔ ماشهٔ «همهٔ دسته‌ها» کنار عنوان بخش (ثابت در blade) */
+    var allCatsTrigger = document.getElementById('allCatsTrigger');
+    if (allCatsTrigger) { allCatsTrigger.addEventListener('click', openAllCats); }
 
     /* v42 — رویدادهای شیت همهٔ دسته‌ها */
     var allCatsCloseBtn = document.getElementById('allCatsClose');

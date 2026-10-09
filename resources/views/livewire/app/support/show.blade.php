@@ -1,16 +1,17 @@
 {{-- [Task 7] نسخهٔ Livewire 4 «تیکت پشتیبانی» — تبدیل از app/support-detail.blade.php
      ساختار/کلاس‌ها/آیدی‌ها عیناً حفظ شده (JS صفحهٔ Vanilla با CN.api → API v1 دست‌نخورده).
-     تنظیمات لایه از کامپوننت با layoutData پاس داده می‌شود؛ این ویو فقط یک ریشهٔ <div> دارد. --}}
+     تنظیمات لایه از کامپوننت با layoutData پاس داده می‌شود؛ این ویو فقط یک ریشهٔ <div> دارد.
+     v44 — صفحهٔ تمام‌صفحه (chrome=false): بدون هدر/منو؛ دکمهٔ بازگشت شناور بالا-چپ. --}}
 
 
 <div>
-<a href="{{ route('app.support') }}" class="back-link fade-up" id="backLink">
+<a href="{{ route('app.support') }}" class="tk-float-back" id="backLink" wire:navigate
+   aria-label="بازگشت به تیکت‌های پشتیبانی" title="بازگشت به تیکت‌ها">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-    تیکت‌های پشتیبانی
 </a>
 
 {{-- هدر تیکت --}}
-<div class="tkd-head fade-up" id="tkdHead">
+<div class="tkd-head fade-up sk-zone" id="tkdHead">
     <div class="tkd-skeleton">
         <div class="skeleton" style="height:18px;width:60%"></div>
         <div class="skeleton" style="height:12px;width:40%;margin-top:8px"></div>
@@ -19,7 +20,7 @@
 
 {{-- گفتگو --}}
 <div class="tkd-thread-wrap fade-up d1">
-    <div class="tkd-thread" id="tkdThread" aria-live="polite">
+    <div class="tkd-thread sk-zone" id="tkdThread" aria-live="polite">
         <div class="skeleton" style="height:56px"></div>
         <div class="skeleton" style="height:56px"></div>
         <div class="skeleton" style="height:56px"></div>

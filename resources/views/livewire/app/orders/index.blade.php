@@ -19,7 +19,7 @@
     <button class="chip" data-status="cancelled" type="button">لغوشده</button>
 </div>
 
-<div id="ordersList" aria-live="polite">
+<div id="ordersList" class="sk-zone" aria-live="polite">
     <div class="skeleton svc"></div>
     <div class="skeleton svc"></div>
 </div>

@@ -1066,8 +1066,11 @@ window.CN = (function () {
 
     /* ---------- v42 — اسکلتون فوری ناوبری (لودر مدرن) ----------
        با کلیک روی منوی پایین/هدر، پوستهٔ صفحهٔ مقصد (ساختار ثابت) همان لحظه
-       با شیمر موجی نمایش داده می‌شود؛Livewire صفحهٔ تازه را که سواپ کرد،
-       پوسته پنهان و محتوا با انیمیشن ملایم وارد می‌شود. */
+       با شیمر موجی نمایش داده می‌شود؛ Livewire صفحهٔ تازه را که سواپ کرد،
+       پوسته پنهان و محتوا با انیمیشن ملایم وارد می‌شود.
+       v44 — «حلهٔ نور» دیگر روی کل صفحه نیست (درخواست مالک): از این به بعد
+       حله فقط روی ناحیهٔ دیتای هر صفحه (کلاس sk-zone در app.css + :has)
+       تا رسیدن دیتا از دیتابیس مرتب از روی همان ناحیه رد می‌شود. */
     (function initNavSkeleton() {
         var overlay = null;
         var hideTimer = null;
@@ -1137,13 +1140,7 @@ window.CN = (function () {
             overlay = document.createElement('div');
             overlay.className = 'nav-sk-overlay';
             overlay.setAttribute('aria-hidden', 'true');
-            /* v43 — «حلهٔ عبورکننده»: نوار نور مورب که تا دریافت داده از
-               دیتابیس مرتب از روی کل صفحه رد می‌شود (حس اینستاگرام) */
-            var sheen = document.createElement('div');
-            sheen.className = 'nav-sk-sheen';
-            sheen.setAttribute('aria-hidden', 'true');
-            overlay.appendChild(sheen);
-            /* v43 — به <html> می‌چسبد: body در سواپ ناوبری نابود می‌شود */
+            /* v44 — به <html> می‌چسبد: body در سواپ ناوبری نابود می‌شود */
             document.documentElement.appendChild(overlay);
             return overlay;
         }
@@ -1162,11 +1159,6 @@ window.CN = (function () {
             }
 
             el.innerHTML = shape();
-            /* v43 — حلهٔ عبورکننده روی پوسته (بعد از بلوک‌ها اضافه می‌شود) */
-            var sheen = document.createElement('div');
-            sheen.className = 'nav-sk-sheen';
-            sheen.setAttribute('aria-hidden', 'true');
-            el.appendChild(sheen);
             el.classList.add('show');
             shownAt = Date.now();
             window.clearTimeout(hideTimer);

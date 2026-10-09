@@ -20,7 +20,7 @@
 </div>
 
 <div class="card fade-up d2">
-    <div id="txList" aria-live="polite">
+    <div id="txList" class="sk-zone" aria-live="polite">
         <div class="skeleton" style="height:60px"></div>
         <div class="skeleton" style="height:60px"></div>
     </div>
