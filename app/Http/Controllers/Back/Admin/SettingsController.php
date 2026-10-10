@@ -108,6 +108,25 @@ class SettingsController extends Controller
             'uploads.compression.videos.crf',
             'uploads.compression.server_batch',
         ],
+        // فاز ۵۰ — قابلیت‌ها + امنیت ورود (سوییچ فعال/غیرفعال زیرسیستم‌ها)
+        'features' => [
+            'features.status_page',
+            'features.smart_dispatch',
+            'features.reseller',
+            'features.family_accounts',
+            'features.webhooks',
+            'features.api_usage_log',
+            'features.sla_enabled',
+            'features.sla_minutes',
+            'features.i18n',
+            'features.customer_stats',
+            'features.global_search',
+            'features.health_page',
+            'features.sms_retry',
+            'features.captcha_mode',
+            'features.captcha_after_fails',
+            'features.two_factor',
+        ],
     ];
 
     public function edit(): View
@@ -294,6 +313,18 @@ class SettingsController extends Controller
 
         if (isset($pairs['ratings.routing_min_votes'])) {
             $pairs['ratings.routing_min_votes'] = (string) max(1, min(1000, (int) $pairs['ratings.routing_min_votes']));
+        }
+
+        // فاز ۵۰ — اعتبارسنجی گروه قابلیت‌ها
+        if (isset($pairs['features.captcha_mode'])
+            && ! in_array($pairs['features.captcha_mode'], ['off', 'smart', 'always'], true)) {
+            return response()->json(['message' => 'حالت ربات‌گیر معتبر نیست (خاموش / هوشمند / همیشه).'], 422);
+        }
+        if (isset($pairs['features.captcha_after_fails'])) {
+            $pairs['features.captcha_after_fails'] = (string) max(1, min(10, (int) $pairs['features.captcha_after_fails']));
+        }
+        if (isset($pairs['features.sla_minutes'])) {
+            $pairs['features.sla_minutes'] = (string) max(5, min(1440, (int) $pairs['features.sla_minutes']));
         }
 
         if (isset($pairs['ratings.routing_unrated_policy'])

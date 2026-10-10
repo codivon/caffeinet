@@ -186,6 +186,25 @@ class SettingsSeeder extends Seeder
             ['group' => 'uploads', 'key' => 'uploads.compression.videos.enabled', 'value' => '0', 'cast' => 'boolean', 'label' => 'فشرده‌سازی ویدیو (نیازمند ffmpeg روی سرور)'],
             ['group' => 'uploads', 'key' => 'uploads.compression.videos.crf', 'value' => '28', 'cast' => 'string', 'label' => 'سطح فشرده‌سازی ویدیو CRF (۱۸ بهترین، ۳۴ سبک‌ترین)'],
             ['group' => 'uploads', 'key' => 'uploads.compression.server_batch', 'value' => '8', 'cast' => 'string', 'label' => 'حداکثر فایل تصویری در هر اجرای کرون (بدون فشار به سرور)'],
+
+            // فاز ۵۰ — قابلیت‌ها (سوییچ فعال/غیرفعال هر زیرسیستم از اینجا)
+            ['group' => 'features', 'key' => 'features.status_page', 'value' => '1', 'cast' => 'boolean', 'label' => 'صفحهٔ عمومی «وضعیت زندهٔ کافی‌نت‌ها» (/status)'],
+            ['group' => 'features', 'key' => 'features.smart_dispatch', 'value' => '1', 'cast' => 'boolean', 'label' => 'پخش هوشمند سفارش (امتیاز رأی + آمار پذیرش)'],
+            ['group' => 'features', 'key' => 'features.reseller', 'value' => '0', 'cast' => 'boolean', 'label' => 'حالت فروشنده/برند مشترک (سازمان‌ها)'],
+            ['group' => 'features', 'key' => 'features.family_accounts', 'value' => '0', 'cast' => 'boolean', 'label' => 'حساب خانواده/تیمی (کیف مشترک + سقف خرج)'],
+            ['group' => 'features', 'key' => 'features.webhooks', 'value' => '0', 'cast' => 'boolean', 'label' => 'وب‌هوک‌ها (اطلاع رویدادها به آدرس شما)'],
+            ['group' => 'features', 'key' => 'features.api_usage_log', 'value' => '1', 'cast' => 'boolean', 'label' => 'ثبت مصرف API (چه کسی/کدام دستگاه — برای اینسایت)'],
+            ['group' => 'features', 'key' => 'features.sla_enabled', 'value' => '0', 'cast' => 'boolean', 'label' => 'تعهد زمان تحویل (SLA) با تایمر زنده'],
+            ['group' => 'features', 'key' => 'features.sla_minutes', 'value' => '60', 'cast' => 'integer', 'label' => 'زمان تعهدی تحویل پس از پرداخت (دقیقه)'],
+            ['group' => 'features', 'key' => 'features.i18n', 'value' => '0', 'cast' => 'boolean', 'label' => 'چندزبانه (خاموش = فقط فارسی)'],
+            ['group' => 'features', 'key' => 'features.customer_stats', 'value' => '1', 'cast' => 'boolean', 'label' => 'داشبورد مصرف مشتری (آمار و نمودارها)'],
+            ['group' => 'features', 'key' => 'features.global_search', 'value' => '1', 'cast' => 'boolean', 'label' => 'جستجوی سراسری پنل ادمین (Ctrl+K)'],
+            ['group' => 'features', 'key' => 'features.health_page', 'value' => '1', 'cast' => 'boolean', 'label' => 'صفحهٔ سلامت سیستم (ادمین)'],
+            ['group' => 'features', 'key' => 'features.sms_retry', 'value' => '1', 'cast' => 'boolean', 'label' => 'ارسال دوبارهٔ خودکار پیامک ناموفق (۳ تلاش)'],
+            // فاز ۵۰ — امنیت ورود پنل‌ها
+            ['group' => 'features', 'key' => 'features.captcha_mode', 'value' => 'smart', 'cast' => 'string', 'label' => 'ربات‌گیر ورود پنل‌ها (off | smart | always)'],
+            ['group' => 'features', 'key' => 'features.captcha_after_fails', 'value' => '2', 'cast' => 'integer', 'label' => 'حالت هوشمند: کپچا بعد از چند تلاش ناموفق؟'],
+            ['group' => 'features', 'key' => 'features.two_factor', 'value' => '0', 'cast' => 'boolean', 'label' => 'ورود دومرحله‌ای پیامکی برای پنل‌ها (2FA)'],
         ];
 
         foreach ($rows as $row) {

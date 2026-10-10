@@ -57,6 +57,8 @@
     /* فاز ۴۸ — صفحاتی که منوی اختصاصی در سایدبار ندارند و به منوی دیگری تعلق دارند */
     const NAV_ROUTE_ALIAS = {
         '/admin/api-keys': '/admin/settings', // کلیدهای وب‌سرویس — جزو منوی تنظیمات
+        '/admin/sessions': '/admin/settings', // نشست‌های فعال (فاز ۵۰) — جزو منوی تنظیمات
+        '/admin/health': '/admin/settings', // سلامت سیستم (فاز ۵۴) — جزو منوی تنظیمات
     };
 
     function refreshActiveNav() {

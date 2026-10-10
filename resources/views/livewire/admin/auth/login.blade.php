@@ -27,6 +27,7 @@
             <p class="brand-err" role="alert">{{ $message }}</p>
         @enderror
 
+        @unless ($twoFaStep)
         <div>
             <label class="brand-lbl" for="email">ایمیل</label>
             <div class="relative">
@@ -61,17 +62,23 @@
                 <p class="brand-err-field" role="alert">{{ $message }}</p>
             @enderror
         </div>
+        @endunless
+
+        {{-- فاز ۵۰ — امنیت ورود: گام کد ۲FA یا ربات‌گیر (کپچا) --}}
+        @include('livewire.auth.partials.login-security')
 
         {{-- مرا به خاطر بسپار — مثل فرم قبلی که remember همیشه ارسال می‌شد، پیش‌فرض فعال --}}
+        @unless ($twoFaStep)
         <label class="flex items-center gap-2 text-xs text-brand-muted cursor-pointer select-none">
             <input type="checkbox" wire:model="remember" class="brand-check">
             مرا به خاطر بسپار
         </label>
+        @endunless
 
         <button type="submit" class="brand-btn" wire:loading.attr="disabled" wire:target="store">
             <span wire:loading.remove wire:target="store" class="inline-flex items-center gap-2">
                 <svg class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-                ورود به پنل
+                {{ $twoFaStep ? 'تأیید و ورود' : 'ورود به پنل' }}
             </span>
             <span wire:loading wire:target="store" class="inline-flex items-center gap-2">
                 <svg class="size-4 brand-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>

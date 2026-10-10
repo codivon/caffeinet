@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin\Auth;
 
+use App\Livewire\Auth\Concerns\PanelLoginSecurity;
+use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -29,6 +31,8 @@ use Livewire\Component;
 #[Layout('livewire.admin.auth.login-layout')]
 class Login extends Component
 {
+    use PanelLoginSecurity;
+
     public string $email = '';
 
     public string $password = '';
@@ -46,13 +50,25 @@ class Login extends Component
     /** مثل login کنترلر — اما به‌جای JSON، رندر مجدد Livewire با خطاها */
     public function store(): void
     {
-        $key = 'admin-login:'.(request()->ip() ?? 'cli');
+        // فاز ۵۰ — اگر در گام دوم ۲FA هستیم، همان دکمهٔ ارسال کد را تأیید می‌کند
+        if ($this->twoFaStep) {
+            $this->verifyTwoFactor();
+
+            return;
+        }
+
+        $key = $this->secLimiterKey();
 
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
 
             $this->addError('form', "تلاش‌های بیش از حد؛ {$seconds} ثانیه دیگر امتحان کنید.");
 
+            return;
+        }
+
+        // فاز ۵۰ — ربات‌گیر (فقط وقتی تنظیمات گفته باشد)
+        if (! $this->passCaptchaGate()) {
             return;
         }
 
@@ -103,7 +119,25 @@ class Login extends Component
             return;
         }
 
+        // فاز ۵۰ — ورود دومرحله‌ای پیامکی (در تنظیمات ← قابلیت‌ها)
+        if ($this->twoFaGate($user)) {
+            return;
+        }
+
         RateLimiter::clear($key);
+
+        $this->finishLogin($user);
+    }
+
+    /** کلید RateLimiter همین فرم (برای کپچا/۲FA) */
+    protected function secLimiterKey(): string
+    {
+        return 'admin-login:'.(request()->ip() ?? 'cli');
+    }
+
+    /** فاز ۵۰ — پس از لاگین کامل (مستقیم یا پس از تأیید کد) */
+    protected function finishLogin(User $user): void
+    {
         request()->session()->regenerate();
 
         $user->forceFill(['last_login_at' => now()])->save();

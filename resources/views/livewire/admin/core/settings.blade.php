@@ -171,6 +171,13 @@
                 @endif
             </button>
 
+            {{-- فاز ۵۰ — قابلیت‌ها (سوییچ فعال/غیرفعال زیرسیستم‌ها) --}}
+            <button type="button" role="tab" class="st-nav-item" data-section="features">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/><circle cx="12" cy="12" r="3"/></svg>
+                <span class="flex-1 text-start">قابلیت‌ها و امنیت</span>
+                <span class="st-nav-dot {{ (bool) $settings->get('features.two_factor') || $settings->get('features.captcha_mode') !== 'off' ? 'st-nav-dot--on' : '' }}" title="وضعیت امنیت ورود"></span>
+            </button>
+
             <a href="{{ route('admin.sms-templates.index') }}" class="st-nav-item st-nav-item--link">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v18l-6-3-6 3Z"/></svg>
                 <span class="flex-1 text-start">مرکز پیامک (پترن‌ها)</span>
@@ -189,6 +196,14 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4"/><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/></svg>
                 <span class="flex-1 text-start">کلیدهای وب‌سرویس</span>
                 <span class="st-nav-hint">API</span>
+                <svg class="size-3.5 text-stone-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+
+            {{-- فاز ۵۰ — نشست‌های فعال (دستگاه‌های واردشده) --}}
+            <a href="{{ route('admin.sessions.index') }}" class="st-nav-item st-nav-item--link" wire:navigate>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="8" x="5" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 18h.01"/><path d="M10 18h.01"/></svg>
+                <span class="flex-1 text-start">نشست‌های فعال</span>
+                <span class="st-nav-hint">دستگاه‌ها</span>
                 <svg class="size-3.5 text-stone-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
             </a>
         </nav>
@@ -2174,6 +2189,163 @@
             </div>
 
             <button type="submit" class="btn-primary btn-shine ui-press !py-2.5 px-7">ذخیرهٔ تنظیمات فشرده‌سازی</button>
+        </form>
+
+        {{-- ---------- قابلیت‌ها و امنیت (فاز ۵۰) ---------- --}}
+        <form data-group="features" class="st-section card ui-lift animate-fade-up hidden" id="sec-features">
+            <div class="st-section-head">
+                <span class="st-section-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/><circle cx="12" cy="12" r="3"/></svg>
+                </span>
+                <div class="flex-1">
+                    <h2 class="st-section-title">قابلیت‌ها و امنیت</h2>
+                    <p class="text-[11px] text-stone-400 mt-0.5">هر زیرسیستم را از اینجا روشن/خاموش کنید — خاموش بودن یعنی آن بخش کلا از سایت و پنل‌ها حذف می‌شود.</p>
+                </div>
+            </div>
+
+            {{-- ===== زیرسیستم‌های اصلی ===== --}}
+            <div class="st-field-row">
+                <p class="text-xs font-extrabold text-stone-700 border-b border-stone-100 pb-2 w-full">زیرسیستم‌های اصلی</p>
+            </div>
+
+            <div class="st-switch-row">
+                <div><p class="text-xs font-bold text-stone-700">وضعیت زندهٔ کافی‌نت‌ها (/status)</p><p class="text-[11px] text-stone-400 mt-0.5">صفحهٔ عمومی با وضعیت باز/بسته بودن هر کافی‌نت، امتیاز و صف — لینک آن در لندینگ هم می‌آید.</p></div>
+                <label class="st-switch" for="f-status-page">
+                    <input type="checkbox" id="f-status-page" data-key="features.status_page" class="peer sr-only" @checked((bool) $settings->get('features.status_page', true))>
+                    <span class="st-switch-track" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            <div class="st-switch-row">
+                <div><p class="text-xs font-bold text-stone-700">پخش هوشمند سفارش</p><p class="text-[11px] text-stone-400 mt-0.5">اولویت پخش بر اساس امتیاز رأی مشتری‌ها + آمار پذیرش هر کافی‌نت (پذیرش سریع‌تر = امتیاز بیشتر).</p></div>
+                <label class="st-switch" for="f-smart-dispatch">
+                    <input type="checkbox" id="f-smart-dispatch" data-key="features.smart_dispatch" class="peer sr-only" @checked((bool) $settings->get('features.smart_dispatch', true))>
+                    <span class="st-switch-track" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            <div class="st-switch-row">
+                <div><p class="text-xs font-bold text-stone-700">حالت فروشنده (برند مشترک)</p><p class="text-[11px] text-stone-400 mt-0.5">سازمان‌های فروشنده با لینک اختصاصی برندشان روی لندینگ را می‌بینند و از خرید مشتریان معرفی‌شده کمیسیون می‌گیرند.</p></div>
+                <label class="st-switch" for="f-reseller">
+                    <input type="checkbox" id="f-reseller" data-key="features.reseller" class="peer sr-only" @checked((bool) $settings->get('features.reseller', false))>
+                    <span class="st-switch-track" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            <div class="st-switch-row">
+                <div><p class="text-xs font-bold text-stone-700">حساب خانواده/تیمی</p><p class="text-[11px] text-stone-400 mt-0.5">حساب اصلی می‌تواند زیرحساب بسازد؛ همه از کیف پول اصلی خرج می‌کنند و می‌شود برای هر زیرحساب سقف خرج گذاشت.</p></div>
+                <label class="st-switch" for="f-family">
+                    <input type="checkbox" id="f-family" data-key="features.family_accounts" class="peer sr-only" @checked((bool) $settings->get('features.family_accounts', false))>
+                    <span class="st-switch-track" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            <div class="st-switch-row">
+                <div><p class="text-xs font-bold text-stone-700">وب‌هوک‌ها</p><p class="text-[11px] text-stone-400 mt-0.5">رویدادهای سیستم (سفارش جدید، تحویل، …) به آدرس وب‌هوک شما POST می‌شود — مدیریت از صفحهٔ «کلیدهای وب‌سرویس».</p></div>
+                <label class="st-switch" for="f-webhooks">
+                    <input type="checkbox" id="f-webhooks" data-key="features.webhooks" class="peer sr-only" @checked((bool) $settings->get('features.webhooks', false))>
+                    <span class="st-switch-track" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            <div class="st-switch-row">
+                <div><p class="text-xs font-bold text-stone-700">ثبت مصرف API</p><p class="text-[11px] text-stone-400 mt-0.5">هر درخواست API ثبت می‌شود تا در صفحهٔ کلیدها ببینید چه کاربری با چه دستگاهی وصل شده — خاموش یعنی فقط شمارندهٔ کلی.</p></div>
+                <label class="st-switch" for="f-api-log">
+                    <input type="checkbox" id="f-api-log" data-key="features.api_usage_log" class="peer sr-only" @checked((bool) $settings->get('features.api_usage_log', true))>
+                    <span class="st-switch-track" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            <div class="st-switch-row">
+                <div><p class="text-xs font-bold text-stone-700">داشبورد مصرف مشتری</p><p class="text-[11px] text-stone-400 mt-0.5">صفحهٔ «آمار من» در اپ مشتری: نمودار هزینهٔ ۶ ماه، تعداد سفارش و خدمات پرتکرار.</p></div>
+                <label class="st-switch" for="f-cust-stats">
+                    <input type="checkbox" id="f-cust-stats" data-key="features.customer_stats" class="peer sr-only" @checked((bool) $settings->get('features.customer_stats', true))>
+                    <span class="st-switch-track" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            <div class="st-switch-row">
+                <div><p class="text-xs font-bold text-stone-700">جستجوی سراسری پنل ادمین</p><p class="text-[11px] text-stone-400 mt-0.5">با Ctrl+K (یا ⌘+K) سفارش، مشتری، خدمت و صفحه‌ها را همان‌جا جستجو کنید.</p></div>
+                <label class="st-switch" for="f-ctrlk">
+                    <input type="checkbox" id="f-ctrlk" data-key="features.global_search" class="peer sr-only" @checked((bool) $settings->get('features.global_search', true))>
+                    <span class="st-switch-track" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            <div class="st-switch-row">
+                <div><p class="text-xs font-bold text-stone-700">چندزبانه</p><p class="text-[11px] text-stone-400 mt-0.5">خاموش = سایت فقط فارسی. روشن = سوئیچ زبان (فارسی/انگلیسی) در پنل ادمین و اپ مشتری فعال می‌شود.</p></div>
+                <label class="st-switch" for="f-i18n">
+                    <input type="checkbox" id="f-i18n" data-key="features.i18n" class="peer sr-only" @checked((bool) $settings->get('features.i18n', false))>
+                    <span class="st-switch-track" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            <div class="st-switch-row">
+                <div><p class="text-xs font-bold text-stone-700">صفحهٔ سلامت سیستم</p><p class="text-[11px] text-stone-400 mt-0.5">صفحهٔ «سلامت سیستم» در تنظیمات: دیسک، کرون، صف پیامک، سفارش‌های گیرکرده و…</p></div>
+                <label class="st-switch" for="f-health">
+                    <input type="checkbox" id="f-health" data-key="features.health_page" class="peer sr-only" @checked((bool) $settings->get('features.health_page', true))>
+                    <span class="st-switch-track" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            <div class="st-switch-row">
+                <div><p class="text-xs font-bold text-stone-700">ارسال دوبارهٔ خودکار پیامک</p><p class="text-[11px] text-stone-400 mt-0.5">پیامک‌های ناموفق تا ۳ بار (هر بار با ۵ دقیقه فاصله) دوباره ارسال می‌شوند.</p></div>
+                <label class="st-switch" for="f-sms-retry">
+                    <input type="checkbox" id="f-sms-retry" data-key="features.sms_retry" class="peer sr-only" @checked((bool) $settings->get('features.sms_retry', true))>
+                    <span class="st-switch-track" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            {{-- ===== تعهد زمان تحویل (SLA) ===== --}}
+            <div class="st-field-row">
+                <p class="text-xs font-extrabold text-stone-700 border-b border-stone-100 pb-2 w-full">تعهد زمان تحویل (SLA)</p>
+            </div>
+
+            <div class="st-switch-row">
+                <div><p class="text-xs font-bold text-stone-700">تعهد زمان تحویل با تایمر زنده</p><p class="text-[11px] text-stone-400 mt-0.5">در سفارش مشتری شمارش معکوس «تحویل تا …» نمایش داده می‌شود و دیرکرد در پنل ادمین علامت می‌خورد.</p></div>
+                <label class="st-switch" for="f-sla">
+                    <input type="checkbox" id="f-sla" data-key="features.sla_enabled" class="peer sr-only" @checked((bool) $settings->get('features.sla_enabled', false))>
+                    <span class="st-switch-track" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            <div class="st-field-row">
+                <label class="lbl" for="f-sla-min">زمان تعهدی تحویل پس از پرداخت (دقیقه)</label>
+                <input id="f-sla-min" type="number" min="5" max="1440" data-key="features.sla_minutes" class="field" value="{{ $settings->get('features.sla_minutes', 60) }}">
+                <p class="st-hint">اگر سفارش دیرتر از این زمان تحویل شود، در پنل ادمین بج «دیرکرد» می‌خورد (۵ تا ۱۴۴۰ دقیقه).</p>
+            </div>
+
+            {{-- ===== امنیت ورود پنل‌ها ===== --}}
+            <div class="st-field-row">
+                <p class="text-xs font-extrabold text-stone-700 border-b border-stone-100 pb-2 w-full">امنیت ورود پنل‌ها (ادمین/سازمان/کافی‌نت/اپراتور)</p>
+            </div>
+
+            <div class="st-field-row">
+                <label class="lbl" for="f-captcha-mode">ربات‌گیر (کپچا) — حالت</label>
+                <select id="f-captcha-mode" data-key="features.captcha_mode" class="field" aria-label="حالت ربات‌گیر">
+                    @foreach (['off' => 'خاموش — هیچ‌وقت کپچا نشان داده نمی‌شود', 'smart' => 'هوشمند — فقط بعد از چند تلاش ناموفق', 'always' => 'همیشه — همهٔ ورودها کپچا دارند'] as $m => $lbl)
+                        <option value="{{ $m }}" @selected($settings->get('features.captcha_mode', 'smart') === $m)>{{ $lbl }}</option>
+                    @endforeach
+                </select>
+                <p class="st-hint">کپچای ریاضی داخلی (بدون سرویس بیرونی) — روی هر ۴ پنل اعمال می‌شود.</p>
+            </div>
+            <div class="st-field-row">
+                <label class="lbl" for="f-captcha-fails">حالت هوشمند: کپچا بعد از چند تلاش ناموفق؟</label>
+                <input id="f-captcha-fails" type="number" min="1" max="10" data-key="features.captcha_after_fails" class="field" value="{{ $settings->get('features.captcha_after_fails', 2) }}">
+                <p class="st-hint">۱ تا ۱۰ — پیشنهاد: ۲. کاربر عادی اصلاً کپچا نمی‌بیند؛ بات‌ها می‌بینند.</p>
+            </div>
+
+            <div class="st-switch-row">
+                <div><p class="text-xs font-bold text-stone-700">ورود دومرحله‌ای پیامکی (2FA)</p><p class="text-[11px] text-stone-400 mt-0.5">پس از رمز، کد ۶ رقمی پیامک می‌شود (۵ دقیقه اعتبار). حساب‌های بدون موبایل مستثنا هستند.</p></div>
+                <label class="st-switch" for="f-2fa">
+                    <input type="checkbox" id="f-2fa" data-key="features.two_factor" class="peer sr-only" @checked((bool) $settings->get('features.two_factor', false))>
+                    <span class="st-switch-track" aria-hidden="true"></span>
+                </label>
+            </div>
+
+            <div class="st-section-foot">
+                <button type="submit" class="btn-primary btn-shine ui-press !py-2.5 px-7">ذخیرهٔ قابلیت‌ها و امنیت</button>
+            </div>
         </form>
 
     </div><!-- /st-sections — v44: سکشن آپلود حالا داخل ستون سکشن‌هاست -->

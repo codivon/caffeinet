@@ -21,6 +21,7 @@
             <p class="text-xs text-rose-300 bg-rose-500/10 border border-rose-400/20 rounded-xl px-3.5 py-2.5 leading-6" role="alert">{{ $message }}</p>
         @enderror
 
+        @unless ($twoFaStep)
         <div>
             <label class="lbl" for="email">ایمیل</label>
             <div class="relative">
@@ -51,12 +52,16 @@
                 <p class="text-[11px] text-rose-300 mt-1.5" role="alert">{{ $message }}</p>
             @enderror
         </div>
+        @endunless
+
+        {{-- فاز ۵۰ — امنیت ورود: گام کد ۲FA یا ربات‌گیر (کپچا) --}}
+        @include('livewire.auth.partials.login-security')
 
         <button type="submit" class="btn-primary btn-shine ui-press no-btn-teal w-full !py-3.5 !text-[15px]"
                 wire:loading.attr="disabled" wire:target="store">
             <span wire:loading.remove wire:target="store" class="inline-flex items-center gap-2">
                 <svg class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-                ورود به پنل سازمان
+                {{ $twoFaStep ? 'تأیید و ورود' : 'ورود به پنل سازمان' }}
             </span>
             <span wire:loading wire:target="store" class="inline-flex items-center gap-2">
                 <svg class="size-4 brand-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>

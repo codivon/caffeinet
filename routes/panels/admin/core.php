@@ -58,6 +58,10 @@ Route::middleware(['admin.access'])->group(function () {
         /* v38 — نمایشگر لاگ سیستمی لاراول (تنظیمات ← لاگ سیستمی) — [Task 3-b] صفحه → Livewire */
         Route::get('settings/logs', \App\Livewire\Admin\Core\SystemLogs::class)
             ->name('settings.logs');
+
+        /* فاز ۵۰ — نشست‌های فعال (دستگاه‌های واردشده) — از تنظیمات */
+        Route::get('sessions', \App\Livewire\Admin\Core\PanelSessions::class)
+            ->name('sessions.index');
         Route::get('settings/logs/data', [App\Http\Controllers\Back\Admin\SystemLogsController::class, 'data'])
             ->name('settings.logs.data');
         Route::post('settings/logs/clear', [App\Http\Controllers\Back\Admin\SystemLogsController::class, 'clear'])
