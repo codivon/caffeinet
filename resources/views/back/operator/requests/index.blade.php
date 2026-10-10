@@ -58,5 +58,5 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('back/assets/js/pages/operator/requests/index.js') }}?v=11"></script>
+<script src="{{ asset('back/assets/js/pages/operator/requests/index.js') }}?v=12"></script>
 @endpush

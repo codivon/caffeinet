@@ -163,7 +163,8 @@
             if (btn && !btn.disabled) load(+btn.dataset.page);
         });
 
-        // پولینگ بی‌صدا
+        // پولینگ بی‌صدا — v38 «پوشر کامل»: پوشر فعال و متصل → بدون setInterval؛
+        // پیام جدید → notif.new روی کانال شخصی کاربر → لیست همان لحظه تازه می‌شود.
         polling = setInterval(() => {
             if (!document.hidden) load(currentPage, true);
         }, POLL_MS);
@@ -171,6 +172,25 @@
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) load(currentPage, true);
         });
+
+        if (window.RT && RT.active() && RT.cfg.channel) {
+            RT.bindUser('notif.new', () => {
+                if (!document.hidden) load(currentPage, true);
+            });
+
+            if (RT.connected()) { clearInterval(polling); polling = null; }
+
+            RT.onConnection((up) => {
+                if (up) {
+                    if (polling) { clearInterval(polling); polling = null; }
+                    if (!document.hidden) load(currentPage, true);
+                } else if (!polling) {
+                    polling = setInterval(() => {
+                        if (!document.hidden) load(currentPage, true);
+                    }, POLL_MS);
+                }
+            });
+        }
     }
 
     /* ---------- helpers ---------- */

@@ -1,14 +1,17 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="{{ $panelLang ?? 'fa' }}" dir="{{ $panelDir ?? 'rtl' }}">
 <head>
     <meta charset="utf-8">
+    <script>/* TEMP60B-DIAG */ window.addEventListener('error', function(e){ try{ (window.__e60b=window.__e60b||[]).push({m:String(e.message), s:(e.filename||'')+':'+e.lineno, st:(e.error&&e.error.stack||'').slice(0,600)}); }catch(_){} }, true);</script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- تم ذخیره‌شده قبل از رندر اعمال می‌شود (ضد-FOUC) --}}
-    <script src="{{ asset('assets/js/theme-boot.js') }}?v=1"></script>
+    <script src="{{ asset('assets/js/theme-boot.js') }}?v=4"></script>
+    {{-- v42 — پیکربندی فشرده‌سازی آپلودها (خوانده‌شده توسط core.js/App) --}}
+    <meta name="upload-config" content='@json(\App\Support\UploadConfig::client())'>
 
-    <title>@yield('title', 'پنل مدیریت') — {{ config('app.name') }}</title>
+    <title>@yield('title', $htmlTitle ?? 'پنل مدیریت') — {{ config('app.name') }}</title>
 
     {{-- PWA: مانیفست + آیکون‌ها + ثبت Service Worker (فاز ۱۴) --}}
     @include('partials.pwa', ['panel' => 'admin'])
@@ -19,21 +22,27 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap">
 
     {{-- استایل و اسکریپت — کاملاً بدون Node / بدون بیلد --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v=12">
-    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=15">
-    <link rel="stylesheet" href="{{ asset('assets/css/pages/admin.css') }}?v=11">
+    <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v=14">
+    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=19">
+    <link rel="stylesheet" href="{{ asset('assets/css/pages/admin.css') }}?v=24">
     {{-- زنگ اعلان (فاز ۱۰) — قبل از theme --}}
     <link rel="stylesheet" href="{{ asset('assets/css/notifications.css') }}?v=14">
     {{-- مودال اطلاعیه‌های سامانه (فاز ۱۵) --}}
     <link rel="stylesheet" href="{{ asset('assets/css/panel-announcements.css') }}?v=15">
     {{-- سیستم تم روشن/تاریک (فاز ۱۰) — باید آخرین CSS باشد تا برنده بماند --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}?v=10">
+    <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}?v=11">
+    {{-- پوستهٔ پویا: پالت اختصاصی این پنل (بعد از theme.css) --}}
+    @include('partials.appearance', ['panel' => 'admin'])
     {{-- تقویم/دیت‌پیکر شمسی (CNJdp) --}}
     <link rel="stylesheet" href="{{ asset('assets/css/jalali-datepicker.css') }}?v=3">
+    {{-- v45 — لایت‌باکس تمام‌صفحهٔ تصاویر (پیوست‌های تیکت) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/lightbox.css') }}?v=1">
     {{-- استایل‌های اختصاصی صفحات (push با @push('styles')) --}}
+    {{-- Livewire [Task 2-a] — SPA (wire:navigate) --}}
+    @livewireStyles
     @stack('styles')
 </head>
-<body class="font-sans antialiased bg-stone-100 text-stone-800 selection:bg-amber-200 selection:text-amber-950"
+<body class="font-sans antialiased bg-stone-100 text-stone-800 selection:bg-blue-200 selection:text-blue-950"
       data-logout-url="/admin/logout" data-login-url="/admin/login"
       data-nb-badge="{{ route('admin.notifications.badge') }}"
       data-nb-data="{{ route('admin.notifications.data') }}"
@@ -41,18 +50,19 @@
 
 <div class="min-h-screen flex">
 
-    {{-- ================== سایدبار ================== --}}
-    <aside id="panel-sidebar" class="fixed lg:sticky top-0 h-screen w-72 shrink-0 z-40 translate-x-full lg:translate-x-0 transition-transform duration-300 bg-gradient-to-b from-[#241608] via-[#2e1c0a] to-[#1d1206] text-stone-200 flex flex-col">
+    {{-- ================== سایدبار ==================
+         [Task 2-a] @persist — بین ناوبری‌های wire:navigate دوباره رندر نمی‌شود
+         (کلاس آیتم فعال در layout.js با App.onNavigate تازه می‌شود) --}}
+    @persist('sidebar')
+    <aside id="panel-sidebar" class="panel-sidebar fixed lg:sticky top-0 h-screen w-72 shrink-0 z-40 translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col">
 
         <div class="px-5 py-5 border-b border-white/10 flex items-center gap-3">
-            <span class="grid place-items-center size-10 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-700 shadow-lg shadow-black/30 shrink-0">
-                <svg class="size-5 text-amber-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
-                </svg>
+            <span class="grid place-items-center size-10 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-700 shadow-lg shadow-black/30 shrink-0">
+                <img src="{{ asset('icons/icon-96.png') }}" alt="" width="22" height="22" loading="lazy" style="width:22px;height:22px;object-fit:contain">
             </span>
             <div class="leading-tight min-w-0">
-                <strong class="block text-sm font-extrabold tracking-tight text-amber-50 truncate">کافی‌نت آنلاین</strong>
-                <span class="block text-[11px] text-amber-200/60 font-medium">پنل مدیریت کل</span>
+                <strong class="block text-sm font-extrabold tracking-tight text-blue-50 truncate">کافی‌نت آنلاین</strong>
+                <span class="block text-[11px] text-blue-200/60 font-medium">پنل مدیریت کل</span>
             </div>
         </div>
 
@@ -60,38 +70,39 @@
             @php
                 // فیلتر مجوزمحور منو (درخواست بازخوردی ۶-۴) — مدیر کل همه را می‌بیند
                 $nav = array_values(array_filter([
-                    ['route' => 'admin.dashboard', 'label' => 'داشبورد', 'icon' => 'grid', 'section' => 'dashboard', 'active' => request()->routeIs('admin.dashboard')],
-                    ['route' => 'admin.orders.index', 'label' => 'سفارش‌ها', 'icon' => 'orders', 'section' => 'orders', 'active' => request()->routeIs('admin.orders.*') && ! request()->routeIs('admin.orders.chat*')],
-                    ['route' => 'admin.chats.index', 'label' => 'گفتگوها', 'icon' => 'chat', 'section' => 'chats', 'active' => request()->routeIs('admin.chats.*') || request()->routeIs('admin.orders.chat*')],
-                    ['route' => 'admin.ratings.index', 'label' => 'نظرسنجی‌ها', 'icon' => 'star', 'section' => 'ratings', 'active' => request()->routeIs('admin.ratings.*')],
-                    ['route' => 'admin.services.index', 'label' => 'خدمات و فرم‌ساز', 'icon' => 'layers', 'section' => 'services', 'active' => request()->routeIs('admin.services.*')],
-                    ['route' => 'admin.service-categories.index', 'label' => 'دسته‌بندی خدمات', 'icon' => 'folder', 'section' => 'service-categories', 'active' => request()->routeIs('admin.service-categories.*')],
-                    ['route' => 'admin.admins.index', 'label' => 'مدیران سیستم', 'icon' => 'users', 'section' => 'admins', 'active' => request()->routeIs('admin.admins.*')],
-                    ['route' => 'admin.organizations.index', 'label' => 'سازمان‌ها', 'icon' => 'building', 'section' => 'organizations', 'active' => request()->routeIs('admin.organizations.*')],
-                    ['route' => 'admin.coffeenets.index', 'label' => 'کافی‌نت‌ها', 'icon' => 'store', 'section' => 'coffeenets', 'active' => request()->routeIs('admin.coffeenets.*')],
-                    ['route' => 'admin.operators.index', 'label' => 'کارکنان و اپراتورها', 'icon' => 'headset', 'section' => 'operators', 'active' => request()->routeIs('admin.operators.*')],
-                    ['route' => 'admin.customers.index', 'label' => 'مشتریان', 'icon' => 'idcard', 'section' => 'customers', 'active' => request()->routeIs('admin.customers.*')],
-                    ['route' => 'admin.withdrawals.index', 'label' => 'برداشت‌ها', 'icon' => 'wallet', 'section' => 'withdrawals', 'active' => request()->routeIs('admin.withdrawals.*')],
-                    ['route' => 'admin.commissions.index', 'label' => 'قواعد کمیسیون', 'icon' => 'percent', 'section' => 'commissions', 'active' => request()->routeIs('admin.commissions.*')],
-                    ['route' => 'admin.settlements.index', 'label' => 'تسویه‌ها', 'icon' => 'coins', 'section' => 'settlements', 'active' => request()->routeIs('admin.settlements.*')],
-                    ['route' => 'admin.finance.index', 'label' => 'گزارش مالی', 'icon' => 'chart', 'section' => 'finance', 'active' => request()->routeIs('admin.finance.*')],
-                    ['route' => 'admin.analytics.index', 'label' => 'گزارش تحلیلی', 'icon' => 'trend', 'section' => 'analytics', 'active' => request()->routeIs('admin.analytics.*')],
-                    ['route' => 'admin.tickets.index', 'label' => 'تیکت‌های پشتیبانی', 'icon' => 'tickets', 'section' => 'tickets', 'active' => request()->routeIs('admin.tickets.*')],
-                    ['route' => 'admin.settings.edit', 'label' => 'تنظیمات', 'icon' => 'settings', 'section' => 'settings', 'active' => request()->routeIs('admin.settings.*')],
-                    ['route' => 'admin.announcements.index', 'label' => 'اطلاعیه‌ها', 'icon' => 'megaphone', 'section' => 'announcements', 'active' => request()->routeIs('admin.announcements.*')],
-                    ['route' => 'admin.sms-templates.index', 'label' => 'قالب‌های پیامک', 'icon' => 'sms', 'section' => 'sms-templates', 'active' => request()->routeIs('admin.sms-templates.*')],
-                    ['route' => 'admin.sms-logs.index', 'label' => 'لاگ پیامک‌ها', 'icon' => 'smslog', 'section' => 'sms-logs', 'active' => request()->routeIs('admin.sms-logs.*')],
-                    ['route' => 'admin.audit.index', 'label' => 'لاگ فعالیت', 'icon' => 'history', 'section' => 'audit', 'active' => request()->routeIs('admin.audit.*')],
-                    ['route' => 'admin.system.index', 'label' => 'وضعیت سیستم', 'icon' => 'shield', 'section' => 'system', 'active' => request()->routeIs('admin.system.*')],
+                    ['route' => 'admin.dashboard', 'label' => __('chrome.nav.dashboard'), 'icon' => 'grid', 'section' => 'dashboard', 'active' => request()->routeIs('admin.dashboard')],
+                    ['route' => 'admin.orders.index', 'label' => __('chrome.nav.orders'), 'icon' => 'orders', 'section' => 'orders', 'active' => request()->routeIs('admin.orders.*') && ! request()->routeIs('admin.orders.chat*')],
+                    ['route' => 'admin.chats.index', 'label' => __('chrome.nav.chats'), 'icon' => 'chat', 'section' => 'chats', 'active' => request()->routeIs('admin.chats.*') || request()->routeIs('admin.orders.chat*')],
+                    ['route' => 'admin.ratings.index', 'label' => __('chrome.nav.ratings'), 'icon' => 'star', 'section' => 'ratings', 'active' => request()->routeIs('admin.ratings.*')],
+                    ['route' => 'admin.services.index', 'label' => __('chrome.nav.services'), 'icon' => 'layers', 'section' => 'services', 'active' => request()->routeIs('admin.services.*')],
+                    ['route' => 'admin.service-categories.index', 'label' => __('chrome.nav.service_categories'), 'icon' => 'folder', 'section' => 'service-categories', 'active' => request()->routeIs('admin.service-categories.*')],
+                    ['route' => 'admin.admins.index', 'label' => __('chrome.nav.admins'), 'icon' => 'users', 'section' => 'admins', 'active' => request()->routeIs('admin.admins.*')],
+                    ['route' => 'admin.organizations.index', 'label' => __('chrome.nav.organizations'), 'icon' => 'building', 'section' => 'organizations', 'active' => request()->routeIs('admin.organizations.*')],
+                    ['route' => 'admin.coffeenets.index', 'label' => __('chrome.nav.coffeenets'), 'icon' => 'store', 'section' => 'coffeenets', 'active' => request()->routeIs('admin.coffeenets.*')],
+                    ['route' => 'admin.operators.index', 'label' => __('chrome.nav.staff'), 'icon' => 'headset', 'section' => 'operators', 'active' => request()->routeIs('admin.operators.*')],
+                    ['route' => 'admin.customers.index', 'label' => __('chrome.nav.customers'), 'icon' => 'idcard', 'section' => 'customers', 'active' => request()->routeIs('admin.customers.*')],
+                    ['route' => 'admin.withdrawals.index', 'label' => __('chrome.nav.withdrawals'), 'icon' => 'wallet', 'section' => 'withdrawals', 'active' => request()->routeIs('admin.withdrawals.*')],
+                    ['route' => 'admin.commissions.index', 'label' => __('chrome.nav.commissions'), 'icon' => 'percent', 'section' => 'commissions', 'active' => request()->routeIs('admin.commissions.*')],
+                    ['route' => 'admin.settlements.index', 'label' => __('chrome.nav.settlements'), 'icon' => 'coins', 'section' => 'settlements', 'active' => request()->routeIs('admin.settlements.*')],
+                    ['route' => 'admin.finance.index', 'label' => __('chrome.nav.finance'), 'icon' => 'chart', 'section' => 'finance', 'active' => request()->routeIs('admin.finance.*')],
+                    ['route' => 'admin.analytics.index', 'label' => __('chrome.nav.analytics'), 'icon' => 'trend', 'section' => 'analytics', 'active' => request()->routeIs('admin.analytics.*')],
+                    ['route' => 'admin.tickets.index', 'label' => __('chrome.nav.tickets'), 'icon' => 'tickets', 'section' => 'tickets', 'active' => request()->routeIs('admin.tickets.*')],
+                    ['route' => 'admin.settings.edit', 'label' => __('chrome.nav.settings'), 'icon' => 'settings', 'section' => 'settings', 'active' => request()->routeIs('admin.settings.*') || request()->routeIs('admin.api-keys.*')],
+                    ['route' => 'admin.announcements.index', 'label' => __('chrome.nav.announcements'), 'icon' => 'megaphone', 'section' => 'announcements', 'active' => request()->routeIs('admin.announcements.*')],
+                    ['route' => 'admin.sms-templates.index', 'label' => __('chrome.nav.sms_templates'), 'icon' => 'sms', 'section' => 'sms-templates', 'active' => request()->routeIs('admin.sms-templates.*')],
+                    ['route' => 'admin.sms-logs.index', 'label' => __('chrome.nav.sms_logs'), 'icon' => 'smslog', 'section' => 'sms-logs', 'active' => request()->routeIs('admin.sms-logs.*')],
+                    ['route' => 'admin.audit.index', 'label' => __('chrome.nav.audit'), 'icon' => 'history', 'section' => 'audit', 'active' => request()->routeIs('admin.audit.*')],
+                    ['route' => 'admin.system.index', 'label' => __('chrome.nav.system_status'), 'icon' => 'shield', 'section' => 'system', 'active' => request()->routeIs('admin.system.*')],
                     ['route' => 'admin.api-docs.index', 'label' => 'مستندات API', 'icon' => 'book', 'section' => 'api-docs', 'active' => request()->routeIs('admin.api-docs.*')],
-                    ['route' => 'admin.guide.index', 'label' => 'راهنمای پنل', 'icon' => 'guide', 'section' => 'guide', 'active' => request()->routeIs('admin.guide.*')],
+                    // فاز ۴۸ — «کلیدهای وب‌سرویس» از سایدبار به آخرین منوی «تنظیمات» منتقل شد
+                    ['route' => 'admin.guide.index', 'label' => __('chrome.nav.guide'), 'icon' => 'guide', 'section' => 'guide', 'active' => request()->routeIs('admin.guide.*')],
                 ], fn ($item) => \App\Policies\AdminAccessPolicy::canSection($user ?? auth()->user(), $item['section'])));
             @endphp
 
             @foreach ($nav as $item)
-                <a href="{{ route($item['route']) }}"
+                <a href="{{ route($item['route']) }}" wire:navigate
                    class="nav-link flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold transition-all duration-200
-                          {{ $item['active'] ? 'is-active bg-amber-400/15 text-amber-200 shadow-inner' : 'text-stone-400 hover:bg-white/5 hover:text-amber-100' }}">
+                          {{ $item['active'] ? 'is-active text-white' : 'text-sky-100/85 hover:text-white' }}">
                     @if ($item['icon'] === 'orders')
                         <svg class="size-4.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5Z"/><circle cx="12" cy="12" r="1"/></svg>
                     @elseif ($item['icon'] === 'layers')
@@ -150,19 +161,20 @@
 
         <div class="p-3 border-t border-white/10">
             <div class="rounded-2xl bg-white/5 p-3.5 flex items-center gap-3">
-                <span class="grid place-items-center size-10 rounded-xl bg-gradient-to-br from-amber-400/80 to-amber-700/80 text-amber-50 font-bold text-sm shrink-0">
+                <span class="grid place-items-center size-10 rounded-xl bg-gradient-to-br from-blue-400/80 to-blue-700/80 text-blue-50 font-bold text-sm shrink-0">
                     {{ mb_substr($user->name ?? 'A', 0, 1) }}
                 </span>
                 <div class="min-w-0 flex-1">
-                    <strong class="block text-xs font-bold text-amber-50 truncate">{{ $user->name ?? '' }}</strong>
-                    <span class="block text-[10px] text-stone-400 truncate">{{ $user->email ?? '' }}</span>
+                    <strong class="block text-xs font-bold text-blue-50 truncate">{{ $user->name ?? '' }}</strong>
+                    <span class="block text-[10px] text-sky-200/80 truncate">{{ $user->email ?? '' }}</span>
                 </div>
-                <button type="button" class="logout-btn grid place-items-center size-9 rounded-xl text-stone-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors" title="خروج" aria-label="خروج از حساب">
+                <button type="button" class="logout-btn grid place-items-center size-9 rounded-xl text-sky-200/80 hover:text-rose-300 hover:bg-rose-500/10 transition-colors" title="خروج" aria-label="خروج از حساب">
                     <svg class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
                 </button>
             </div>
         </div>
     </aside>
+    @endpersist
 
     {{-- پوشش موبایل --}}
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-30 hidden lg:hidden" aria-hidden="true"></div>
@@ -177,14 +189,30 @@
                         <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
                     </button>
                     <div class="min-w-0">
-                        <h1 class="adm-page-title text-base font-extrabold tracking-tight truncate">@yield('page-title', 'داشبورد')</h1>
-                        <nav class="adm-crumb mt-0.5" aria-label="مسیر">@yield('breadcrumb', 'پنل مدیریت کل')</nav>
+                        <h1 class="adm-page-title text-base font-extrabold tracking-tight truncate">@yield('page-title', $pageTitle ?? 'داشبورد')</h1>
+                        <nav class="adm-crumb mt-0.5" aria-label="مسیر">@yield('breadcrumb', $breadcrumb ?? 'پنل مدیریت کل')</nav>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    {{-- زنگ اعلان (فاز ۱۰) --}}
+                    @persist('header-actions')
+                    {{-- فاز ۵۴ — جستجوی سراسری (Ctrl+K) — سوییچ features.global_search --}}
+                    @if ((bool) app(\App\Services\Settings\SettingsService::class)->get('features.global_search', true))
+                    <button type="button" id="gk-open" class="hidden md:flex items-center gap-2 h-9 rounded-xl border border-stone-200 bg-stone-50 px-3 text-[11px] font-bold text-stone-400 hover:bg-white hover:border-stone-300 transition-colors" title="جستجوی سراسری (Ctrl+K)">
+                        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        {{ __('chrome.common.search_placeholder') }}
+                        <kbd class="gk-kbd">Ctrl K</kbd>
+                    </button>
+                    <button type="button" id="gk-open-m" class="md:hidden grid place-items-center size-10 rounded-xl border border-stone-200 text-stone-500 hover:bg-stone-50" aria-label="جستجو">
+                        <svg class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    </button>
+                    @endif
+                    {{-- زنگ اعلان (فاز ۱۰) — persist تا bind اسکریپت اعلان بین ناوبری‌ها زنده بماند --}}
                     @include('back.partials.notif-bell')
+                    {{-- فاز ۵۴ — سوئیچ زبان (فقط وقتی چندزبانه روشن است) — فاز ۵۷: بازطراحی + رفع باگ چندکلیک --}}
+                    @if (! empty($i18nOn))
+                    @include('partials.locale-switcher')
+                    @endif
                     {{-- سوییچ تم روشن/تاریک --}}
                     <button type="button" class="theme-toggle" data-theme-toggle aria-label="تغییر تم روشن/تاریک" title="حالت روشن/تاریک">
                         <svg class="tt-icon tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
@@ -192,14 +220,18 @@
                     </button>
                     <span class="hidden sm:inline-flex items-center gap-2 badge bg-emerald-50 text-emerald-700 border border-emerald-200">
                         <span class="relative flex size-2"><span class="absolute inline-flex size-full rounded-full bg-emerald-400 opacity-60 animate-ping"></span><span class="relative inline-flex size-2 rounded-full bg-emerald-400"></span></span>
-                        سیستم آنلاین
-                    </span>
+                        {{ __("chrome.common.system_online") }}</span>
+                    @endpersist
                 </div>
             </div>
         </header>
 
         <main class="flex-1 px-4 sm:px-6 py-6">
             @yield('content')
+
+            {{-- [Task 2-a] سازگاری Livewire full-page — ویوهای @extends از @yield استفاده می‌کنند؛
+                 کامپوننت‌های Livewire از $slot (هرگز هم‌زمان پر نمی‌شوند) --}}
+            {{ $slot ?? '' }}
         </main>
 
         <footer class="mt-auto border-t border-stone-200/80 bg-white/60">
@@ -212,20 +244,30 @@
 </div>
 
 {{-- اسکریپت‌های پایه پنل (فایل‌های جدا — بدون Node) --}}
-<script src="{{ asset('assets/js/vendor/jquery.min.js') }}?v=10"></script>
-<script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1"></script>
-<script src="{{ asset('assets/js/realtime.js') }}?v=2" data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(auth()->user()))'></script>
-<script src="{{ asset('back/assets/js/core.js') }}?v=12"></script>
-<script src="{{ asset('back/assets/js/ui.js') }}?v=10"></script>
-<script src="{{ asset('back/assets/js/pages/layout.js') }}?v=12"></script>
-{{-- اطلاعیه‌های پنل (فاز ۱۵) --}}
-<script src="{{ asset('back/assets/js/pages/panel-announcements.js') }}?v=15"></script>
+{{-- [Task 2-a] data-navigate-once: اسکریپت‌های مشترک لایه در هر ناوبری wire:navigate
+     دوباره اجرا نشوند (intervals/listener تکراری ممنوع)؛ re-bind کروم با App.onNavigate --}}
+<script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1" data-navigate-once></script>
+<script src="{{ asset('assets/js/realtime.js') }}?v=8" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(auth()->user()))'></script>
+<script src="{{ asset('back/assets/js/core.js') }}?v=16" data-navigate-once></script>
+<script src="{{ asset('back/assets/js/ui.js') }}?v=13" data-navigate-once></script>
+<script src="{{ asset('back/assets/js/pages/layout.js') }}?v=15" data-navigate-once></script>
+<script src="{{ asset('assets/js/lightbox.js') }}?v=1" data-navigate-once></script>
+{{-- فاز ۵۴ — پالت جستجوی سراسری (Ctrl+K) — بدون once (سبک؛ ری‌ران امن با گارد data-bound) --}}
+@if ((bool) app(\App\Services\Settings\SettingsService::class)->get('features.global_search', true))
+<link rel="stylesheet" href="{{ asset('assets/css/pages/global-search.css') }}?v=1">
+<script src="{{ asset('back/assets/js/pages/global-search.js') }}?v=1"></script>
+@endif
+{{-- اطلاعیه‌های پنل (فاز ۱۵) — بدون once (ری‌ران امن؛ بدون interval) --}}
+<script src="{{ asset('back/assets/js/pages/panel-announcements.js') }}?v=16"></script>
 {{-- نوتیف دستگاه (v25) — قبل از notifications.js تا CNPush آماده باشد --}}
 @include('partials.push-client', ['pushRegisterUrl' => route('admin.push.token')])
-<script src="{{ asset('back/assets/js/pages/notifications.js') }}?v=16"></script>
+<script src="{{ asset('back/assets/js/pages/notifications.js') }}?v=17" data-navigate-once></script>
 
 {{-- دیت‌پیکر شمسی — بدون وابستگی (vanilla) --}}
 <script src="{{ asset('assets/js/jalali-datepicker.js') }}?v=2"></script>
+
+{{-- Livewire [Task 2-a] --}}
+@livewireScripts
 
 {{-- اسکریپت‌های اختصاصی هر صفحه --}}
 @stack('scripts')

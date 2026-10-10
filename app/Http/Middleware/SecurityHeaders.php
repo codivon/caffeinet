@@ -32,10 +32,11 @@ class SecurityHeaders
         // CSP فقط برای پاسخ‌های HTML (JSON/API نیازی ندارد)
         if (str_contains((string) $response->headers->get('Content-Type'), 'text/html')) {
             // فاز ۱۳: با فعال بودن Realtime پوشر، اتصال WS/HTTPS به پوشر مجاز است
+            // فاز ۱۲-fix: فقط وقتی «روش انتخابی پوشر» است — SSE هم‌دامنه است و self کافی است
             $connectSrc = "'self'";
 
             try {
-                if (app(\App\Services\Realtime\PusherService::class)->enabled()) {
+                if (app(\App\Services\Realtime\PusherService::class)->pusherReady()) {
                     $connectSrc .= ' wss://*.pusher.com https://*.pusher.com';
                 }
             } catch (\Throwable) {
@@ -44,7 +45,13 @@ class SecurityHeaders
 
             $csp = implode('; ', [
                 "default-src 'self'",
-                "script-src 'self'",
+                // [Livewire 4 SPA] مجوز unsafe-eval برای Livewire/Alpine الزامی است
+                // (ارزیابی عبارات wire:*/x-* با new Function انجام می‌شود).
+                // 'unsafe-inline' هم الزامی است: ۵۴ ویوی کامپوننت اسکریپت درون‌خطی دارند
+                // و تزریق nonce به همهٔ آن‌ها عملی/پایدار نیست؛ ضمناً با فعال‌بودن
+                // unsafe-eval (new Function) ریسک افزودهٔ آن حداقلی است —
+                // 'self' همچنان منابع خارجی را بلاک می‌کند.
+                "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
                 "font-src 'self' data: https://fonts.gstatic.com",
                 "img-src 'self' data: blob:",

@@ -14,8 +14,8 @@
     gap: 12px;
     width: 100%;
     padding: 14px;
-    background: #fbf8f2;
-    border: 1.5px dashed #d8c3a5;
+    background: #eff6ff;
+    border: 1.5px dashed #60a5fa;
     border-radius: 16px;
     cursor: pointer;
     font-family: inherit;
@@ -24,21 +24,21 @@
 }
 
 .fup-zone:hover {
-    border-color: #c9802f;
-    background: #fdfaf4;
+    border-color: #2563eb;
+    background: #eff6ff;
     transform: translateY(-1px);
-    box-shadow: 0 10px 22px -16px rgba(138, 82, 39, .5);
+    box-shadow: 0 10px 22px -16px rgba(30, 58, 138, .5);
 }
 
 .fup-zone:focus-visible {
-    outline: 2px solid #a8652e;
+    outline: 2px solid #2563eb;
     outline-offset: 2px;
 }
 
 .fup.drag .fup-zone,
 .fup-zone.drag {
-    border-color: #a8652e;
-    background: #f8efe0;
+    border-color: #2563eb;
+    background: #dbeafe;
     border-style: solid;
     transform: scale(1.01);
 }
@@ -49,18 +49,18 @@
     width: 46px;
     height: 46px;
     border-radius: 14px;
-    background: linear-gradient(135deg, #c9802f, #8a5227);
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
     color: #fff;
     flex-shrink: 0;
-    box-shadow: 0 8px 18px -8px rgba(138, 82, 39, .65);
+    box-shadow: 0 8px 18px -8px rgba(30, 58, 138, .65);
     transition: transform .25s cubic-bezier(.34, 1.56, .64, 1);
 }
 .fup-zone:hover .fz-ico { transform: translateY(-2px) rotate(-4deg); }
 .fz-ico svg { width: 22px; height: 22px; }
 
 .fz-txt { flex: 1; min-width: 0; }
-.fz-txt strong { display: block; font-size: 12.5px; font-weight: 800; color: #4a3826; line-height: 1.8; }
-.fz-txt small { display: block; font-size: 10.5px; font-weight: 600; color: #9a8b78; line-height: 1.8; }
+.fz-txt strong { display: block; font-size: 12.5px; font-weight: 800; color: #2d2d4a; line-height: 1.8; }
+.fz-txt small { display: block; font-size: 10.5px; font-weight: 600; color: #3b82f6; line-height: 1.8; }
 
 /* ---------- چیپ‌های فایل انتخاب‌شده ---------- */
 .fup-list {
@@ -75,7 +75,7 @@
     gap: 10px;
     padding: 8px 10px;
     background: #fff;
-    border: 1px solid #eee3d2;
+    border: 1px solid #bfdbfe;
     border-radius: 14px;
     box-shadow: 0 6px 16px -12px rgba(75, 53, 32, .35);
     animation: fup-chip-in .25s ease both;
@@ -127,7 +127,7 @@
     display: block;
     font-size: 11.5px;
     font-weight: 800;
-    color: #2b2118;
+    color: #1a1a2e;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -136,7 +136,7 @@
     display: block;
     font-size: 10px;
     font-weight: 600;
-    color: #9a8b78;
+    color: #3b82f6;
     margin-top: 1px;
 }
 
@@ -158,10 +158,10 @@
 .fc-rm:hover { background: #f9dcdc; transform: rotate(90deg); }
 
 /* کاشی‌های رنگی (هماهنگ با چت) */
-.t-image { background: linear-gradient(135deg, #f6a35c, #d96a1f); }
+.t-image { background: linear-gradient(135deg, #60a5fa, #2563eb); }
 .t-video { background: linear-gradient(135deg, #ee7d6c, #c8402e); }
 .t-audio { background: linear-gradient(135deg, #6cbfa9, #2e7d6a); }
-.t-file { background: linear-gradient(135deg, #b3a28c, #7a6a55); }
+.t-file { background: linear-gradient(135deg, #60a5fa, #2563eb); }
 
 @media (max-width: 480px) {
     .fup-zone { padding: 12px; }
@@ -176,16 +176,16 @@
 /* ============================================================
    حالت شب (تم تاریک) — آپلودر مدارک (fup*)
    ============================================================ */
-html.dark .fup-zone { background: #241d15; border-color: #5a4630; }
-html.dark .fup-zone:hover { border-color: #d99a4f; background: #2a2118; }
-html.dark .fup-zone:focus-visible { outline-color: #d99a4f; }
+html.dark .fup-zone { background: #1a1a2e; border-color: #1e3a8a; }
+html.dark .fup-zone:hover { border-color: #3b82f6; background: #1a1a2e; }
+html.dark .fup-zone:focus-visible { outline-color: #3b82f6; }
 html.dark .fup.drag .fup-zone,
-html.dark .fup-zone.drag { border-color: #d99a4f; background: #2a2118; }
+html.dark .fup-zone.drag { border-color: #3b82f6; background: #1a1a2e; }
 html.dark .fz-ico { box-shadow: 0 8px 18px -8px rgba(0, 0, 0, .75); }
-html.dark .fz-txt strong { color: #ece3d6; }
-html.dark .fz-txt small { color: #87775f; }
-html.dark .fup-chip { background: #221c17; border-color: #3a3128; }
-html.dark .fc-info > span { color: #ece3d6; }
-html.dark .fc-info > small { color: #87775f; }
+html.dark .fz-txt strong { color: #dbeafe; }
+html.dark .fz-txt small { color: #2563eb; }
+html.dark .fup-chip { background: #1a1a2e; border-color: #2d2d4a; }
+html.dark .fc-info > span { color: #dbeafe; }
+html.dark .fc-info > small { color: #2563eb; }
 html.dark .fc-rm { background: #351a1a; color: #ff9e9e; }
 html.dark .fc-rm:hover { background: #462020; }

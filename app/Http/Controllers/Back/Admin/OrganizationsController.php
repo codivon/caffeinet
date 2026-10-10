@@ -273,6 +273,10 @@ class OrganizationsController extends Controller
             'owner_mobile' => ['nullable', 'string', 'regex:/^09[0-9]{9}$/', 'max:11', Rule::unique('users', 'mobile')->ignore($ownerId)],
             'owner_password' => ['nullable', 'string', 'min:8'],
             'owner_is_active' => ['nullable', 'boolean'],
+            // فاز ۵۳ — حالت فروشنده
+            'is_reseller' => ['nullable', 'boolean'],
+            'ref_code' => ['nullable', 'string', 'max:30', 'regex:/^[A-Za-z0-9_-]+$/'],
+            'reseller_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ], [
             'name.required' => 'نام سازمان الزامی است.',
             'owner_email.email' => 'ایمیل مدیر سازمان معتبر نیست.',
@@ -280,6 +284,7 @@ class OrganizationsController extends Controller
             'owner_mobile.regex' => 'فرمت موبایل مدیر سازمان صحیح نیست (09xxxxxxxxx).',
             'owner_mobile.unique' => 'این موبایل متعلق به کاربر دیگری است.',
             'owner_password.min' => 'رمز عبور حداقل ۸ کاراکتر باشد.',
+            'ref_code.regex' => 'کد معرف فقط حروف لاتین، عدد، خط تیره و زیرخط (A-Z a-z 0-9 _ -).',
         ]);
 
         $old = $organization->only(['name', 'type', 'national_id', 'phone', 'province_id', 'city_id', 'address', 'note']);
@@ -289,7 +294,36 @@ class OrganizationsController extends Controller
         DB::transaction(function () use ($organization, $data, $owner) {
             $organization->fill(collect($data)->only([
                 'name', 'type', 'national_id', 'phone', 'province_id', 'city_id', 'address', 'note',
-            ])->all())->save();
+            ])->all());
+
+            // فاز ۵۳ — تنظیمات فروشنده (کد تکراری رد می‌شود)
+            if (array_key_exists('is_reseller', $data)) {
+                $organization->is_reseller = (bool) $data['is_reseller'];
+
+                if ($organization->is_reseller && empty($organization->ref_code) && empty($data['ref_code'])) {
+                    // کد خودکار از نام سازمان (لاتین) یا شناسه
+                    $base = \Illuminate\Support\Str::slug($organization->name) ?: ('org-'.$organization->id);
+                    $organization->ref_code = substr($base.'-'.strtolower(\Illuminate\Support\Str::random(4)), 0, 30);
+                }
+            }
+            if (array_key_exists('ref_code', $data)) {
+                $code = trim((string) $data['ref_code']);
+                if ($code === '') {
+                    $organization->ref_code = $organization->is_reseller ? $organization->ref_code : null;
+                } elseif ($code !== $organization->ref_code) {
+                    $dup = \App\Models\Organization::where('ref_code', $code)->whereKeyNot($organization->id)->exists();
+                    if ($dup) {
+                        throw ValidationException::withMessages(['ref_code' => ['این کد معرف قبلاً استفاده شده است.']]);
+                    }
+                    $organization->ref_code = $code;
+                }
+            }
+            if (array_key_exists('reseller_percent', $data)) {
+                $organization->reseller_percent = $data['reseller_percent'] !== null && $data['reseller_percent'] !== ''
+                    ? (float) $data['reseller_percent'] : null;
+            }
+
+            $organization->save();
 
             if ($owner) {
                 $ownerFields = collect($data)->only([

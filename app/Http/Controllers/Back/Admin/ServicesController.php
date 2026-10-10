@@ -18,6 +18,7 @@ class ServicesController extends Controller
     public const FIELD_TYPES = [
         'text', 'textarea', 'number', 'mobile', 'national_code',
         'email', 'date', 'select', 'radio', 'checkbox', 'file',
+        'plate', // فاز ۴۶ — شماره پلاک ایران (دو رقم، حرف، سه رقم، ایران + کد استان)
     ];
 
     public function __construct(

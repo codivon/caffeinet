@@ -8,20 +8,20 @@
 
 .cnchat {
     /* توکن‌های تم (پیش‌فرض = برند قهوه‌ای) */
-    --cch-own-a: #b9733a;
-    --cch-own-b: #8a5227;
-    --cch-own-fg: #fff8f2;
-    --cch-own-meta: rgba(255, 248, 242, .72);
+    --cch-own-a: #2563eb;
+    --cch-own-b: #1d4ed8;
+    --cch-own-fg: #eff6ff;
+    --cch-own-meta: rgba(239, 246, 255, .72);
     --cch-other: #ffffff;
-    --cch-other-fg: #2b2118;
-    --cch-other-bd: #eadfd2;
-    --cch-other-meta: #9a8b78;
+    --cch-other-fg: #1a1a2e;
+    --cch-other-bd: #bfdbfe;
+    --cch-other-meta: #3b82f6;
     --cch-surface: #ffffff;
-    --cch-bd: #e7dccb;
-    --cch-pane: #f8f4ee;
-    --cch-sys-fg: #6b5d4e;
+    --cch-bd: #bfdbfe;
+    --cch-pane: #dbeafe;
+    --cch-sys-fg: #1d4ed8;
     --cch-sys-bg: rgba(107, 93, 78, .1);
-    --cch-accent: #a8652e;
+    --cch-accent: #2563eb;
     --cch-radius: 22px;
     --cch-tail: 8px;
 
@@ -41,7 +41,7 @@
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
-    background: linear-gradient(180deg, #fff, #fbf7f1);
+    background: linear-gradient(180deg, #fff, #eff6ff);
     border-bottom: 1px solid var(--cch-bd);
     min-height: 64px;
 }
@@ -53,33 +53,33 @@
     height: 42px;
     border-radius: 14px;
     background: linear-gradient(135deg, var(--cch-own-a), var(--cch-own-b));
-    color: #fff8f2;
+    color: #eff6ff;
     font-weight: 800;
     font-size: 15px;
     flex-shrink: 0;
-    box-shadow: 0 4px 12px -4px rgba(138, 82, 39, .5);
+    box-shadow: 0 4px 12px -4px rgba(30, 58, 138, .5);
 }
 
 .cnchat-head .ch-info { min-width: 0; flex: 1; }
-.cnchat-head .ch-name { font-weight: 800; font-size: 14px; color: #2b2118; line-height: 1.5; }
-.cnchat-head .ch-sub { font-size: 11px; color: #9a8b78; line-height: 1.7; }
+.cnchat-head .ch-name { font-weight: 800; font-size: 14px; color: #1a1a2e; line-height: 1.5; }
+.cnchat-head .ch-sub { font-size: 11px; color: #3b82f6; line-height: 1.7; }
 
 /* ---------- ناحیه پیام‌ها ---------- */
 .cnchat-pane {
     overflow-y: auto;
     overflow-x: hidden;
     background:
-        radial-gradient(circle at 18% 22%, rgba(196, 127, 61, .05) 0 2px, transparent 3px),
-        radial-gradient(circle at 82% 78%, rgba(196, 127, 61, .05) 0 2px, transparent 3px),
-        radial-gradient(circle at 60% 40%, rgba(196, 127, 61, .035) 0 2px, transparent 3px),
+        radial-gradient(circle at 18% 22%, rgba(59, 130, 246, .05) 0 2px, transparent 3px),
+        radial-gradient(circle at 82% 78%, rgba(59, 130, 246, .05) 0 2px, transparent 3px),
+        radial-gradient(circle at 60% 40%, rgba(59, 130, 246, .035) 0 2px, transparent 3px),
         var(--cch-pane);
     background-size: 220px 220px;
     scrollbar-width: thin;
-    scrollbar-color: #d8c3a5 transparent;
+    scrollbar-color: #60a5fa transparent;
 }
 
 .cnchat-pane::-webkit-scrollbar { width: 6px; }
-.cnchat-pane::-webkit-scrollbar-thumb { background: #d8c3a5; border-radius: 8px; }
+.cnchat-pane::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 8px; }
 
 .cnchat-msgs {
     display: flex;
@@ -247,7 +247,7 @@
     background: linear-gradient(160deg, var(--cch-own-a), var(--cch-own-b));
     color: var(--cch-own-fg);
     border-bottom-left-radius: 6px;
-    box-shadow: 0 6px 16px -10px rgba(138, 82, 39, .65);
+    box-shadow: 0 6px 16px -10px rgba(30, 58, 138, .65);
 }
 
 /* پیام مخاطب */
@@ -370,7 +370,7 @@
     font-size: 18px;
 }
 
-.bubble.other .msg-file .f-ico { background: #f7ead9; }
+.bubble.other .msg-file .f-ico { background: #dbeafe; }
 
 .msg-file .f-info { min-width: 0; }
 .msg-file .f-name {
@@ -396,7 +396,7 @@
 }
 
 .msg-file .f-dl:hover { transform: translateY(-1px); }
-.bubble.other .msg-file .f-dl { background: #f7ead9; }
+.bubble.other .msg-file .f-dl { background: #dbeafe; }
 
 /* کپشن چندرسانه‌ای */
 .msg-caption {
@@ -418,7 +418,7 @@
     gap: 8px;
     padding: 48px 20px;
     text-align: center;
-    color: #9a8b78;
+    color: #3b82f6;
 }
 
 .cnchat-empty .e-ico {
@@ -427,11 +427,11 @@
     width: 64px;
     height: 64px;
     border-radius: 20px;
-    background: #f1e7d8;
+    background: #dbeafe;
     font-size: 26px;
 }
 
-.cnchat-empty .e-t { font-size: 12.5px; font-weight: 700; color: #6b5d4e; }
+.cnchat-empty .e-t { font-size: 12.5px; font-weight: 700; color: #1d4ed8; }
 .cnchat-empty .e-s { font-size: 11px; }
 
 /* شمارشگر پیام جدید (شناور پایین صفحه پیام‌ها) */
@@ -453,7 +453,7 @@
     pointer-events: none;
     transition: all .25s ease;
     z-index: 5;
-    box-shadow: 0 10px 24px -10px rgba(138, 82, 39, .7);
+    box-shadow: 0 10px 24px -10px rgba(30, 58, 138, .7);
 }
 
 .new-msgs-pill.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
@@ -461,9 +461,9 @@
 /* ---------- فقط-خواندن ---------- */
 .cnchat-readonly {
     padding: 10px 16px;
-    background: #fdf6e6;
-    border-top: 1px solid #ecdfc2;
-    color: #b37409;
+    background: #dbeafe;
+    border-top: 1px solid #bfdbfe;
+    color: #1d4ed8;
     font-size: 11.5px;
     font-weight: 700;
     text-align: center;
@@ -500,7 +500,7 @@
     height: 76px;
     background:
         radial-gradient(circle at 86% -30%, rgba(255, 255, 255, .28) 0 46px, transparent 47px),
-        linear-gradient(135deg, #c9802f, #8a5227);
+        linear-gradient(135deg, #2563eb, #1d4ed8);
 }
 
 /* بریدگی‌های کاغذی (تم فاکتور/قبض) */
@@ -534,7 +534,7 @@
     align-items: center;
     gap: 10px;
     padding: 13px 14px 9px;
-    color: #fff8f2;
+    color: #eff6ff;
 }
 .inv-icon {
     display: grid;
@@ -568,12 +568,12 @@
     justify-content: space-between;
     gap: 10px;
     padding: 11px 2px 12px;
-    border-bottom: 1px dashed #e2d4bd;
+    border-bottom: 1px dashed #bfdbfe;
 }
-.inv-row > span { font-size: 11.5px; font-weight: 700; color: #6b5d4e; }
-.inv-row > strong { font-size: 16px; font-weight: 800; color: #2b2118; }
+.inv-row > span { font-size: 11.5px; font-weight: 700; color: #1d4ed8; }
+.inv-row > strong { font-size: 16px; font-weight: 800; color: #1a1a2e; }
 
-.inv-note { font-size: 11px; font-weight: 600; color: #9a8b78; line-height: 1.9; padding: 10px 2px 4px; }
+.inv-note { font-size: 11px; font-weight: 600; color: #3b82f6; line-height: 1.9; padding: 10px 2px 4px; }
 
 .inv-actions { display: flex; flex-direction: column; gap: 8px; padding-top: 6px; }
 
@@ -596,15 +596,15 @@
 .inv-btn small { font-size: 10px; font-weight: 600; opacity: .75; }
 
 .inv-btn.primary {
-    background: linear-gradient(160deg, #c9802f, #8a5227);
-    color: #fff8f2;
-    box-shadow: 0 10px 22px -10px rgba(138, 82, 39, .7);
+    background: linear-gradient(160deg, #2563eb, #1d4ed8);
+    color: #eff6ff;
+    box-shadow: 0 10px 22px -10px rgba(30, 58, 138, .7);
 }
 .inv-btn.primary:hover { transform: translateY(-1px); filter: brightness(1.06); }
 .inv-btn.primary:disabled { opacity: .6; cursor: default; transform: none; filter: none; }
 
-.inv-btn.ghost { background: #fbf6ee; color: #8a5227; border: 1.5px solid #e6d5ba; }
-.inv-btn.ghost:hover { background: #f8efe0; border-color: #d9bf95; }
+.inv-btn.ghost { background: #eff6ff; color: #1d4ed8; border: 1.5px solid #bfdbfe; }
+.inv-btn.ghost:hover { background: #dbeafe; border-color: #60a5fa; }
 .inv-btn.ghost:disabled { opacity: .6; cursor: default; }
 
 .inv-error {
@@ -652,8 +652,8 @@
 }
 .ip-check svg { width: 22px; height: 22px; }
 .inv-paid > strong { font-size: 13.5px; font-weight: 800; color: #0d7a58; }
-.inv-paid > span { font-size: 12px; font-weight: 700; color: #2b2118; }
-.inv-paid > small { font-size: 10.5px; color: #9a8b78; font-weight: 600; }
+.inv-paid > span { font-size: 12px; font-weight: 700; color: #1a1a2e; }
+.inv-paid > small { font-size: 10.5px; color: #3b82f6; font-weight: 600; }
 
 /* ============================================================
    فاز ۱۲ — آپلودر زیبا (پیش‌نمایش پیوست بالای نوار ارسال)
@@ -721,7 +721,7 @@
     display: block;
     font-size: 12px;
     font-weight: 800;
-    color: #2b2118;
+    color: #1a1a2e;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -729,7 +729,7 @@
 .p-info > small {
     display: block;
     font-size: 10px;
-    color: #9a8b78;
+    color: #3b82f6;
     font-weight: 600;
     margin-top: 2px;
 }
@@ -738,7 +738,7 @@
     position: relative;
     height: 4px;
     border-radius: 4px;
-    background: #f1e7d8;
+    background: #dbeafe;
     margin-top: 7px;
     overflow: hidden;
     opacity: 0;
@@ -750,7 +750,7 @@
     height: 100%;
     width: 0;
     border-radius: 4px;
-    background: linear-gradient(90deg, #c9802f, #8a5227);
+    background: linear-gradient(90deg, #2563eb, #1d4ed8);
     transition: width .18s linear;
     position: relative;
     overflow: hidden;
@@ -766,7 +766,7 @@
 .p-pct {
     font-size: 11px;
     font-weight: 800;
-    color: #a8652e;
+    color: #2563eb;
     min-width: 36px;
     text-align: center;
     visibility: hidden;
@@ -798,7 +798,7 @@
     align-items: flex-end;
     gap: 8px;
     padding: 10px 12px;
-    background: linear-gradient(0deg, #fff, #fdfaf6);
+    background: linear-gradient(0deg, #fff, #eff6ff);
     border-top: 1px solid var(--cch-bd);
     position: relative;
     /* z-index عمداً حذف شد: شیت پیوست باید مستقیم با backdrop مقایسه شود (باگ کلیک پیوست) */
@@ -807,15 +807,15 @@
 .cnchat-composer .ta-wrap {
     flex: 1;
     position: relative;
-    background: #f6f0e6;
-    border: 1.5px solid #e7dccb;
+    background: #dbeafe;
+    border: 1.5px solid #bfdbfe;
     border-radius: 18px;
     transition: border-color .2s ease, box-shadow .2s ease;
 }
 
 .cnchat-composer .ta-wrap:focus-within {
     border-color: var(--cch-accent);
-    box-shadow: 0 0 0 3px rgba(168, 101, 46, .12);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
 }
 
 .cnchat-composer textarea {
@@ -828,13 +828,13 @@
     font-family: inherit;
     font-size: 13.5px;
     line-height: 1.8;
-    color: #2b2118;
+    color: #1a1a2e;
     padding: 9px 14px;
     min-height: 40px;
     max-height: 140px;
 }
 
-.cnchat-composer textarea::placeholder { color: #b3a68f; }
+.cnchat-composer textarea::placeholder { color: #60a5fa; }
 
 .cch-btn {
     display: grid;
@@ -851,17 +851,17 @@
 
 /* دکمه پیوست تلگرامی: آیکن «+» — با باز شدن شیت ۴۵ درجه می‌چرخد و ✕ می‌شود */
 .cch-btn.attach {
-    background: #f6f0e6;
-    border: 1.5px solid #e7dccb;
-    color: #a8652e;
+    background: #dbeafe;
+    border: 1.5px solid #bfdbfe;
+    color: #2563eb;
 }
-.cch-btn.attach:hover { background: #f1e7d8; transform: translateY(-1px); }
+.cch-btn.attach:hover { background: #dbeafe; transform: translateY(-1px); }
 .cch-btn.attach svg { transition: transform .3s cubic-bezier(.34, 1.56, .64, 1); }
 .cch-btn.attach[aria-expanded="true"] {
     background: var(--cch-accent);
     border-color: var(--cch-accent);
     color: #fff;
-    box-shadow: 0 8px 18px -8px rgba(168, 101, 46, .8);
+    box-shadow: 0 8px 18px -8px rgba(37, 99, 235, .8);
 }
 .cch-btn.attach[aria-expanded="true"] svg { transform: rotate(45deg); }
 .cch-btn.attach[aria-expanded="true"]:hover { transform: none; }
@@ -869,7 +869,7 @@
 .cch-btn.send {
     background: linear-gradient(160deg, var(--cch-own-a), var(--cch-own-b));
     color: #fff;
-    box-shadow: 0 8px 18px -8px rgba(138, 82, 39, .7);
+    box-shadow: 0 8px 18px -8px rgba(30, 58, 138, .7);
 }
 
 .cch-btn.send:disabled { opacity: .45; cursor: default; transform: none; box-shadow: none; }
@@ -920,8 +920,8 @@
     padding: 0 4px 10px;
 }
 .as-head .as-ttl { flex: 1; min-width: 0; }
-.as-head strong { display: block; font-size: 12.5px; font-weight: 800; color: #2b2118; }
-.as-head small { font-size: 10.5px; color: #9a8b78; font-weight: 600; }
+.as-head strong { display: block; font-size: 12.5px; font-weight: 800; color: #1a1a2e; }
+.as-head small { font-size: 10.5px; color: #3b82f6; font-weight: 600; }
 .as-close {
     display: grid;
     place-items: center;
@@ -929,8 +929,8 @@
     height: 30px;
     border-radius: 10px;
     border: none;
-    background: #f6f0e6;
-    color: #9a8b78;
+    background: #dbeafe;
+    color: #3b82f6;
     cursor: pointer;
     flex-shrink: 0;
     transition: all .15s ease;
@@ -950,8 +950,8 @@
     align-items: flex-start;
     gap: 9px;
     padding: 12px;
-    background: #fbf8f2;
-    border: 1px solid #eee3d2;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
     border-radius: 16px;
     cursor: pointer;
     font-family: inherit;
@@ -960,9 +960,9 @@
 }
 .as-item:hover {
     background: #fff;
-    border-color: #e0c9a4;
+    border-color: #60a5fa;
     transform: translateY(-2px);
-    box-shadow: 0 12px 24px -14px rgba(138, 82, 39, .45);
+    box-shadow: 0 12px 24px -14px rgba(30, 58, 138, .45);
 }
 .as-item:active { transform: translateY(0) scale(.97); }
 .as-item:focus-visible { outline: 2px solid var(--cch-accent); outline-offset: 2px; }
@@ -982,14 +982,14 @@
 .as-tile svg { width: 22px; height: 22px; }
 
 .as-item > span:last-child { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.as-item strong { font-size: 12.5px; font-weight: 800; color: #2b2118; }
-.as-item small { font-size: 9.5px; color: #9a8b78; font-weight: 600; line-height: 1.9; }
+.as-item strong { font-size: 12.5px; font-weight: 800; color: #1a1a2e; }
+.as-item small { font-size: 9.5px; color: #3b82f6; font-weight: 600; line-height: 1.9; }
 
 /* کاشی‌های رنگی (خانوادهٔ گرم برند + سبز آبی برای صدا) */
-.t-image { background: linear-gradient(135deg, #f6a35c, #d96a1f); }
+.t-image { background: linear-gradient(135deg, #60a5fa, #2563eb); }
 .t-video { background: linear-gradient(135deg, #ee7d6c, #c8402e); }
 .t-audio { background: linear-gradient(135deg, #6cbfa9, #2e7d6a); }
-.t-file { background: linear-gradient(135deg, #b3a28c, #7a6a55); }
+.t-file { background: linear-gradient(135deg, #60a5fa, #2563eb); }
 
 /* ورود پله‌ای کارت‌ها هنگام باز شدن */
 @keyframes as-pop {
@@ -1033,7 +1033,7 @@
         width: 44px;
         height: 4px;
         border-radius: 99px;
-        background: #e2d6c3;
+        background: #bfdbfe;
         margin: 7px auto 3px;
     }
     .as-item { align-items: center; text-align: center; padding: 14px 10px; }
@@ -1057,7 +1057,7 @@
     transition: opacity .15s ease;
 }
 .cnchat.dropping .cnchat-dropzone { opacity: 1; }
-.dz-inner { text-align: center; color: #8a5227; }
+.dz-inner { text-align: center; color: #1d4ed8; }
 .dz-inner .dz-ico {
     display: grid;
     place-items: center;
@@ -1065,9 +1065,9 @@
     height: 58px;
     margin: 0 auto 10px;
     border-radius: 18px;
-    background: linear-gradient(135deg, #c9802f, #8a5227);
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
     color: #fff;
-    box-shadow: 0 12px 26px -10px rgba(138, 82, 39, .65);
+    box-shadow: 0 12px 26px -10px rgba(30, 58, 138, .65);
     animation: dz-bob 1.4s ease-in-out infinite;
 }
 .dz-inner .dz-ico svg { width: 26px; height: 26px; }
@@ -1157,29 +1157,29 @@
    ============================================================ */
 
 html.dark .cnchat {
-    --cch-own-a: #b07a33;
-    --cch-own-b: #8a5a24;
-    --cch-own-fg: #fff8f2;
-    --cch-own-meta: rgba(255, 248, 242, .72);
-    --cch-other: #2a231c;
-    --cch-other-fg: #ece3d6;
-    --cch-other-bd: #3a3128;
-    --cch-other-meta: #a5947c;
-    --cch-surface: #221c17;
-    --cch-bd: #3a3128;
-    --cch-pane: #1d1813;
-    --cch-sys-fg: #b4a794;
+    --cch-own-a: #2563eb;
+    --cch-own-b: #1d4ed8;
+    --cch-own-fg: #eff6ff;
+    --cch-own-meta: rgba(239, 246, 255, .72);
+    --cch-other: #1a1a2e;
+    --cch-other-fg: #dbeafe;
+    --cch-other-bd: #2d2d4a;
+    --cch-other-meta: #3b82f6;
+    --cch-surface: #1a1a2e;
+    --cch-bd: #2d2d4a;
+    --cch-pane: #1a1a2e;
+    --cch-sys-fg: #60a5fa;
     --cch-sys-bg: rgba(180, 167, 148, .12);
-    --cch-accent: #d99a4f;
+    --cch-accent: #3b82f6;
     box-shadow: 0 1px 3px rgba(0, 0, 0, .4), 0 10px 30px -18px rgba(0, 0, 0, .6);
 }
 
 /* سربرگ گفتگو */
 html.dark .cnchat-head {
-    background: linear-gradient(180deg, #26201a, #201b16);
+    background: linear-gradient(180deg, #1a1a2e, #1a1a2e);
 }
-html.dark .cnchat-head .ch-name { color: #ece3d6; }
-html.dark .cnchat-head .ch-sub { color: #a5947c; }
+html.dark .cnchat-head .ch-name { color: #dbeafe; }
+html.dark .cnchat-head .ch-sub { color: #3b82f6; }
 
 /* کارت رویداد اتصال اپراتور */
 html.dark .cnchat-event {
@@ -1193,86 +1193,86 @@ html.dark .cnchat-event .ev-text { color: #a8c4b5; }
 html.dark .cnchat-event .ev-time { color: #6d8a7c; }
 
 /* حالت خالی */
-html.dark .cnchat-empty { color: #a5947c; }
-html.dark .cnchat-empty .e-ico { background: #2a231c; }
-html.dark .cnchat-empty .e-t { color: #b4a794; }
+html.dark .cnchat-empty { color: #3b82f6; }
+html.dark .cnchat-empty .e-ico { background: #1a1a2e; }
+html.dark .cnchat-empty .e-t { color: #60a5fa; }
 
 /* فقط-خواندن */
 html.dark .cnchat-readonly {
-    background: #2f2509;
-    border-top-color: #4a3a10;
-    color: #ecc26b;
+    background: #1a1a2e;
+    border-top-color: #1e3a5f;
+    color: #60a5fa;
 }
 
 /* کارت فایل داخل حباب مخاطب */
-html.dark .bubble.other .msg-file .f-ico { background: #2a231c; }
-html.dark .bubble.other .msg-file .f-dl { background: #2a231c; color: #ecbc7e; }
+html.dark .bubble.other .msg-file .f-ico { background: #1a1a2e; }
+html.dark .bubble.other .msg-file .f-dl { background: #1a1a2e; color: #60a5fa; }
 
 /* فاکتور داخل چت */
-html.dark .cch-invoice { background: #221c17; }
+html.dark .cch-invoice { background: #1a1a2e; }
 html.dark .cch-invoice::before {
     background:
         radial-gradient(circle at 86% -30%, rgba(255, 255, 255, .12) 0 46px, transparent 47px),
-        linear-gradient(135deg, #b07a33, #7a4e1e);
+        linear-gradient(135deg, #2563eb, #1e3a8a);
 }
 html.dark .cch-invoice.paid::before {
     background:
         radial-gradient(circle at 86% -30%, rgba(255, 255, 255, .12) 0 46px, transparent 47px),
         linear-gradient(135deg, #28a372, #12795a);
 }
-html.dark .inv-row { border-bottom-color: #3a3128; }
-html.dark .inv-row > span { color: #b4a794; }
-html.dark .inv-row > strong { color: #ece3d6; }
-html.dark .inv-note { color: #a5947c; }
+html.dark .inv-row { border-bottom-color: #2d2d4a; }
+html.dark .inv-row > span { color: #60a5fa; }
+html.dark .inv-row > strong { color: #dbeafe; }
+html.dark .inv-note { color: #3b82f6; }
 html.dark .inv-btn.primary {
-    background: linear-gradient(160deg, #b07a33, #8a5a24);
+    background: linear-gradient(160deg, #2563eb, #1d4ed8);
     box-shadow: 0 10px 22px -10px rgba(0, 0, 0, .65);
 }
-html.dark .inv-btn.ghost { background: #2a231c; color: #ecbc7e; border-color: #4a3c2c; }
-html.dark .inv-btn.ghost:hover { background: #322a20; border-color: #6b4b22; }
+html.dark .inv-btn.ghost { background: #1a1a2e; color: #60a5fa; border-color: #1e3a8a; }
+html.dark .inv-btn.ghost:hover { background: #2d2d4a; border-color: #1e3a8a; }
 html.dark .inv-error { color: #ff9e9e; }
 html.dark .inv-state-paid { background: rgba(16, 122, 87, .18); color: #79d89e; border-color: rgba(16, 122, 87, .3); }
 html.dark .inv-paid > strong { color: #79d89e; }
-html.dark .inv-paid > span { color: #ece3d6; }
-html.dark .inv-paid > small { color: #a5947c; }
+html.dark .inv-paid > span { color: #dbeafe; }
+html.dark .inv-paid > small { color: #3b82f6; }
 
 /* پیش‌نمایش پیوست */
-html.dark .composer-preview { background: #221c17; }
-html.dark .p-info > span { color: #ece3d6; }
-html.dark .p-info > small { color: #a5947c; }
-html.dark .p-track { background: #2a231c; }
+html.dark .composer-preview { background: #1a1a2e; }
+html.dark .p-info > span { color: #dbeafe; }
+html.dark .p-info > small { color: #3b82f6; }
+html.dark .p-track { background: #1a1a2e; }
 html.dark .p-rm { background: #351a1a; color: #ff9e9e; }
 html.dark .p-rm:hover { background: #462020; }
 
 /* نوار ارسال */
-html.dark .cnchat-composer { background: linear-gradient(0deg, #211b16, #1d1813); }
-html.dark .cnchat-composer .ta-wrap { background: #2a231c; border-color: #3a3128; }
-html.dark .cnchat-composer textarea { color: #ece3d6; }
-html.dark .cnchat-composer textarea::placeholder { color: #7d6f5a; }
-html.dark .cch-btn.attach { background: #2a231c; border-color: #3a3128; color: #d99a4f; }
-html.dark .cch-btn.attach:hover { background: #322a20; }
+html.dark .cnchat-composer { background: linear-gradient(0deg, #1a1a2e, #1a1a2e); }
+html.dark .cnchat-composer .ta-wrap { background: #1a1a2e; border-color: #2d2d4a; }
+html.dark .cnchat-composer textarea { color: #dbeafe; }
+html.dark .cnchat-composer textarea::placeholder { color: #2563eb; }
+html.dark .cch-btn.attach { background: #1a1a2e; border-color: #2d2d4a; color: #3b82f6; }
+html.dark .cch-btn.attach:hover { background: #2d2d4a; }
 html.dark .cch-btn.attach[aria-expanded="true"] {
-    background: #b07a33;
-    border-color: #b07a33;
-    color: #fff8f2;
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #eff6ff;
 }
 html.dark .cch-btn.send { box-shadow: 0 8px 18px -8px rgba(0, 0, 0, .75); }
 
 /* شیت پیوست */
-html.dark .attach-sheet { background: #221c17; }
-html.dark .as-head strong { color: #ece3d6; }
-html.dark .as-head small { color: #a5947c; }
-html.dark .as-close { background: #2a231c; color: #87775f; }
+html.dark .attach-sheet { background: #1a1a2e; }
+html.dark .as-head strong { color: #dbeafe; }
+html.dark .as-head small { color: #3b82f6; }
+html.dark .as-close { background: #1a1a2e; color: #2563eb; }
 html.dark .as-close:hover { background: #351a1a; color: #ff9e9e; }
-html.dark .as-item { background: #26201a; border-color: #3a3128; }
-html.dark .as-item:hover { background: #2c251d; border-color: #6b4b22; }
-html.dark .as-item strong { color: #ece3d6; }
-html.dark .as-item small { color: #a5947c; }
-html.dark .as-handle { background: #3a3128; }
+html.dark .as-item { background: #1a1a2e; border-color: #2d2d4a; }
+html.dark .as-item:hover { background: #1a1a2e; border-color: #1e3a8a; }
+html.dark .as-item strong { color: #dbeafe; }
+html.dark .as-item small { color: #3b82f6; }
+html.dark .as-handle { background: #2d2d4a; }
 
 /* پوشش کش‌ودرگ */
 html.dark .cnchat-dropzone { background: rgba(20, 16, 12, .93); }
-html.dark .dz-inner { color: #ecbc7e; }
+html.dark .dz-inner { color: #60a5fa; }
 
 /* ============================================================
    v31 — صفحهٔ گفتگوی تمام‌صفحه (اپ مشتری / app/orders/{id})
@@ -1285,6 +1285,9 @@ html.dark .dz-inner { color: #ecbc7e; }
 .app-shell.chat-shell {
     height: 100dvh;
     min-height: 100dvh;
+    /* v41 — ارتفاع واقعی پنجره (PWA standalone: 100dvh بعضی‌جا بزرگ‌تر گزارش می‌شود) */
+    height: var(--app-vh, 100dvh);
+    min-height: var(--app-vh, 100dvh);
     overflow: hidden; /* تنها .cnchat-pane اسکرول می‌شود */
 }
 
@@ -1293,6 +1296,19 @@ html.dark .dz-inner { color: #ecbc7e; }
     display: flex;
     flex-direction: column;
     padding: 0;
+    min-height: 0;
+    min-width: 0;
+}
+
+/* v41 — فیکس «اسکرول نمی‌خورد»: ریشهٔ کامپوننت Livewire یک <div> بدون‌استایل
+   بین app-main و chatpage است؛ min-height پیش‌فرض flex item (auto) باعث می‌شد
+   با محتوای بلند (پیام‌ها/کارت‌های وضعیت) کل زنجیره کش بیاید، پوسته overflow:hidden
+   پایین را می‌بُرید و هیچ اسکرولی کار نمی‌کرد. این قانون زنجیرهٔ min-height:0
+   را از app-main تا chatpage کامل می‌کند → تنها .cnchat-pane اسکرول می‌گیرد. */
+.app-shell.chat-shell .app-main > * {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     min-height: 0;
     min-width: 0;
 }
@@ -1334,6 +1350,30 @@ html.dark .dz-inner { color: #ecbc7e; }
     white-space: nowrap;
 }
 
+/* v41 — نقطهٔ وضعیت اتصال لحظه‌ای (پوشر) */
+.ch-rt {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 99px;
+    background: #94a3b8;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, .18);
+    transition: background .3s ease, box-shadow .3s ease;
+}
+.ch-rt.rt-on {
+    background: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, .16);
+    animation: rt-pulse 2.4s ease-in-out infinite;
+}
+.ch-rt.rt-off {
+    background: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, .16);
+}
+@keyframes rt-pulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(34, 197, 94, .16); }
+    50% { box-shadow: 0 0 0 5px rgba(34, 197, 94, .06); }
+}
+
 /* دکمهٔ اطلاعات سفارش (ⓘ) */
 .chatpage .ch-info-btn,
 .chatpage .ch-back {
@@ -1345,7 +1385,7 @@ html.dark .dz-inner { color: #ecbc7e; }
     border-radius: 12px;
     border: 1px solid var(--cch-bd);
     background: #fff;
-    color: #7a6a58;
+    color: #2563eb;
     cursor: pointer;
     transition: transform .16s ease, background .18s ease, color .18s ease;
     -webkit-tap-highlight-color: transparent;
@@ -1358,7 +1398,7 @@ html.dark .dz-inner { color: #ecbc7e; }
 .chatpage .ch-back svg { width: 21px; height: 21px; stroke-width: 2.6; }
 
 .chatpage .ch-info-btn:hover,
-.chatpage .ch-back:hover { background: #f8f1e7; color: #5f5240; }
+.chatpage .ch-back:hover { background: #dbeafe; color: #1d4ed8; }
 
 .chatpage .ch-info-btn:active,
 .chatpage .ch-back:active { transform: scale(.93); }
@@ -1434,19 +1474,19 @@ html.dark .dz-inner { color: #ecbc7e; }
 /* حالت شب — عناصر v31 */
 html.dark .chatpage .ch-info-btn,
 html.dark .chatpage .ch-back {
-    background: #2a231c;
-    border-color: #3a3128;
-    color: #c9b9a4;
+    background: #1a1a2e;
+    border-color: #2d2d4a;
+    color: #60a5fa;
 }
 
 html.dark .chatpage .ch-info-btn:hover,
-html.dark .chatpage .ch-back:hover { background: #322a20; color: #ecbc7e; }
+html.dark .chatpage .ch-back:hover { background: #2d2d4a; color: #60a5fa; }
 
-html.dark .chatpage .cnchat-head { background: linear-gradient(180deg, #26201a, #201b16); }
+html.dark .chatpage .cnchat-head { background: linear-gradient(180deg, #1a1a2e, #1a1a2e); }
 
 html.dark .chatpage-states .card,
 html.dark .chatpage .chatpage-survey,
-html.dark .chatinfo-sheet .card { border-color: #3a3128; }
+html.dark .chatinfo-sheet .card { border-color: #2d2d4a; }
 
 /* نوار ارسال — فیکس پایین (آخرین فرزند ستون ثابت) + احترام به ناحیهٔ امن */
 .chatpage .cnchat-composer {
@@ -1487,7 +1527,7 @@ html.dark .chatinfo-sheet .card { border-color: #3a3128; }
 }
 html.dark .cnchat-head .ch-sub.is-online { color: #4ade80; }
 html.dark .cnchat-head .ch-avatar.ch-avatar--on.ch-avatar--online {
-    box-shadow: 0 0 0 2.5px #201a14, 0 0 0 5px #22c55e, 0 4px 12px -4px rgba(34, 197, 94, .55);
+    box-shadow: 0 0 0 2.5px #1a1a2e, 0 0 0 5px #22c55e, 0 4px 12px -4px rgba(34, 197, 94, .55);
 }
 @keyframes ch-online-pulse {
     0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, .5); }

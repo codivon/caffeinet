@@ -27,24 +27,36 @@
 
 /* ============ ۱) توکن‌های معنایی ============ */
 :root {
-    --th-bg: #f5f3f0;              /* پس‌زمینهٔ صفحه (روشن) */
+    --th-bg: #dbeafe;              /* پس‌زمینهٔ صفحه (روشن) */
     --th-surface: #ffffff;         /* سطح کارت */
-    --th-surface-2: #f7f5f2;       /* فیل داخل کارت / هدر جدول */
-    --th-ink: #44403c;             /* متن اصلی */
-    --th-ink-soft: #78716c;        /* متن ثانویه */
-    --th-ink-faint: #a8a29e;       /* متن محو */
-    --th-line: #e7e5e4;            /* خط جداکننده */
+    --th-surface-2: #eff6ff;       /* فیل داخل کارت / هدر جدول */
+    --th-ink: #1e3a8a;             /* متن اصلی */
+    --th-ink-soft: #2563eb;        /* متن ثانویه */
+    --th-ink-faint: #60a5fa;       /* متن محو */
+    --th-line: #f1f5f9;            /* خط جداکننده */
 }
 
 /* پس‌زمینهٔ روشن تزئینی — گرادیان گرم + شبکهٔ نقطه‌ای ظریف */
 html:not(.dark) body {
     background-color: var(--th-bg);
     background-image:
-        radial-gradient(circle at 12% -10%, rgba(196, 127, 61, 0.07), transparent 42%),
-        radial-gradient(circle at 88% 0%, rgba(217, 149, 11, 0.05), transparent 38%),
-        radial-gradient(rgba(68, 64, 60, 0.055) 1px, transparent 1.4px);
+        radial-gradient(circle at 12% -10%, rgba(59, 130, 246, 0.07), transparent 42%),
+        radial-gradient(circle at 88% 0%, rgba(37, 99, 235, 0.045), transparent 38%),
+        radial-gradient(rgba(51, 65, 85, 0.055) 1px, transparent 1.4px);
     background-size: auto, auto, 26px 26px;
     background-attachment: fixed;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ۱-ب) سایدبار پنل‌ها — سرمه‌ای برند آبی (همیشه تیره در هر دو تم)
+   استفاده در ۴ لایه: back/layouts/panel، org، coffeenet، operator
+   متن‌های داخل سایدبار باید از خانوادهٔ sky/white باشند (خوانایی).
+   ═══════════════════════════════════════════════════════════════ */
+.panel-sidebar {
+    background-image:
+        radial-gradient(ellipse 90% 34% at 50% -10%, rgba(96, 165, 250, 0.18), transparent 62%),
+        linear-gradient(185deg, #172f6d 0%, #1d3e8d 40%, #14295f 72%, #0d1d4a 100%);
+    color: #dbeafe;
 }
 
 /* ============ ۲) دکمهٔ سوییچ تم ============ */
@@ -65,14 +77,14 @@ html:not(.dark) body {
     flex-shrink: 0;
 }
 .theme-toggle:hover {
-    color: var(--ui-brand-600, #a8652e);
-    border-color: color-mix(in oklab, var(--ui-brand, #c47f3d) 45%, transparent);
-    box-shadow: 0 10px 24px -10px rgba(69, 26, 3, 0.25);
+    color: var(--ui-brand-600, #2563eb);
+    border-color: color-mix(in oklab, var(--ui-brand, #3b82f6) 45%, transparent);
+    box-shadow: 0 10px 24px -10px rgba(30, 58, 138, 0.25);
     transform: translateY(-1px);
 }
 .theme-toggle:active { transform: scale(0.94); }
 .theme-toggle:focus-visible {
-    outline: 2px solid var(--ui-brand, #c47f3d);
+    outline: 2px solid var(--ui-brand, #3b82f6);
     outline-offset: 2px;
 }
 
@@ -106,77 +118,77 @@ html.dark {
     color-scheme: dark;
 
     /* توکن‌های معنایی */
-    --th-bg: #211d1a;
-    --th-surface: #2a2623;
-    --th-surface-2: #322d29;
-    --th-ink: #e9e2d9;
-    --th-ink-soft: #b5aba0;
-    --th-ink-faint: #a49b91;
-    --th-line: #3b3630;
+    --th-bg: #1a1a2e;
+    --th-surface: #2d2d4a;
+    --th-surface-2: #2d2d4a;
+    --th-ink: #dbeafe;
+    --th-ink-soft: #60a5fa;
+    --th-ink-faint: #3b82f6;
+    --th-line: #2d2d4a;
 
     /* توکن‌های kit پنل (panel-ui.css) */
-    --ui-brand: #e8a34e;
-    --ui-brand-600: #f2b566;
-    --ui-brand-700: #f5c681;
-    --ui-ink: #e9e2d9;
-    --ui-ink-soft: #b5aba0;
-    --ui-line: #3b3630;
+    --ui-brand: #3b82f6;
+    --ui-brand-600: #60a5fa;
+    --ui-brand-700: #60a5fa;
+    --ui-ink: #dbeafe;
+    --ui-ink-soft: #60a5fa;
+    --ui-line: #2d2d4a;
     --ui-shadow-soft: 0 8px 30px -12px rgba(0, 0, 0, 0.6);
     --ui-shadow-lift: 0 18px 44px -16px rgba(0, 0, 0, 0.75);
 
     /* بازنویسی متغیرهای Tailwind — خانوادهٔ stone (سطح‌ها تیره، متن‌ها روشن) */
-    --color-stone-50:  #2b2724;   /* fillهای ظریف، هدر جدول */
-    --color-stone-100: #241f1c;   /* پس‌زمینهٔ body و insetها */
-    --color-stone-200: #3b3630;   /* حاشیه‌ها */
-    --color-stone-300: #4c463f;   /* حاشیهٔ پررنگ */
-    --color-stone-400: #a49b91;   /* متن/آیکن محو */
-    --color-stone-500: #b5aba0;   /* متن ثانویه */
-    --color-stone-600: #cec5ba;   /* متن میانی */
-    --color-stone-700: #dbd3c9;   /* متن جدول */
-    --color-stone-800: #e9e2d9;   /* متن اصلی */
-    --color-stone-900: #f2ebe3;
-    --color-stone-950: #faf8f3;
+    --color-stone-50:  #2d2d4a;   /* fillهای ظریف، هدر جدول */
+    --color-stone-100: #1a1a2e;   /* پس‌زمینهٔ body و insetها */
+    --color-stone-200: #2d2d4a;   /* حاشیه‌ها */
+    --color-stone-300: #1e3a8a;   /* حاشیهٔ پررنگ */
+    --color-stone-400: #3b82f6;   /* متن/آیکن محو */
+    --color-stone-500: #60a5fa;   /* متن ثانویه */
+    --color-stone-600: #60a5fa;   /* متن میانی */
+    --color-stone-700: #bfdbfe;   /* متن جدول */
+    --color-stone-800: #dbeafe;   /* متن اصلی */
+    --color-stone-900: #dbeafe;
+    --color-stone-950: #eff6ff;
 }
 
 /* پس‌زمینهٔ تاریک تزئینی — هالهٔ کهربایی گرم */
 html.dark body {
     background-color: var(--th-bg);
     background-image:
-        radial-gradient(circle at 15% -12%, rgba(232, 163, 78, 0.09), transparent 44%),
-        radial-gradient(circle at 85% -8%, rgba(196, 127, 61, 0.06), transparent 40%);
+        radial-gradient(circle at 15% -12%, rgba(96, 165, 250, 0.09), transparent 44%),
+        radial-gradient(circle at 85% -8%, rgba(59, 130, 246, 0.06), transparent 40%);
     background-attachment: fixed;
 }
 
 /* ---------- سطح‌های سفید (کارت/فرم/دکمه) ---------- */
 html.dark .bg-white          { background-color: var(--th-surface) !important; }
 html.dark .card              { background-color: var(--th-surface) !important; }
-html.dark .field             { background-color: #322d29; }
-html.dark .btn-ghost         { background-color: #2e2a26; border-color: #3b3630; }
-html.dark .table-panel tbody tr:hover { background-color: rgba(242, 181, 102, 0.07); }
-html.dark .table-panel thead th { background-color: rgba(43, 39, 36, 0.88); }
+html.dark .field             { background-color: #2d2d4a; }
+html.dark .btn-ghost         { background-color: #2d2d4a; border-color: #2d2d4a; }
+html.dark .table-panel tbody tr:hover { background-color: rgba(96, 165, 250, 0.08); }
+html.dark .table-panel thead th { background-color: rgba(17, 24, 51, 0.88); }
 
 /* اسکلتون‌ها (قاب موبایل فرم‌ساز) باید تیره بمانند */
-html.dark .bg-stone-800\/90  { background-color: #1c1916 !important; }
-html.dark .bg-stone-600      { background-color: #57514a !important; }
+html.dark .bg-stone-800\/90  { background-color: #1a1a2e !important; }
+html.dark .bg-stone-600      { background-color: #1d4ed8 !important; }
 
 /* ---------- tintهای کهربایی (bg/border) — متن‌های amber-50/200 روی سایدبار دست‌نخورده ---------- */
-html.dark .bg-amber-50      { background-color: #3a2c12 !important; }
-html.dark .bg-amber-100     { background-color: #473518 !important; }
-html.dark .bg-amber-50\/60  { background-color: rgba(58, 44, 18, 0.6) !important; }
-html.dark .bg-amber-50\/70  { background-color: rgba(58, 44, 18, 0.7) !important; }
-html.dark .bg-amber-50\/80  { background-color: rgba(58, 44, 18, 0.8) !important; }
-html.dark .border-amber-100 { border-color: #4a3715 !important; }
-html.dark .border-amber-200 { border-color: #6a4c1e !important; }
-html.dark .border-amber-300 { border-color: #8a6628 !important; }
-html.dark .text-amber-500   { color: #f0ad4a !important; }
-html.dark .text-amber-600   { color: #f2b35c !important; }
-html.dark .text-amber-700   { color: #f5c069 !important; }
-html.dark .text-amber-800   { color: #ffd58a !important; }
-html.dark .hover\:text-amber-500:hover { color: #f0ad4a !important; }
-html.dark .hover\:text-amber-600:hover { color: #f2b35c !important; }
-html.dark .hover\:text-amber-700:hover { color: #f5c069 !important; }
-html.dark .hover\:bg-amber-50:hover    { background-color: #3a2c12 !important; }
-html.dark .hover\:bg-amber-50\/60:hover { background-color: rgba(58, 44, 18, 0.6) !important; }
+html.dark .bg-amber-50      { background-color: #1a1a2e !important; }
+html.dark .bg-amber-100     { background-color: #1e3a5f !important; }
+html.dark .bg-amber-50\/60  { background-color: rgba(23, 33, 71, 0.6) !important; }
+html.dark .bg-amber-50\/70  { background-color: rgba(23, 33, 71, 0.7) !important; }
+html.dark .bg-amber-50\/80  { background-color: rgba(23, 33, 71, 0.8) !important; }
+html.dark .border-amber-100 { border-color: #1e3a5f !important; }
+html.dark .border-amber-200 { border-color: #1e3a8a !important; }
+html.dark .border-amber-300 { border-color: #1d4ed8 !important; }
+html.dark .text-amber-500   { color: #3b82f6 !important; }
+html.dark .text-amber-600   { color: #60a5fa !important; }
+html.dark .text-amber-700   { color: #60a5fa !important; }
+html.dark .text-amber-800   { color: #60a5fa !important; }
+html.dark .hover\:text-amber-500:hover { color: #3b82f6 !important; }
+html.dark .hover\:text-amber-600:hover { color: #60a5fa !important; }
+html.dark .hover\:text-amber-700:hover { color: #60a5fa !important; }
+html.dark .hover\:bg-amber-50:hover    { background-color: #1a1a2e !important; }
+html.dark .hover\:bg-amber-50\/60:hover { background-color: rgba(23, 33, 71, 0.6) !important; }
 
 /* ---------- سبز (emerald) ---------- */
 html.dark .bg-emerald-50    { background-color: #0f2a20 !important; }
@@ -223,56 +235,56 @@ html.dark .text-sky-800     { color: #b6dbf7 !important; }
 
 /* ---------- اجزای panel-ui.css ---------- */
 html.dark .ui-modal {
-    background: #2e2925;
+    background: #2d2d4a;
     box-shadow: 0 30px 70px -18px rgba(0, 0, 0, 0.8);
 }
-html.dark .ui-modal-backdrop { background: rgba(12, 9, 6, 0.62); }
+html.dark .ui-modal-backdrop { background: rgba(8, 12, 30, 0.62); }
 html.dark .ui-modal .ui-modal-title { color: var(--th-ink); }
 html.dark .ui-modal .ui-modal-text  { color: var(--th-ink-soft); }
 
 html.dark .ui-toast {
-    background: rgba(42, 38, 35, 0.97);
-    border-color: #3b3630;
+    background: rgba(22, 27, 47, 0.97);
+    border-color: #2d2d4a;
     box-shadow: 0 16px 44px -14px rgba(0, 0, 0, 0.7);
 }
 
 html.dark .ui-empty {
-    border-color: #4c463f;
-    background: linear-gradient(180deg, #2a2623, #241f1c);
+    border-color: #1e3a8a;
+    background: linear-gradient(180deg, #2d2d4a, #1a1a2e);
     color: var(--th-ink-soft);
 }
-html.dark .ui-empty-icon { background: #322d29; color: #a49b91; }
+html.dark .ui-empty-icon { background: #2d2d4a; color: #3b82f6; }
 
 html.dark .ui-note {
-    border-color: #4a3715;
-    background: linear-gradient(180deg, #3a2c12, #33270f);
-    color: #f5c069;
+    border-color: #1e3a5f;
+    background: linear-gradient(180deg, #1a1a2e, #1a1a2e);
+    color: #60a5fa;
 }
 html.dark .ui-note[data-tone='ok']  { border-color: #1f5138; background: linear-gradient(180deg, #163628, #122c21); color: #66e0a6; }
 html.dark .ui-note[data-tone='err'] { border-color: #5b2a31; background: linear-gradient(180deg, #3a1a1e, #33161a); color: #ffa1ab; }
 
 html.dark .ui-row-btn {
-    background: #2e2a26;
-    border-color: #3b3630;
+    background: #2d2d4a;
+    border-color: #2d2d4a;
     color: var(--th-ink-soft);
 }
 html.dark .ui-row-btn:hover {
-    background: #3a342e;
-    border-color: #6a4c1e;
+    background: #2d2d4a;
+    border-color: #1e3a8a;
 }
 
 /* ---------- اسکرول‌بار تیره (فهرست‌های بلند) ---------- */
 html.dark ::-webkit-scrollbar        { width: 10px; height: 10px; }
 html.dark ::-webkit-scrollbar-track  { background: transparent; }
 html.dark ::-webkit-scrollbar-thumb  {
-    background: #4c463f;
+    background: #1e3a8a;
     border-radius: 8px;
-    border: 2px solid #211d1a;
+    border: 2px solid #1a1a2e;
 }
-html.dark ::-webkit-scrollbar-thumb:hover { background: #57514a; }
+html.dark ::-webkit-scrollbar-thumb:hover { background: #1d4ed8; }
 
 /* ---------- فرم‌های بومی (select/datalist) ---------- */
-html.dark select.field option { background-color: #2e2925; color: var(--th-ink); }
+html.dark select.field option { background-color: #2d2d4a; color: var(--th-ink); }
 
 /* احترام به prefers-reduced-motion برای انیمیشن تعویض تم */
 @media (prefers-reduced-motion: reduce) {

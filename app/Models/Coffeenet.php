@@ -17,6 +17,8 @@ class Coffeenet extends Model
         'organization_id', 'name', 'phone', 'province_id', 'city_id',
         'address', 'status', 'approved_at', 'approved_by',
         'introduction_reward_paid', 'settings',
+        // فاز ۵۲ — آمار پذیرش برای پخش هوشمند
+        'dispatch_accepted', 'dispatch_rejected', 'dispatch_avg_seconds',
     ];
 
     protected function casts(): array

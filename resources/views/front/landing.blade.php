@@ -13,7 +13,7 @@
 
     {{-- آیکون و رنگ تم سایت — بدون مانیفست PWA و بدون Service Worker
      | (صفحه فرود عمداً «غیرقابل نصب» است؛ نصب اپ فقط از داخل پنل‌ها انجام می‌شود) --}}
-    <meta name="theme-color" content="#a8652e">
+    <meta name="theme-color" content="#2563eb">
     <link rel="icon" type="image/png" sizes="48x48" href="{{ asset('icons/icon-48.png') }}">
     <link rel="icon" type="image/png" sizes="96x96" href="{{ asset('icons/icon-96.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/apple-touch-icon.png') }}">
@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap">
 
     {{-- استایل مستقل صفحه فرود --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/landing.css') }}?v=6">
+    <link rel="stylesheet" href="{{ asset('assets/css/landing.css') }}?v=8">
 
     {{-- اسکیمای SEO (JSON-LD) --}}
     <script type="application/ld+json">{!! json_encode([
@@ -55,9 +55,7 @@
     <div class="container header-inner">
         <a class="brand" href="{{ url('/') }}" aria-label="کافی‌نت آنلاین — صفحه اصلی">
             <span class="brand-mark">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
-                </svg>
+                <img src="{{ asset('icons/icon-96.png') }}" alt="" width="22" height="22" style="width:22px;height:22px;object-fit:contain">
                 <span class="dot"></span>
             </span>
             <span class="brand-text">
@@ -79,21 +77,17 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/></svg>
                 ورود / ثبت‌نام
             </a>
-            <button class="burger" id="navBurger" type="button" aria-expanded="false" aria-controls="mobileNav" aria-label="باز و بسته کردن منو">
-                <span></span><span></span><span></span>
-            </button>
         </div>
     </div>
 
-    {{-- منوی موبایل --}}
-    <nav class="mobile-nav" id="mobileNav" aria-label="ناوبری موبایل">
-        <div class="nav-wrap container">
-            <a href="#services">خدمات کافی‌نت</a>
+    {{-- منوی موبایل — v42: نوار چیپ‌های افقی (جایگزین همبرگر) --}}
+    <nav class="mobile-chipnav" id="mobileNav" aria-label="ناوبری موبایل">
+        <div class="chipnav-scroll container">
+            <a href="#services">خدمات</a>
             <a href="#how">مراحل سفارش</a>
-            <a href="#features">چرا کافی‌نت آنلاین؟</a>
+            <a href="#features">چرا ما؟</a>
             <a href="#pwa">نصب اپلیکیشن</a>
             <a href="#faq">سوالات متداول</a>
-            <a href="{{ route('app.auth') }}" class="btn btn-gold nav-cta">ورود / ثبت‌نام مشتری</a>
         </div>
     </nav>
 </header>
@@ -157,7 +151,7 @@
                     <div class="phone-card">
                         <div class="pc-head">
                             <span class="pc-ic amber">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/></svg>
+                                <img src="{{ asset('icons/icon-96.png') }}" alt="" width="16" height="16" style="width:16px;height:16px;object-fit:contain" aria-hidden="true">
                             </span>
                             <div>
                                 <div class="pc-title">تعویض پلاک خودرو تهران</div>
@@ -453,11 +447,11 @@
             <div class="pwa-visual">
                 <div class="shot">
                     <div class="notch"></div>
-                    <img src="{{ asset('icons/icon-512.png') }}" alt="آیکون وب‌اپلیکیشن کافی‌نت آنلاین" width="512" height="512" style="padding:56px 74px;background:radial-gradient(ellipse 70% 55% at 50% 40%, rgba(196,127,61,.28), transparent 70%), var(--bg-2)">
+                    <img src="{{ asset('icons/icon-512.png') }}" alt="آیکون وب‌اپلیکیشن کافی‌نت آنلاین" width="512" height="512" style="padding:56px 74px;background:radial-gradient(ellipse 70% 55% at 50% 40%, rgba(37,99,235,.28), transparent 70%), var(--bg-2)">
                 </div>
                 <div class="browsers">
                     <span class="browser-chip">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                        <svg viewBox="0 0 24 24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M10 4v4"/><path d="M2 8h20"/><path d="M6 4v4"/></svg>
                         Chrome / Edge — اندروید
                     </span>
                     <span class="browser-chip">
@@ -558,8 +552,7 @@
     <div class="container">
         <div class="cta-panel reveal">
             <div class="cta-cup" aria-hidden="true">
-                <span class="steam"><i></i><i></i><i></i></span>
-                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M6 2v2"/><path d="M10 2v2"/><path d="M14 2v2"/></svg>
+                <img src="{{ asset('icons/icon-96.png') }}" alt="" width="34" height="34" style="width:34px;height:34px;object-fit:contain" aria-hidden="true">
             </div>
             <h2 class="cta-title">امروز اولین سفارش‌تان را <span class="gold">آنلاین</span> ثبت کنید</h2>
             <p class="cta-desc">
@@ -588,9 +581,7 @@
             <div>
                 <a class="brand" href="{{ url('/') }}" aria-label="کافی‌نت آنلاین">
                     <span class="brand-mark">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
-                        </svg>
+                        <img src="{{ asset('icons/icon-96.png') }}" alt="" width="22" height="22" style="width:22px;height:22px;object-fit:contain">
                         <span class="dot"></span>
                     </span>
                     <span class="brand-text">
@@ -675,6 +666,6 @@
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>
 </button>
 
-<script src="{{ asset('assets/js/landing.js') }}?v=2" defer></script>
+<script src="{{ asset('assets/js/landing.js') }}?v=6" defer></script>
 </body>
 </html>

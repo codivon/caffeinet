@@ -4,7 +4,7 @@
  *
  * چارت روند کاری بازه‌ای: روزانه / هفتگی / ماهانه / سالانه / بازهٔ تاریخ دلخواه
  */
-const PAGE = App.pageData();
+var PAGE = App.pageData(); /* [فاز ۱۲-fix] var — اجرای دوبارهٔ اسکریپت در ناوبری SPA با const خطای «already declared» می‌داد */
 
 (function () {
     const canvas = document.getElementById('cs-trend-chart');

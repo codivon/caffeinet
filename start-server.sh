@@ -24,9 +24,21 @@ SCHED_LOG="$PROJECT/scheduler.log"
 cd "$PROJECT" || exit 1
 
 # ۱) سرور وب
-if ! pgrep -f "artisan serve.*--port=$PORT" > /dev/null 2>&1; then
+# فاز ۱۲ (Realtime SSE): هر جریان SSE یک پروسهٔ PHP اشغال می‌کند؛ سرور
+# داخلی PHP به‌طور پیش‌فرض تک‌کاربر است و با چند اتصال هم‌زمان بلاک می‌شد.
+# artisan serve متغیر PHP_CLI_SERVER_WORKERS را همیشه پاس نمی‌دهد → مستقیم
+# php -S با فایل router خود لاراول اجرا می‌شود (روی پروداکشن PHP-FPM است
+# و این اسکریپت فقط برای توسعه است).
+if ! pgrep -f "php -S 0.0.0.0:$PORT" > /dev/null 2>&1; then
     # setsid -f باعث می‌شود پروسه از والد جدا شود و پس از پایان دستور زنده بماند
-    setsid -f "$PHP_BIN" artisan serve --host=0.0.0.0 --port=$PORT > "$LOG" 2>&1 < /dev/null
+    # router فایل لاراول publicPath را از getcwd() می‌گیرد → CWD باید public باشد
+    (
+        cd "$PROJECT/public" || exit 1
+        PHP_CLI_SERVER_WORKERS="${PHP_CLI_SERVER_WORKERS:-8}" \
+            setsid -f "$PHP_BIN" -S "0.0.0.0:$PORT" \
+            "$PROJECT/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php" \
+            > "$LOG" 2>&1 < /dev/null
+    )
 fi
 
 # ۲) زمان‌بند (هر دقیقه: انقضای پخش سفارش‌ها + کارهای آتی)

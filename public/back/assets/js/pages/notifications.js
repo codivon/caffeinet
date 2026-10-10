@@ -227,12 +227,28 @@
         });
     }
 
-    /* ---------- راه‌اندازی ---------- */
+    /* ---------- راه‌اندازی ----------
+       v38 «پوشر کامل»: پوشر فعال → بدون setInterval (رویدادمحور + fallback اتصال)؛
+       پوشر خاموش → مثل قبل پولینگ دوره‌ای. */
+    var badgeTimer = setInterval(pollBadge, POLL_MS);
+
+    function stopBadgeTimer() {
+        if (badgeTimer) { clearInterval(badgeTimer); badgeTimer = null; }
+    }
+
+    function startBadgeTimer() {
+        if (!badgeTimer) { badgeTimer = setInterval(pollBadge, POLL_MS); }
+    }
+
     pollBadge();
-    setInterval(pollBadge, POLL_MS);
 
     /* v35: پیام پوش تحویلِ صفحهٔ باز (به‌جای نوتیف سیستمی) → بج همان لحظه تازه شود */
     document.addEventListener('cn:push', function () { pollBadge(); });
+
+    /* تب که دوباره دیده شد → یک تازه‌سازی (on-demand، نه پولینگ) */
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) { pollBadge(); }
+    });
 
     /* ---------- v25: دکمهٔ «نوتیف دستگاه» (Web Push) ----------
      * CNPush در push-client.js (همان لایه) تعریف می‌شود. */
@@ -241,14 +257,21 @@
         CNPush.bindButton(deviceBtn);
     }
 
-    /* ---------- Realtime پوشر (فاز ۱۳) — بیدارباش زنگ ----------
-       با رویداد notif.new روی کانال شخصی کاربر، بج بلافاصله تازه
-       می‌شود؛ پولینگ دوره‌ای فقط پشتیبان است (در حالت بدون پوشر همان
-       رفتار قبلی). */
+    /* ---------- Realtime پوشر — حالت «پوشر کامل» ----------
+       با رویداد notif.new روی کانال شخصی کاربر، بج همان لحظه تازه می‌شود
+       و پولینگ دوره‌ای «کاملاً خاموش» می‌شود؛ با قطع اتصال پولینگ اضطراری
+       برمی‌گردد و با وصل شدن دوباره خاموش می‌شود. */
     if (window.RT && RT.active() && RT.cfg.channel) {
         RT.bindUser('notif.new', function () {
             pollBadge();
             if (isOpen) { loadList(); }
+        });
+
+        if (RT.connected()) { stopBadgeTimer(); }
+
+        RT.onConnection(function (up) {
+            if (up) { stopBadgeTimer(); pollBadge(); }
+            else { startBadgeTimer(); } // قطع اتصال → پولینگ اضطراری
         });
     }
 })();

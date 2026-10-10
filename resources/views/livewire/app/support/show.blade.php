@@ -1,0 +1,67 @@
+{{-- [Task 7] نسخهٔ Livewire 4 «تیکت پشتیبانی» — تبدیل از app/support-detail.blade.php
+     ساختار/کلاس‌ها/آیدی‌ها عیناً حفظ شده (JS صفحهٔ Vanilla با CN.api → API v1 دست‌نخورده).
+     تنظیمات لایه از کامپوننت با layoutData پاس داده می‌شود؛ این ویو فقط یک ریشهٔ <div> دارد.
+     v44 — صفحهٔ تمام‌صفحه (chrome=false): بدون هدر/منو.
+     v45 — دکمهٔ بازگشت داخل کارت هدر تیکت نشست (نه شناور بالای آن) و
+     فاصلهٔ بالای هدر حذف شد — هدر دقیقاً زیر نوار وضعیت گوشی می‌نشیند. --}}
+
+
+<div>
+{{-- هدر تیکت — دکمهٔ بازگشت داخل هدر، سمت چپ (انتهای رج در RTL) --}}
+<div class="tkd-head fade-up sk-zone" id="tkdHead">
+    <div class="tkd-main" id="tkdHeadMain">
+        <div class="tkd-skeleton">
+            <div class="skeleton" style="height:18px;width:60%"></div>
+            <div class="skeleton" style="height:12px;width:40%;margin-top:8px"></div>
+        </div>
+    </div>
+    <a href="{{ route('app.support') }}" class="tkd-back" id="backLink" wire:navigate
+       aria-label="بازگشت به تیکت‌های پشتیبانی" title="بازگشت به تیکت‌ها">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+    </a>
+</div>
+
+{{-- گفتگو --}}
+<div class="tkd-thread-wrap fade-up d1">
+    <div class="tkd-thread sk-zone" id="tkdThread" aria-live="polite">
+        <div class="skeleton" style="height:56px"></div>
+        <div class="skeleton" style="height:56px"></div>
+        <div class="skeleton" style="height:56px"></div>
+    </div>
+
+    {{-- پاسخ‌دهنده --}}
+    <form class="tkd-composer" id="tkdComposer" novalidate>
+        <div class="tkd-input-row">
+            <textarea class="field" id="tkdMessage" rows="2" maxlength="3000" placeholder="پاسخ خود را بنویسید…"></textarea>
+            <label class="tkd-attach-btn" for="tkdFile" title="پیوست" id="tkdAttachBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                <input type="file" id="tkdFile" class="sr-only" accept=".jpg,.jpeg,.png,.webp,.gif,.heic,.heif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.7z,.mp3,.mp4,.webm">
+            </label>
+            <button type="submit" class="btn btn-primary btn-sm" id="tkdSend" aria-label="ارسال">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                ارسال
+            </button>
+        </div>
+
+        {{-- v29 — نشانگر پیوست انتخاب‌شده (روی موبایل کاملاً پیدا) --}}
+        <div class="tkd-file-chip" id="tkdFileChip" hidden>
+            <img id="tkdChipThumb" class="tkd-chip-thumb" alt="" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            <div class="tkd-file-chip-body">
+                <b id="tkdChipName" dir="ltr">—</b>
+                <span id="tkdChipSize"></span>
+            </div>
+            <button type="button" class="tkd-file-chip-x" id="tkdChipRemove" aria-label="حذف پیوست انتخاب‌شده" title="حذف پیوست">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+
+        <p class="tkd-hint">پیام شما روی تیکت بسته، آن را بازگشایی می‌کند. <span id="tkdChipHint" hidden>یک پیوست انتخاب شده و با «ارسال» ارسال می‌شود.</span></p>
+    </form>
+</div>
+</div>
+
+@push('page')
+<div id="page-data" hidden data-ticket-id="{{ $ticketId }}"></div>
+<script src="{{ asset('front/assets/js/pages/support-detail.js') }}?v=9" defer></script>
+@endpush

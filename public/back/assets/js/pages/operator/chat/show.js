@@ -1,6 +1,6 @@
 /**
  * کافی‌نت آنلاین — اسکریپت صفحه «گفتگوی سفارش» پنل اپراتور (فاز ۷)
- * فایل مستقل (Blade + jQuery) — بدون Node / بدون بیلد
+ * فایل مستقل (بدون jQuery) — بدون Node / بدون بیلد
  *
  * چت تلگرام‌گونه: پولینگ افزایشی ۳ ثانیه + حباب‌ها + دیده‌شدن (تیک دوتایی)
  * + آپلود چندرسانه‌ای با نوار پیشرفت + عملیات سریع وضعیت.
@@ -13,10 +13,9 @@
     const STAFF_MODE = !!PAGE.staffActions; // مدیر کل / مدیر کافی‌نت (گذارهای کامل)
 
     const POLL_MS = 3000;
-    /* Realtime پوشر (فاز ۱۳): با فعال بودن بیدارباش پوشر، پولینگ آرام می‌شود */
-    const POLL_MS_REALTIME = 12000;
-    let currentPollMs = POLL_MS;
+    /* Realtime پوشر (v38 «پوشر کامل»): وقتی پوشر متصل است پولینگ کاملاً خاموش است */
     let rtBound = false;
+    let unConn = null;
     const CHAT_STATUSES = ['accepted', 'in_progress', 'needs_info', 'paid'];
     const DONE_STATUSES = ['delivered', 'completed'];
 
@@ -27,7 +26,6 @@
     let groupedPrev = null; // آخرین پیام رندرشده (برای گروه‌بندی)
     let thumbUrl = null;   // فاز ۱۲ — بندانگشتی تصویر انتخاب‌شده
 
-    const $ = window.jQuery;
     const els = {
         msgs: document.getElementById('chatMsgs'),
         pane: document.getElementById('chatPane'),
@@ -331,57 +329,64 @@
         }
     }
 
-    function sendFile(pfile, caption) {
+    async function sendFile(pfile, caption) {
+        // فشرده‌سازی سمت کلاینت تصویر پیش از آپلود — فقط برای تصویر (نه ویدیو/صدا)
+        let file = pfile.file;
+        if (pfile.type === 'image') {
+            try { if (window.App?.compressImage) file = await App.compressImage(file); } catch { /* noop */ }
+        }
+
+        const fd = new FormData();
+        fd.append('type', pfile.type);
+        fd.append('file', file);
+        if (caption) fd.append('content', caption);
+        if (pfile.duration) fd.append('duration', String(pfile.duration));
+
+        const token = document.querySelector('meta[name="csrf-token"]')?.content;
+
         return new Promise((resolve) => {
-            const fd = new FormData();
-            fd.append('type', pfile.type);
-            fd.append('file', pfile.file);
-            if (caption) fd.append('content', caption);
-            if (pfile.duration) fd.append('duration', String(pfile.duration));
+            const fail = (xhr) => {
+                setUploadState(false);
+                let msg = 'ارسال فایل ناموفق بود.';
+                try { msg = JSON.parse(xhr.responseText).message || msg; } catch { /* noop */ }
+                App.toast(msg, 'error');
+                resolve();
+            };
 
-            const token = document.querySelector('meta[name="csrf-token"]')?.content;
+            const xhr = new XMLHttpRequest();
+            setUploadState(true);
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const pct = Math.round((e.loaded / e.total) * 100);
+                    els.uploadFill.style.width = pct + '%';
+                    if (els.pPct) els.pPct.textContent = fa(pct) + '٪';
+                }
+            }, false);
 
-            $.ajax({
-                url: App.url(URLS.send),
-                type: 'POST',
-                data: fd,
-                processData: false,
-                contentType: false,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    ...(token ? { 'X-CSRF-TOKEN': token } : {}),
-                },
-                xhr: () => {
-                    const xhr = new XMLHttpRequest();
-                    setUploadState(true);
-                    xhr.upload.addEventListener('progress', (e) => {
-                        if (e.lengthComputable) {
-                            const pct = Math.round((e.loaded / e.total) * 100);
-                            els.uploadFill.style.width = pct + '%';
-                            if (els.pPct) els.pPct.textContent = fa(pct) + '٪';
-                        }
-                    }, false);
-                    return xhr;
-                },
-                success: (data) => {
-                    setUploadState(false);
-                    clearPendingFile();
-                    els.input.value = '';
-                    autoGrow();
-                    ingestLocal(data.data);
-                    scrollToBottom();
-                    loadPollNow();
-                    resolve();
-                },
-                error: (xhr) => {
-                    setUploadState(false);
-                    let msg = 'ارسال فایل ناموفق بود.';
-                    try { msg = JSON.parse(xhr.responseText).message || msg; } catch { /* noop */ }
-                    App.toast(msg, 'error');
-                    resolve();
-                },
+            xhr.open('POST', App.url(URLS.send));
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.setRequestHeader('Accept', 'application/json');
+            if (token) xhr.setRequestHeader('X-CSRF-TOKEN', token);
+
+            xhr.addEventListener('load', () => {
+                // معادل httpSuccess جی‌کوئری: 2xx یا 304
+                const ok = (xhr.status >= 200 && xhr.status < 300) || xhr.status === 304;
+                if (!ok) { fail(xhr); return; }
+
+                setUploadState(false);
+                clearPendingFile();
+                els.input.value = '';
+                autoGrow();
+                let data = null;
+                try { data = JSON.parse(xhr.responseText); } catch { /* noop */ }
+                ingestLocal(data?.data);
+                scrollToBottom();
+                loadPollNow();
+                resolve();
             });
+            xhr.addEventListener('error', () => fail(xhr));
+
+            xhr.send(fd);
         });
     }
 
@@ -735,11 +740,11 @@
         });
     }
 
-    /* ================== پولینگ ================== */
+    /* ================== پولینگ (فقط fallback) ================== */
 
     function startPolling() {
         stopPolling();
-        polling = setInterval(() => load(false), currentPollMs);
+        polling = setInterval(() => load(false), POLL_MS);
     }
 
     function stopPolling() {
@@ -756,17 +761,10 @@
         if (isChat && (!d.oid || Number(d.oid) === Number(PAGE.orderId))) { loadPollNow(); }
     });
 
-    /* پولینگ تطبیقی: با فعال شدن پوشر بازهٔ پول بزرگ می‌شود */
-    function relaxPolling() {
-        if (currentPollMs === POLL_MS_REALTIME) { return; }
-        currentPollMs = POLL_MS_REALTIME;
-        if (polling) { startPolling(); } // بازسازی interval با بازهٔ جدید
-    }
-
-    /* ================== Realtime پوشر (فاز ۱۳) — بیدارباش چت ==================
+    /* ================== Realtime پوشر — حالت «پوشر کامل» (بدون پولینگ) ==================
        کانال/کلید از payload چت (data.rt) می‌آید؛ با رویداد message.new
-       پول همان لحظه اجرا می‌شود → پیام مشتری آنی می‌رسد و MySQL
-       فقط با فاصلهٔ طولانی چک می‌شود. */
+       پیام‌ها همان لحظه از API خوانده می‌شوند — بدون هیچ setInterval.
+       قطع اتصال → پولینگ اضطراری؛ وصل شدن → توقف پولینگ. */
     function bindRealtime(rt) {
         if (rtBound) { return; }
         if (!rt.channel || !rt.key || !window.RT) { return; }
@@ -778,7 +776,22 @@
 
         if (ok) {
             rtBound = true;
-            relaxPolling();
+
+            /* پاک‌سازی هنگام خروج از صفحه (ناوبری SPA) — ضد زامبی */
+            document.addEventListener('livewire:navigate', () => {
+                stopPolling();
+                if (unConn) { unConn(); unConn = null; }
+            }, { once: true });
+
+            /* fallback اتصال: قطع → پولینگ اضطراری، وصل → توقف پولینگ */
+            unConn = RT.onConnection((up) => {
+                if (up) { stopPolling(); if (!document.hidden) load(false); }
+                else { startPolling(); }
+            });
+
+            if (RT.connected()) {
+                stopPolling(); // پوشر متصل — بدون پولینگ
+            }
         }
     }
 

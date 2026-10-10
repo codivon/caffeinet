@@ -23,6 +23,9 @@ class RealtimeController extends Controller
 
         return response()->json([
             'enabled' => $cfg['enabled'],
+            // فاز ۱۲ — روش ترابورت (polling | sse | pusher) + آدرس جریان SSE
+            'method' => $cfg['method'],
+            'sse_url' => $cfg['sse_url'],
             'key' => $cfg['key'],
             'cluster' => $cfg['cluster'],
             'channel' => $cfg['channel'],

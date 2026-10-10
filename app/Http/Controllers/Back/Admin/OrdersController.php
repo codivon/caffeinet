@@ -117,6 +117,8 @@ class OrdersController extends Controller
                 'color' => $order->status->color(),
             ],
             'seconds_left' => $order->broadcastSecondsLeft(),
+            // فاز ۵۲ — دیرکرد SLA: تحویل‌شده بعد از مهلت تعهدی (یا هنوز تحویل نشده و مهلت گذشته)
+            'sla_late' => self::isSlaLate($order),
             'created_fa' => fa_date($order->created_at, 'Y/m/d H:i'),
             'paid' => $order->paid_at !== null,
             // v33 — امتیاز نظرسنجی ردیف
@@ -125,6 +127,22 @@ class OrdersController extends Controller
         ]);
 
         return response()->json($rows);
+    }
+
+    /** فاز ۵۲ — آیا این سفارش از مهلت تعهدی تحویل (SLA) گذشته؟ */
+    public static function isSlaLate(Order $order): bool
+    {
+        if (! $order->sla_deadline_at || ! $order->paid_at) {
+            return false;
+        }
+
+        // تحویل/تکمیل شده → مقایسه با لحظهٔ تحویل؛ در جریان → مقایسه با الان
+        if (in_array($order->status->value, ['delivered', 'completed'], true)) {
+            return $order->delivered_at !== null && $order->delivered_at->gt($order->sla_deadline_at);
+        }
+
+        return ! in_array($order->status->value, ['cancelled', 'refunded'], true)
+            && $order->sla_deadline_at->isPast();
     }
 
     /** GET /admin/orders/counts — چیپ‌های آماری (polling ملایم) */

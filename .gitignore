@@ -17,8 +17,9 @@
 /public/storage
 /storage/*.key
 /storage/pail
-/vendor
+# vendor IS committed on purpose: shared-host deployment without composer
 _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+shots/

@@ -16,15 +16,20 @@
         ? asset($pwaIconDir.'-'.$s.'.png')
         : asset('icons/icon-'.$s.'.png');
     $pwaTitle  = match ($pwaPanel) {
-        'admin'        => 'کافینت — مدیریت کل',
-        'organization' => 'کافینت — سازمان',
-        'coffeenet'    => 'کافینت — کافی‌نت',
-        'operator'     => 'کافینت — اپراتور',
+        'admin'        => 'کافی‌نت — مدیریت کل',
+        'organization' => 'کافی‌نت — سازمان',
+        'coffeenet'    => 'کافی‌نت — پنل کافی‌نت',
+        'operator'     => 'کافی‌نت — اپراتور',
         default        => (string) config('app.name', 'کافی‌نت آنلاین'),
     };
 @endphp
 <link rel="manifest" href="{{ url($pwaPanel.'/manifest.webmanifest') }}">
-<meta name="theme-color" content="#a8652e">
+{{-- رنگ نوار مرورگر از پالت پویای همان پنل (تنظیمات ← ظاهر و رنگ‌بندی) --}}
+@php
+    $pwaAppearancePanel = $pwaPanel === 'organization' ? 'org' : $pwaPanel;
+    $pwaThemeColor = \App\Support\Appearance::manifestThemeColor($pwaAppearancePanel);
+@endphp
+<meta name="theme-color" content="{{ $pwaThemeColor }}">
 
 {{-- آیکون‌ها (اختصاصی پنل؛ در نبود فایل → آیکون برند + fallback به favicon.ico) --}}
 <link rel="icon" type="image/png" sizes="48x48" href="{{ $pwaIcon(48) }}">
@@ -39,4 +44,4 @@
 <meta name="application-name" content="{{ $pwaTitle }}">
 
 {{-- ران‌تایم PWA: ثبت SW + مودال نصب سمت مشتری + اعلان به‌روزرسانی --}}
-<script src="{{ asset('assets/js/pwa.js') }}?v=4" defer></script>
+<script src="{{ asset('assets/js/pwa.js') }}?v=5" defer></script>

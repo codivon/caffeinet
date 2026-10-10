@@ -23,7 +23,7 @@
  *       دستگاه‌ها SW جدید را بگیرند.
  * ============================================================= */
 
-const VERSION       = 'v1.2.0';
+const VERSION       = 'v1.6.0';
 const STATIC_CACHE  = `cn-static-${VERSION}`;
 const RUNTIME_CACHE = `cn-runtime-${VERSION}`;
 const NAV_LIMIT     = 24;   // حداکثر HTML کش‌شده (LRU ساده)
@@ -31,7 +31,7 @@ const NAV_TIMEOUT   = 5000; // مهلت شبکه برای ناوبری
 
 const PRECACHE_URLS = [
     '/offline',
-    '/assets/js/offline.js?v=2',   // منطق صفحه آفلاین (CSP اسکریپت درون‌خطی را بلاک می‌کند)
+    '/assets/js/offline.js?v=3',   // منطق صفحه آفلاین + پوستهٔ پالت (CSP اسکریپت درون‌خطی را بلاک می‌کند)
     // مانیفست‌ها از روت سرو می‌شوند و در آفلاین نیاز نیست (فاز ۱۴ تفکیک‌شده)
     '/icons/icon-48.png',
     '/icons/icon-96.png',
@@ -74,7 +74,13 @@ function smartMatch(cache, request) {
     return cache.match(request).then(function (hit) {
         if (hit) return hit;
         try {
-            return cache.match(new URL(request.url).pathname);
+            /* [فاز ۱۲-fix] fallback فقط برای درخواست‌های «بدون query»؛
+             * در غیر این صورت نسخهٔ قدیمیِ کش‌شدهٔ همان مسیر جای نسخهٔ جدید
+             * (?v=جدید) می‌نشیند و cache-bust بی‌اثر می‌شود — بعد از هر
+             * دیپلوی، کاربرانِ SW فعال JS/CSS کهنه می‌گرفتند. */
+            var url = new URL(request.url);
+            if (url.search) return undefined; // نسخه‌دار (؟v=…) → شبکه
+            return cache.match(url.pathname);
         } catch (e) { return undefined; }
     });
 }

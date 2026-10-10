@@ -2,7 +2,9 @@
 
 namespace App\Http\Resources\Api;
 
+use App\Enums\OrderStatus;
 use App\Models\OrderFile;
+use App\Services\Customer\PaymentGatewayService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\URL;
@@ -25,6 +27,27 @@ class OrderDetailResource extends JsonResource
             'total_amount' => $total,
             'cancel_reason' => $this->cancel_reason,
             'is_paid' => (bool) $this->paid_at,
+
+            // فاز ۶۰ — لینک پرداخت سریع: فقط برای سفارشِ قابل‌پرداختِ دارای Payment معلقِ آنلاین
+            // (بدون اثر جانبی؛ ساختن پرداخت فقط با POST orders/{id}/pay انجام می‌شود)
+            'payment_url' => $this->whenLoaded('payments', function () {
+                $gateway = app(PaymentGatewayService::class);
+
+                if (! $gateway->isPayable($this->resource)) {
+                    return null;
+                }
+
+                $pending = $gateway->pendingOnlinePayment($this->resource);
+
+                return $pending ? $gateway->paymentLink($pending) : null;
+            }),
+
+            // فاز ۶۰ — متن رسید QR سفارش پرداخت‌شده (نمایشی برای اسکن حضوری)
+            'receipt_text' => ($this->paid_at || $this->status === OrderStatus::Paid)
+                ? 'ORDER:'.preg_replace('/[^A-Za-z0-9\-]/', '', (string) $this->order_number)
+                    .'|AMOUNT:'.number_format($total, 0, '.', '')
+                    .'|PAID:'.($this->paid_at ?? $this->created_at)?->format('Ymd')
+                : null,
             'created_at' => $this->created_at?->toIso8601String(),
             'created_at_fa' => $this->created_at ? fa_date($this->created_at, 'Y/m/d H:i') : null,
             'paid_at_fa' => $this->paid_at ? fa_date($this->paid_at, 'Y/m/d H:i') : null,
@@ -35,6 +58,10 @@ class OrderDetailResource extends JsonResource
             'broadcast_seconds_left' => $this->broadcastSecondsLeft(),
             'broadcast_attempts' => (int) $this->broadcast_attempts,
             'queued_at_fa' => $this->queued_at ? fa_date($this->queued_at, 'Y/m/d H:i') : null,
+
+            // فاز ۵۲ — تعهد زمان تحویل (SLA): مهلت + ثانیهٔ باقی‌مانده (تایمر زندهٔ مشتری)
+            'sla_deadline' => $this->sla_deadline_at?->toIso8601String(),
+            'sla_seconds_left' => $this->slaSecondsLeft(),
 
             // v39 — صفحهٔ انتظار مشتری: ثانیه‌شمار و متن‌ها از تنظیمات مدیر
             'broadcast_timer_enabled' => $this->when(

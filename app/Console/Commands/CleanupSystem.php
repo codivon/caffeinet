@@ -42,6 +42,9 @@ class CleanupSystem extends Command
             'notifications_unread' => $this->opt($settings, $days, 'system.cleanup.notifications_unread', 90),
             'sms_logs' => $this->opt($settings, $days, 'system.cleanup.sms_logs', 90),
             'audit_logs' => $this->opt($settings, $days, 'system.cleanup.audit_logs', 365),
+            // فاز ۵۱ — لاگ مصرف API و ارسال وب‌هوک (پیش‌فرض ۳۰ روز)
+            'api_usage_logs' => $this->opt($settings, $days, 'system.cleanup.api_usage_logs', 30),
+            'webhook_deliveries' => $this->opt($settings, $days, 'system.cleanup.webhook_deliveries', 30),
         ];
 
         // v29 — scope: کدام قلم‌ها اجرا شوند (پیش‌فرض: همه)
@@ -52,15 +55,17 @@ class CleanupSystem extends Command
             'sms_logs' => ['sms_logs'],
             'audit_logs' => ['audit_logs'],
             'logs' => ['log_archived'],
+            'api_usage' => ['api_usage_logs'],
+            'webhooks' => ['webhook_deliveries'],
         ];
         $targets = $map[$scope] ?? null;
         if ($targets === null) {
-            $this->error("scope نامعتبر است: {$scope} (مجاز: otp|notifications|sms_logs|audit_logs|logs|all)");
+            $this->error("scope نامعتبر است: {$scope} (مجاز: otp|notifications|sms_logs|audit_logs|logs|api_usage|webhooks|all)");
 
             return self::INVALID;
         }
         $active = $scope === 'all'
-            ? ['otp_codes', 'notifications_read', 'notifications_unread', 'sms_logs', 'audit_logs', 'log_archived']
+            ? ['otp_codes', 'notifications_read', 'notifications_unread', 'sms_logs', 'audit_logs', 'api_usage_logs', 'webhook_deliveries', 'log_archived']
             : $targets;
 
         $report = [
@@ -69,6 +74,8 @@ class CleanupSystem extends Command
             'notifications_unread' => 0,
             'sms_logs' => 0,
             'audit_logs' => 0,
+            'api_usage_logs' => 0,
+            'webhook_deliveries' => 0,
             'log_archived' => 0,
         ];
 
@@ -89,6 +96,12 @@ class CleanupSystem extends Command
         }
         if (in_array('audit_logs', $active, true)) {
             $report['audit_logs'] = DB::table('audit_logs')->where('created_at', '<', now()->subDays($retention['audit_logs']))->delete();
+        }
+        if (in_array('api_usage_logs', $active, true)) {
+            $report['api_usage_logs'] = DB::table('api_usage_logs')->where('created_at', '<', now()->subDays($retention['api_usage_logs']))->delete();
+        }
+        if (in_array('webhook_deliveries', $active, true)) {
+            $report['webhook_deliveries'] = DB::table('webhook_deliveries')->where('created_at', '<', now()->subDays($retention['webhook_deliveries']))->delete();
         }
 
         $report['log_archived'] = in_array('log_archived', $active, true)

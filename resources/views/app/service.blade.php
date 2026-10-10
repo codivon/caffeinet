@@ -57,7 +57,8 @@
             <p class="field-error" id="filesError"></p>
         </div>
 
-        <div class="price-row total mt-3" id="totalRow">
+        {{-- v42 — «هزینهٔ درخواست» از فرم فاصلهٔ واضح دارد (درخواست مالک) --}}
+        <div class="price-row total mt-4" id="totalRow">
             <span class="pr-title">هزینهٔ درخواست</span>
             <span class="pr-amount" id="totalAmount">—</span>
         </div>
@@ -80,5 +81,5 @@
 @endpush
 
 @push('page')
-    <script src="{{ asset('front/assets/js/pages/service.js') }}?v=16" defer></script>
+    <script src="{{ asset('front/assets/js/pages/service.js') }}?v=19" defer></script>
 @endpush

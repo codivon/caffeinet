@@ -67,7 +67,7 @@
     border-radius: 0.7rem;
     background: color-mix(in srgb, #f59e0b 8%, var(--th-surface, #fff));
     border: 1px solid color-mix(in srgb, #f59e0b 30%, transparent);
-    color: #92400e;
+    color: #1d4ed8;
     font-size: 0.72rem;
     line-height: 1.8;
     text-align: start;
@@ -115,7 +115,7 @@ html.dark .trash-warnings li {
 /* اسکرول‌بار ظریف */
 .trash-list::-webkit-scrollbar, .trash-warnings::-webkit-scrollbar { width: 5px; }
 .trash-list::-webkit-scrollbar-thumb, .trash-warnings::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--th-ink, #57534e) 25%, transparent);
+    background: color-mix(in srgb, var(--th-ink, #1d4ed8) 25%, transparent);
     border-radius: 99px;
 }
 
@@ -125,19 +125,19 @@ html.dark .trash-warnings li {
     gap: 0.75rem;
     padding: 0.65rem 0.8rem;
     border-radius: 0.8rem;
-    border: 1px solid var(--th-line, #e7e1da);
-    background: var(--th-surface, #fafaf9);
+    border: 1px solid var(--th-line, #dbeafe);
+    background: var(--th-surface, #f8fafc);
     transition: border-color 0.15s ease;
 }
 
-.trash-row:hover { border-color: color-mix(in srgb, var(--ui-brand, #a8652e) 40%, transparent); }
+.trash-row:hover { border-color: color-mix(in srgb, var(--ui-brand, #2563eb) 40%, transparent); }
 
 .trash-row-body { flex: 1; min-width: 0; }
 
 .trash-row-body strong {
     display: block;
     font-size: 0.76rem;
-    color: var(--th-ink, #3a2f25);
+    color: var(--th-ink, #2d2d4a);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -147,7 +147,7 @@ html.dark .trash-warnings li {
     display: block;
     margin-top: 0.15rem;
     font-size: 0.62rem;
-    color: var(--th-ink, #57534e);
+    color: var(--th-ink, #1d4ed8);
     opacity: 0.75;
 }
 
@@ -175,7 +175,7 @@ html.dark .trash-warnings li {
 
 .trash-empty {
     text-align: center;
-    color: var(--th-ink, #57534e);
+    color: var(--th-ink, #1d4ed8);
     font-size: 0.72rem;
     padding: 1.5rem 0.5rem;
     opacity: 0.8;
@@ -186,8 +186,8 @@ html.dark .trash-warnings li {
     display: inline-block;
     width: 0.9rem;
     height: 0.9rem;
-    border: 2px solid color-mix(in srgb, var(--th-ink, #57534e) 20%, transparent);
-    border-top-color: var(--ui-brand, #a8652e);
+    border: 2px solid color-mix(in srgb, var(--th-ink, #1d4ed8) 20%, transparent);
+    border-top-color: var(--ui-brand, #2563eb);
     border-radius: 50%;
     animation: trash-spin 0.7s linear infinite;
     vertical-align: -0.15rem;

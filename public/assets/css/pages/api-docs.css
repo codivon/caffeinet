@@ -17,7 +17,7 @@
 .ad-nav {
     position: sticky;
     top: 1rem;
-    border: 1px solid var(--th-line, var(--ui-line, #e7e1da));
+    border: 1px solid var(--th-line, var(--ui-line, #dbeafe));
     border-radius: 1.25rem;
     background: var(--th-surface, #fff);
     padding: 0.9rem;
@@ -25,7 +25,7 @@
 .ad-nav-title {
     font-size: 0.68rem;
     font-weight: 800;
-    color: var(--th-ink-soft, #7a6a58);
+    color: var(--th-ink-soft, #2563eb);
     margin-bottom: 0.55rem;
     padding: 0 0.4rem;
 }
@@ -37,21 +37,21 @@
     border-radius: 0.7rem;
     font-size: 0.75rem;
     font-weight: 700;
-    color: var(--th-ink, #3a2f25);
+    color: var(--th-ink, #2d2d4a);
     text-decoration: none;
     transition: background 0.15s ease, color 0.15s ease;
 }
-.ad-nav a:hover { background: color-mix(in srgb, var(--ui-brand, #a8652e) 8%, transparent); }
+.ad-nav a:hover { background: color-mix(in srgb, var(--ui-brand, #2563eb) 8%, transparent); }
 .ad-nav a.is-active {
-    background: color-mix(in srgb, var(--ui-brand, #a8652e) 14%, transparent);
-    color: var(--ui-brand, #a8652e);
+    background: color-mix(in srgb, var(--ui-brand, #2563eb) 14%, transparent);
+    color: var(--ui-brand, #2563eb);
 }
 .ad-nav .ad-nav-count {
     margin-inline-start: auto;
     font-size: 0.6rem;
     font-weight: 800;
-    color: var(--th-ink-soft, #7a6a58);
-    background: color-mix(in srgb, var(--th-ink, #3a2f25) 8%, transparent);
+    color: var(--th-ink-soft, #2563eb);
+    background: color-mix(in srgb, var(--th-ink, #2d2d4a) 8%, transparent);
     border-radius: 999px;
     padding: 0.1rem 0.45rem;
 }
@@ -68,7 +68,7 @@
 
 /* ---------- سرآیند مستندات ---------- */
 .ad-hero {
-    border: 1px solid var(--th-line, var(--ui-line, #e7e1da));
+    border: 1px solid var(--th-line, var(--ui-line, #dbeafe));
     border-radius: 1.25rem;
     background: var(--th-surface, #fff);
     padding: 1.15rem 1.25rem;
@@ -77,29 +77,95 @@
 .ad-hero h1 {
     font-size: 1.05rem;
     font-weight: 800;
-    color: var(--th-ink, #3a2f25);
+    color: var(--th-ink, #2d2d4a);
     margin: 0 0 0.3rem;
 }
 .ad-hero p {
     font-size: 0.72rem;
-    color: var(--th-ink-soft, #7a6a58);
+    color: var(--th-ink-soft, #2563eb);
     line-height: 1.8;
     margin: 0;
+}
+
+/* فاز ۴۷ — هشدار الزام کلید وب‌سرویس */
+.ad-apikey-note {
+    margin-top: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 0.9rem;
+    border: 1px solid color-mix(in srgb, #f59e0b 35%, transparent);
+    background: color-mix(in srgb, #f59e0b 9%, transparent);
+    font-size: 0.72rem;
+    line-height: 1.9;
+    color: var(--th-ink, #2d2d4a);
+}
+.ad-apikey-note a {
+    font-weight: 800;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    color: var(--ui-brand, #2563eb);
+}
+
+/* فاز ۴۸ — جدول هدرهای الزامی + نمونه‌های درخواست */
+.ad-apikey-note .ad-hdr-table {
+    width: 100%;
+    margin-top: 0.6rem;
+    border-collapse: collapse;
+    font-size: 0.68rem;
+    line-height: 1.8;
+    background: color-mix(in srgb, #ffffff 55%, transparent);
+    border-radius: 0.7rem;
+    overflow: hidden;
+}
+.ad-apikey-note .ad-hdr-table th,
+.ad-apikey-note .ad-hdr-table td {
+    border: 1px solid color-mix(in srgb, #f59e0b 22%, transparent);
+    padding: 0.3rem 0.55rem;
+    text-align: start;
+    vertical-align: top;
+}
+.ad-apikey-note .ad-hdr-table thead th {
+    font-weight: 800;
+    background: color-mix(in srgb, #f59e0b 14%, transparent);
+    white-space: nowrap;
+}
+.ad-apikey-note .ad-hdr-sample {
+    margin-top: 0.6rem;
+    display: grid;
+    gap: 0.25rem;
+}
+.ad-apikey-note .ad-hdr-sample > span {
+    font-weight: 800;
+    font-size: 0.66rem;
+    color: var(--th-ink-soft, #6b7280);
+}
+.ad-apikey-note .ad-hdr-sample pre {
+    direction: ltr;
+    text-align: left;
+    font-family: ui-monospace, monospace;
+    font-size: 0.64rem;
+    line-height: 1.7;
+    background: #1c1917;
+    color: #d6d3d1;
+    border-radius: 0.6rem;
+    padding: 0.5rem 0.7rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
 }
 .ad-hero code {
     font-family: ui-monospace, monospace;
     direction: ltr;
     unicode-bidi: embed;
     font-size: 0.68rem;
-    background: color-mix(in srgb, var(--ui-brand, #a8652e) 9%, transparent);
-    color: var(--ui-brand, #a8652e);
+    background: color-mix(in srgb, var(--ui-brand, #2563eb) 9%, transparent);
+    color: var(--ui-brand, #2563eb);
     padding: 0.1rem 0.45rem;
     border-radius: 0.4rem;
 }
 
 /* ---------- گروه ---------- */
 .ad-group {
-    border: 1px solid var(--th-line, var(--ui-line, #e7e1da));
+    border: 1px solid var(--th-line, var(--ui-line, #dbeafe));
     border-radius: 1.25rem;
     background: var(--th-surface, #fff);
     padding: 1.1rem 1.2rem 1.2rem;
@@ -118,25 +184,25 @@
     width: 2.25rem;
     height: 2.25rem;
     border-radius: 0.85rem;
-    background: color-mix(in srgb, var(--ui-brand, #a8652e) 14%, transparent);
-    color: var(--ui-brand, #a8652e);
+    background: color-mix(in srgb, var(--ui-brand, #2563eb) 14%, transparent);
+    color: var(--ui-brand, #2563eb);
     flex-shrink: 0;
 }
 .ad-group-head h2 {
     font-size: 0.9rem;
     font-weight: 800;
-    color: var(--th-ink, #3a2f25);
+    color: var(--th-ink, #2d2d4a);
     margin: 0;
 }
 .ad-group-head p {
     font-size: 0.66rem;
-    color: var(--th-ink-soft, #7a6a58);
+    color: var(--th-ink-soft, #2563eb);
     margin: 0.08rem 0 0;
 }
 
 /* ---------- اندپوینت ---------- */
 .ad-ep {
-    border: 1px solid var(--th-line, var(--ui-line, #e7e1da));
+    border: 1px solid var(--th-line, var(--ui-line, #dbeafe));
     border-radius: 1rem;
     overflow: hidden;
 }
@@ -148,11 +214,11 @@
     gap: 0.6rem;
     flex-wrap: wrap;
     padding: 0.7rem 0.9rem;
-    background: color-mix(in srgb, var(--th-ink, #3a2f25) 3.5%, transparent);
+    background: color-mix(in srgb, var(--th-ink, #2d2d4a) 3.5%, transparent);
     cursor: pointer;
     user-select: none;
 }
-.ad-ep-head:hover { background: color-mix(in srgb, var(--th-ink, #3a2f25) 6%, transparent); }
+.ad-ep-head:hover { background: color-mix(in srgb, var(--th-ink, #2d2d4a) 6%, transparent); }
 .ad-method {
     font-family: ui-monospace, monospace;
     font-size: 0.62rem;
@@ -165,15 +231,15 @@
     direction: ltr;
 }
 .ad-method[data-m='GET'] { background: #0d9488; }
-.ad-method[data-m='POST'] { background: #a8652e; }
-.ad-method[data-m='PUT'] { background: #b45309; }
-.ad-method[data-m='PATCH'] { background: #b45309; }
+.ad-method[data-m='POST'] { background: #2563eb; }
+.ad-method[data-m='PUT'] { background: #1d4ed8; }
+.ad-method[data-m='PATCH'] { background: #1d4ed8; }
 .ad-method[data-m='DELETE'] { background: #e11d48; }
 .ad-path {
     font-family: ui-monospace, monospace;
     font-size: 0.72rem;
     font-weight: 700;
-    color: var(--th-ink, #3a2f25);
+    color: var(--th-ink, #2d2d4a);
     direction: ltr;
     unicode-bidi: embed;
     word-break: break-all;
@@ -191,13 +257,13 @@
     color: #047857;
 }
 .ad-auth-pill[data-a='0'] {
-    background: rgba(120, 113, 108, 0.13);
-    color: #78716c;
+    background: rgba(100, 116, 139, 0.13);
+    color: #2563eb;
 }
 html.dark .ad-auth-pill[data-a='1'] { background: rgba(5, 150, 105, 0.2); color: #34d399; }
-html.dark .ad-auth-pill[data-a='0'] { background: rgba(120, 113, 108, 0.2); color: #a8a29e; }
+html.dark .ad-auth-pill[data-a='0'] { background: rgba(100, 116, 139, 0.2); color: #60a5fa; }
 .ad-chev {
-    color: var(--th-ink-soft, #7a6a58);
+    color: var(--th-ink-soft, #2563eb);
     transition: transform 0.25s ease;
     flex-shrink: 0;
 }
@@ -206,14 +272,14 @@ html.dark .ad-auth-pill[data-a='0'] { background: rgba(120, 113, 108, 0.2); colo
 .ad-ep-body {
     display: none;
     padding: 0.85rem 0.95rem 0.95rem;
-    border-top: 1px solid var(--th-line, var(--ui-line, #e7e1da));
+    border-top: 1px solid var(--th-line, var(--ui-line, #dbeafe));
 }
 .ad-ep.is-open .ad-ep-body { display: block; }
 .ad-ep.is-found .ad-ep-body { display: block; }
 
 .ad-ep-desc {
     font-size: 0.72rem;
-    color: var(--th-ink, #3a2f25);
+    color: var(--th-ink, #2d2d4a);
     line-height: 1.8;
     margin-bottom: 0.7rem;
 }
@@ -226,19 +292,19 @@ html.dark .ad-auth-pill[data-a='0'] { background: rgba(120, 113, 108, 0.2); colo
 .ad-tag {
     font-size: 0.6rem;
     font-weight: 700;
-    color: var(--th-ink-soft, #7a6a58);
-    border: 1px solid var(--th-line, var(--ui-line, #e7e1da));
+    color: var(--th-ink-soft, #2563eb);
+    border: 1px solid var(--th-line, var(--ui-line, #dbeafe));
     border-radius: 999px;
     padding: 0.15rem 0.55rem;
     background: color-mix(in srgb, var(--th-surface, #fff) 60%, transparent);
 }
-.ad-tag b { color: var(--th-ink, #3a2f25); }
+.ad-tag b { color: var(--th-ink, #2d2d4a); }
 
 /* ---------- بلوک‌های کد ---------- */
 .ad-code {
     position: relative;
     border-radius: 0.85rem;
-    background: #1c1410;
+    background: #1a1a2e;
     border: 1px solid rgba(255, 255, 255, 0.07);
     padding: 0.8rem 1rem;
     margin-bottom: 0.7rem;
@@ -253,13 +319,13 @@ html.dark .ad-auth-pill[data-a='0'] { background: rgba(120, 113, 108, 0.2); colo
 .ad-code-label span {
     font-size: 0.6rem;
     font-weight: 800;
-    color: #d6c4a8;
+    color: #60a5fa;
     letter-spacing: 0.03em;
 }
 .ad-copy {
     font-size: 0.6rem;
     font-weight: 700;
-    color: #f5d9a8;
+    color: #bfdbfe;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 0.45rem;
@@ -275,7 +341,7 @@ html.dark .ad-auth-pill[data-a='0'] { background: rgba(120, 113, 108, 0.2); colo
     font-family: ui-monospace, monospace;
     font-size: 0.68rem;
     line-height: 1.75;
-    color: #e8dcc4;
+    color: #bfdbfe;
     direction: ltr;
     text-align: left;
     white-space: pre-wrap;
@@ -290,9 +356,9 @@ html.dark .ad-auth-pill[data-a='0'] { background: rgba(120, 113, 108, 0.2); colo
 
 .ad-note {
     font-size: 0.66rem;
-    color: var(--th-ink-soft, #7a6a58);
-    background: color-mix(in srgb, var(--ui-brand, #a8652e) 5%, transparent);
-    border-inline-start: 3px solid var(--ui-brand, #a8652e);
+    color: var(--th-ink-soft, #2563eb);
+    background: color-mix(in srgb, var(--ui-brand, #2563eb) 5%, transparent);
+    border-inline-start: 3px solid var(--ui-brand, #2563eb);
     border-radius: 0 0.6rem 0.6rem 0;
     padding: 0.55rem 0.8rem;
     line-height: 1.8;
@@ -307,25 +373,25 @@ html.dark .ad-auth-pill[data-a='0'] { background: rgba(120, 113, 108, 0.2); colo
 .ad-errors th, .ad-errors td {
     text-align: start;
     padding: 0.5rem 0.6rem;
-    border-bottom: 1px dashed var(--th-line, var(--ui-line, #e7e1da));
-    color: var(--th-ink, #3a2f25);
+    border-bottom: 1px dashed var(--th-line, var(--ui-line, #dbeafe));
+    color: var(--th-ink, #2d2d4a);
 }
 .ad-errors th {
     font-size: 0.64rem;
     font-weight: 800;
-    color: var(--th-ink-soft, #7a6a58);
+    color: var(--th-ink-soft, #2563eb);
 }
 .ad-errors code {
     font-family: ui-monospace, monospace;
     font-weight: 700;
-    color: var(--ui-brand, #a8652e);
+    color: var(--ui-brand, #2563eb);
 }
 
 /* ---------- اسکلتون/خالی ---------- */
 .ad-empty {
     text-align: center;
     font-size: 0.75rem;
-    color: var(--th-ink-soft, #7a6a58);
+    color: var(--th-ink-soft, #2563eb);
     padding: 1.5rem 0;
 }
 .ad-group.is-hidden { display: none; }

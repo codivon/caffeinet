@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderBroadcast;
 use App\Models\StaffAssignment;
 use App\Services\Chat\ChatService;
+use App\Services\Customer\PaymentGatewayService;
 use App\Services\Orders\OrderAssignmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -99,6 +100,8 @@ class OrdersController extends Controller
                 'service' => fn ($q) => $q->select(['id', 'name']),
                 'customer' => fn ($q) => $q->select(['id', 'name', 'family']),
                 'operator' => fn ($q) => $q->select(['id', 'name', 'family']),
+                // فاز ۶۰ — برای «کپی لینک پرداخت» روی ردیف‌های قابل پرداخت
+                'payments',
             ]);
 
         $status = (string) $request->query('status', 'active');
@@ -130,21 +133,34 @@ class OrdersController extends Controller
 
         $rows = $query->orderByDesc('accepted_at')->paginate(15)->withQueryString();
 
-        $rows->through(fn (Order $order) => [
-            'id' => $order->id,
-            'order_number' => $order->order_number,
-            'service_name' => $order->service?->name ?? '—',
-            'customer_name' => trim(($order->customer?->name ?? '').' '.($order->customer?->family ?? '')) ?: '—',
-            'operator_name' => $order->operator ? trim(($order->operator->name ?? '').' '.($order->operator->family ?? '')) : null,
-            'total' => (float) $order->price + (float) $order->expenses,
-            'status' => [
-                'value' => $order->status->value,
-                'label' => $order->status->label(),
-                'color' => $order->status->color(),
-            ],
-            'accepted_at_fa' => $order->accepted_at ? fa_date($order->accepted_at, 'Y/m/d H:i') : null,
-            'delivered_at_fa' => $order->delivered_at ? fa_date($order->delivered_at, 'Y/m/d H:i') : null,
-        ]);
+        // فاز ۶۰ — لینک پرداخت امضاشدهٔ ۲۰ دقیقه‌ای فقط برای ردیف‌های قابل‌پرداختِ دارای Payment معلق
+        $gateway = app(PaymentGatewayService::class);
+
+        $rows->through(function (Order $order) use ($gateway) {
+            $paymentUrl = null;
+
+            if ($gateway->isPayable($order)) {
+                $pending = $gateway->pendingOnlinePayment($order);
+                $paymentUrl = $pending ? $gateway->paymentLink($pending) : null;
+            }
+
+            return [
+                'id' => $order->id,
+                'order_number' => $order->order_number,
+                'service_name' => $order->service?->name ?? '—',
+                'customer_name' => trim(($order->customer?->name ?? '').' '.($order->customer?->family ?? '')) ?: '—',
+                'operator_name' => $order->operator ? trim(($order->operator->name ?? '').' '.($order->operator->family ?? '')) : null,
+                'total' => (float) $order->price + (float) $order->expenses,
+                'status' => [
+                    'value' => $order->status->value,
+                    'label' => $order->status->label(),
+                    'color' => $order->status->color(),
+                ],
+                'accepted_at_fa' => $order->accepted_at ? fa_date($order->accepted_at, 'Y/m/d H:i') : null,
+                'delivered_at_fa' => $order->delivered_at ? fa_date($order->delivered_at, 'Y/m/d H:i') : null,
+                'payment_url' => $paymentUrl,
+            ];
+        });
 
         return response()->json($rows);
     }

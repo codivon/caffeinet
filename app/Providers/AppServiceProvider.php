@@ -48,6 +48,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->applyTimezone();
 
+        // فاز ۵۱ — وب‌هوک رویدادهای سفارش (order.created/delivered/completed)
+        \App\Models\Order::observe(\App\Observers\OrderObserver::class);
+
         $this->registerCronHeartbeatListener();
         $this->registerGatewayUrlGenerator();
         $this->registerPaginatorPathResolver();

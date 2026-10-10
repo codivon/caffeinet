@@ -29,8 +29,8 @@
     pointer-events: none;
 }
 /* هویت کهربایی کافی‌نت / سبز سازمان در خط نورانی هدر */
-.p-topbar--net { --tb-accent: #fbbf24; }
-.p-topbar--org { --tb-accent: #2cb1a6; }
+.p-topbar--net { --tb-accent: #60a5fa; }
+.p-topbar--org { --tb-accent: #38bdf8; }
 
 /* تیتر صفحه: بزرگ‌تر + متن گرادیانی هویتی */
 .p-page-title {
@@ -39,7 +39,7 @@
     color: var(--th-ink, #292524);
     background: linear-gradient(120deg,
         var(--th-ink, #292524) 20%,
-        color-mix(in srgb, var(--tb-accent, var(--ui-brand-600)) 60%, var(--th-ink, #57534e)) 100%);
+        color-mix(in srgb, var(--tb-accent, var(--ui-brand-600)) 60%, var(--th-ink, #1d4ed8)) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -54,7 +54,7 @@
     border-radius: 9999px;
     font-size: 10.5px;
     font-weight: 600;
-    color: var(--th-ink-soft, #78716c);
+    color: var(--th-ink-soft, #2563eb);
     background: color-mix(in srgb, var(--tb-accent, var(--ui-brand)) 9%, transparent);
     border: 1px solid color-mix(in srgb, var(--tb-accent, var(--ui-brand)) 20%, transparent);
 }
@@ -63,10 +63,10 @@
 :root {
     --no-ease: cubic-bezier(0.21, 1.02, 0.73, 1);
     --no-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-    --no-net: #fbbf24;        /* کهربایی کافی‌نت */
-    --no-net-deep: #a8652e;
-    --no-org: #2cb1a6;        /* سبز-آبی سازمان */
-    --no-org-deep: #14837a;
+    --no-net: #60a5fa;        /* آبی برند کافی‌نت */
+    --no-net-deep: #2563eb;
+    --no-org: #38bdf8;        /* آبی آسمانی سازمان */
+    --no-org-deep: #0284c7;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -81,10 +81,10 @@
 /* پس‌زمینهٔ سبز-تیرهٔ هویت سازمان (جایگزین کلاس‌های arbitrary جدید) */
 .no-auth-bg-org {
     background:
-        radial-gradient(ellipse 60% 45% at 50% -10%, rgba(44, 177, 166, 0.30), transparent),
-        radial-gradient(ellipse 35% 28% at 10% 85%, rgba(20, 131, 122, 0.14), transparent),
-        radial-gradient(ellipse 30% 24% at 92% 70%, rgba(211, 156, 92, 0.08), transparent),
-        #0d1b16;
+        radial-gradient(ellipse 60% 45% at 50% -10%, rgba(56, 189, 248, 0.30), transparent),
+        radial-gradient(ellipse 35% 28% at 10% 85%, rgba(2, 132, 199, 0.14), transparent),
+        radial-gradient(ellipse 30% 24% at 92% 70%, rgba(96, 165, 250, 0.08), transparent),
+        #0b1830;
 }
 
 /* الگوی خطوط مورب لطیف */
@@ -92,36 +92,36 @@
     position: absolute;
     inset: 0;
     opacity: 0.05;
-    background: repeating-linear-gradient(135deg, transparent 0 9px, rgba(190, 242, 226, 0.5) 9px 10px);
+    background: repeating-linear-gradient(135deg, transparent 0 9px, rgba(186, 230, 253, 0.5) 9px 10px);
 }
 
 /* تون سازمانی برای ورود (زمینهٔ شیشه‌ای + فیلدها) */
-.no-theme-org .lbl { color: rgba(186, 230, 219, 0.85); }
+.no-theme-org .lbl { color: rgba(191, 219, 254, 0.85); }
 .no-theme-org .field {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.14);
-    color: #f0fdfa;
+    color: #f0f9ff;
 }
 .no-theme-org .field::placeholder { color: #94a3a0; }
 .no-theme-org .field:focus {
-    border-color: rgba(44, 177, 166, 0.55);
-    box-shadow: 0 0 0 3px rgba(44, 177, 166, 0.16);
+    border-color: rgba(56, 189, 248, 0.55);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.16);
 }
-.no-theme-org .no-pass-toggle:hover { color: #99f6e4; }
+.no-theme-org .no-pass-toggle:hover { color: #bae6fd; }
 .no-theme-org .glass-warm {
-    background: rgba(13, 27, 22, 0.62);
-    border-color: rgba(44, 177, 166, 0.24);
+    background: rgba(10, 22, 46, 0.62);
+    border-color: rgba(56, 189, 248, 0.24);
 }
 
 /* تون‌های سازمانی برای حباب‌های تزئینی (panel-ui فقط amber/gold/deep دارد) */
-.ui-blob[data-tone='teal']   { background: radial-gradient(circle, rgba(44, 177, 166, 0.65), transparent 70%); }
-.ui-blob[data-tone='forest'] { background: radial-gradient(circle, rgba(16, 88, 74, 0.85), transparent 70%); }
+.ui-blob[data-tone='teal']   { background: radial-gradient(circle, rgba(56, 189, 248, 0.65), transparent 70%); }
+.ui-blob[data-tone='forest'] { background: radial-gradient(circle, rgba(3, 105, 161, 0.85), transparent 70%); }
 
 /* کارت‌های انتخاب (choose) */
 .no-choice-card { transition: transform 0.3s var(--no-ease), box-shadow 0.3s ease, border-color 0.3s ease; }
 .no-choice-card:hover {
     transform: translateY(-4px);
-    border-color: rgba(44, 177, 166, 0.45);
+    border-color: rgba(56, 189, 248, 0.45);
     box-shadow: 0 24px 60px -18px rgba(0, 0, 0, 0.6);
 }
 .no-theme-net .no-choice-card:hover {
@@ -142,7 +142,7 @@
     font-size: 0.875rem;
     font-weight: 600;
     line-height: 1.6;
-    color: #a8a29e;
+    color: #60a5fa;
     transition: transform 0.28s var(--no-ease), background-color 0.28s ease,
                 color 0.28s ease, box-shadow 0.28s ease;
 }
@@ -153,7 +153,7 @@
 @media (hover: hover) {
     .no-nav-link:hover {
         background: rgba(255, 255, 255, 0.06);
-        color: #fafaf9;
+        color: #f8fafc;
         transform: translateX(-4px); /* در RTL: حرکت رو به جلو */
     }
     .no-nav-link:hover svg { transform: scale(1.08); }
@@ -162,17 +162,17 @@
 /* آیتم فعال — گرادیان هویتی + نقطهٔ نورانی */
 .no-nav-link--on { color: #fff; }
 .no-nav[data-tone='net'] .no-nav-link--on {
-    background: linear-gradient(270deg, rgba(251, 191, 36, 0.26), rgba(251, 191, 36, 0.05));
-    box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.28), 0 8px 20px -10px rgba(251, 191, 36, 0.25);
+    background: linear-gradient(270deg, rgba(96, 165, 250, 0.26), rgba(96, 165, 250, 0.05));
+    box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.28), 0 8px 20px -10px rgba(96, 165, 250, 0.25);
 }
 .no-nav[data-tone='net'] .no-nav-link--on svg { color: var(--no-net); }
 .no-nav[data-tone='net'] .no-nav-link:hover svg { color: var(--no-net); }
 .no-nav[data-tone='org'] .no-nav-link--on {
-    background: linear-gradient(270deg, rgba(44, 177, 166, 0.30), rgba(44, 177, 166, 0.05));
-    box-shadow: inset 0 0 0 1px rgba(44, 177, 166, 0.32), 0 8px 20px -10px rgba(44, 177, 166, 0.3);
+    background: linear-gradient(270deg, rgba(56, 189, 248, 0.30), rgba(56, 189, 248, 0.05));
+    box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.32), 0 8px 20px -10px rgba(56, 189, 248, 0.3);
 }
 .no-nav[data-tone='org'] .no-nav-link--on svg,
-.no-nav[data-tone='org'] .no-nav-link:hover svg { color: #7ee0d5; }
+.no-nav[data-tone='org'] .no-nav-link:hover svg { color: #7dd3fc; }
 
 .no-nav-link--on::before {
     content: '';
@@ -187,13 +187,13 @@
 }
 .no-nav[data-tone='net'] .no-nav-link--on::before {
     background: var(--no-net);
-    box-shadow: 0 0 10px 2px rgba(251, 191, 36, 0.55);
+    box-shadow: 0 0 10px 2px rgba(96, 165, 250, 0.55);
 }
 .no-nav[data-tone='org'] .no-nav-link--on::before {
-    background: #7ee0d5;
+    background: #7dd3fc;
     box-shadow: 0 0 10px 2px rgba(126, 224, 213, 0.5);
 }
-.no-nav-link--on { padding-right: 1.7rem; } /* جا برای نقطهٔ نورانی */
+.no-nav-link--on { padding-right: 1.7rem; }} /* جا برای نقطهٔ نورانی */
 @keyframes no-dot-glow {
     0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
     50%      { opacity: 0.55; transform: translateY(-50%) scale(0.82); }
@@ -219,18 +219,18 @@
 }
 .no-live-pill:hover { transform: translateY(-1px); box-shadow: 0 8px 18px -8px rgba(47, 158, 99, 0.55); }
 .no-live-pill[data-tone='warn'] {
-    color: #a16207;
+    color: #1d4ed8;
     background: linear-gradient(180deg,
-        color-mix(in srgb, var(--ui-warn, #d9910b) 7%, var(--th-surface, #fdf8f0)),
-        color-mix(in srgb, var(--ui-warn, #d9910b) 12%, var(--th-surface-2, #faf3e8)));
-    border-color: color-mix(in srgb, var(--ui-warn, #d9910b) 30%, transparent);
+        color-mix(in srgb, var(--ui-warn, #2563eb) 7%, var(--th-surface, #eff6ff)),
+        color-mix(in srgb, var(--ui-warn, #2563eb) 12%, var(--th-surface-2, #dbeafe)));
+    border-color: color-mix(in srgb, var(--ui-warn, #2563eb) 30%, transparent);
     box-shadow: 0 4px 12px -6px rgba(217, 145, 11, 0.4);
 }
 .no-live-pill .ui-dot { width: 0.5rem; height: 0.5rem; }
 
 /* در تم تاریک متن pill روشن شود (سطح توکنی است ولی متن سبز/کهربایی تیره است) */
 html.dark .no-live-pill { color: #8ceebb; }
-html.dark .no-live-pill[data-tone='warn'] { color: #ffd58a; }
+html.dark .no-live-pill[data-tone='warn'] { color: #60a5fa; }
 
 /* ============ ۴) تب‌های سفارش‌ها ============ */
 .no-tabs {
@@ -240,8 +240,8 @@ html.dark .no-live-pill[data-tone='warn'] { color: #ffd58a; }
     padding: 0.32rem;
     border-radius: 1.1rem;
     background: color-mix(in srgb, var(--th-surface, #fff) 92%, transparent);
-    border: 1px solid var(--th-line, #e7e5e4);
-    box-shadow: 0 2px 10px -4px rgba(68, 64, 60, 0.12);
+    border: 1px solid var(--th-line, #f1f5f9);
+    box-shadow: 0 2px 10px -4px rgba(51, 65, 85, 0.12);
     overflow-x: auto;
     scrollbar-width: none;
 }
@@ -257,18 +257,18 @@ html.dark .no-live-pill[data-tone='warn'] { color: #ffd58a; }
     padding: 0.62rem 1.05rem;
     font-size: 0.85rem;
     font-weight: 700;
-    color: var(--th-ink-soft, #78716c);
+    color: var(--th-ink-soft, #2563eb);
     background: transparent;
     white-space: nowrap;
     transition: color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease,
                 transform 0.25s var(--no-ease);
 }
-.no-tab:hover { color: var(--th-ink, #44403c); background: var(--th-surface-2, #fafaf9); }
+.no-tab:hover { color: var(--th-ink, #1e3a8a); background: var(--th-surface-2, #f8fafc); }
 .no-tab:active { transform: scale(0.97); }
 .no-tab.is-active {
     color: #fff;
-    background: linear-gradient(135deg, #d69c5c, #a8652e);
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.25), 0 10px 22px -8px rgba(168, 101, 46, 0.55);
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.25), 0 10px 22px -8px rgba(37, 99, 235, 0.55);
 }
 .no-tab.is-active:hover { color: #fff; }
 .no-tab-count {
@@ -280,11 +280,11 @@ html.dark .no-live-pill[data-tone='warn'] { color: #ffd58a; }
     font-size: 0.68rem;
     font-weight: 800;
     line-height: 1.2;
-    background: var(--th-line, #e7e5e4);
-    color: var(--th-ink-soft, #57534e);
+    background: var(--th-line, #f1f5f9);
+    color: var(--th-ink-soft, #1d4ed8);
     tabular-nums: 1;
 }
-.no-tab.is-active .no-tab-count { background: #fff; color: #a8652e; }
+.no-tab.is-active .no-tab-count { background: #fff; color: #2563eb; }
 .no-tab-pulse { display: none; }
 .no-tab.is-active .no-tab-pulse { display: inline-flex; }
 
@@ -320,8 +320,8 @@ html.dark .no-live-pill[data-tone='warn'] { color: #ffd58a; }
     align-items: center;
     gap: 0.9rem;
     padding: 1.05rem 1.4rem;
-    border-bottom: 1px solid var(--th-line, #f0efee);
-    background: color-mix(in srgb, var(--th-surface-2, #fdfcfa) 88%, var(--th-surface, #fdfcfa));
+    border-bottom: 1px solid var(--th-line, #f1f5f9);
+    background: color-mix(in srgb, var(--th-surface-2, #eff6ff) 88%, var(--th-surface, #eff6ff));
 }
 .no-modal-head-icon {
     display: grid;
@@ -331,12 +331,12 @@ html.dark .no-live-pill[data-tone='warn'] { color: #ffd58a; }
     flex-shrink: 0;
     border-radius: 0.9rem;
     color: #fff;
-    background: linear-gradient(135deg, var(--no-net-deep), #864e27);
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.25), 0 10px 22px -8px rgba(168, 101, 46, 0.55);
+    background: linear-gradient(135deg, var(--no-net-deep), #1d4ed8);
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.25), 0 10px 22px -8px rgba(37, 99, 235, 0.55);
 }
 .no-modal-head-icon svg { width: 1.25rem; height: 1.25rem; }
 .no-modal-head h3 { font-size: 0.9rem; font-weight: 800; color: var(--th-ink, #292524); line-height: 1.6; }
-.no-modal-head p { font-size: 0.72rem; font-weight: 500; color: var(--th-ink-soft, #78716c); margin-top: 0.15rem; }
+.no-modal-head p { font-size: 0.72rem; font-weight: 500; color: var(--th-ink-soft, #2563eb); margin-top: 0.15rem; }
 .no-modal-close {
     display: grid;
     place-items: center;
@@ -344,9 +344,9 @@ html.dark .no-live-pill[data-tone='warn'] { color: #ffd58a; }
     height: 2.3rem;
     margin-right: auto; /* در RTL سمت چپِ بصری */
     border-radius: 0.75rem;
-    border: 1px solid var(--th-line, #f0efee);
+    border: 1px solid var(--th-line, #f1f5f9);
     background: var(--th-surface, #fff);
-    color: var(--th-ink-faint, #a8a29e);
+    color: var(--th-ink-faint, #60a5fa);
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -364,8 +364,8 @@ html.dark .no-live-pill[data-tone='warn'] { color: #ffd58a; }
     justify-content: flex-start; /* در RTL: دکمه‌ها سمت چپ مثل ui-modal-actions */
     gap: 0.7rem;
     padding: 1rem 1.4rem 1.15rem;
-    border-top: 1px solid var(--th-line, #f0efee);
-    background: var(--th-surface-2, #fafaf9);
+    border-top: 1px solid var(--th-line, #f1f5f9);
+    background: var(--th-surface-2, #f8fafc);
 }
 .no-modal-foot .btn { flex: 1; }
 
@@ -374,8 +374,8 @@ html.dark .no-live-pill[data-tone='warn'] { color: #ffd58a; }
 
 /* ردیف‌های جدول — زبرا/هاور هماهنگ با admin.css (توکنی، هر دو تم) */
 .table-modern tbody tr { transition: background 0.18s ease; }
-.table-modern tbody tr:nth-child(even) { background: color-mix(in srgb, var(--th-surface-2, #fcfbf9) 55%, transparent); }
-.table-modern tbody tr:hover { background: color-mix(in srgb, var(--ui-brand) 6%, var(--th-surface, #fdfaf5)); }
+.table-modern tbody tr:nth-child(even) { background: color-mix(in srgb, var(--th-surface-2, #eff6ff) 55%, transparent); }
+.table-modern tbody tr:hover { background: color-mix(in srgb, var(--ui-brand) 6%, var(--th-surface, #eff6ff)); }
 .table-modern tbody tr:hover td:first-child { box-shadow: inset 3px 0 0 0 var(--ui-brand); }
 
 /* دکمهٔ آیکنی «فعال‌سازی» در جدول — رنگ مثبت (توکنی + دارک) */
@@ -397,11 +397,11 @@ html.dark .ui-row-btn.no-row-activate:hover { color: #a5f5cd; }
 /* دکمهٔ اصلی با هویت سبز سازمان (روی btn-primary) */
 .no-btn-teal {
     background-image: linear-gradient(to left, #14b8a6, #0f766e) !important;
-    box-shadow: 0 12px 26px -10px rgba(20, 131, 122, 0.55) !important;
+    box-shadow: 0 12px 26px -10px rgba(2, 132, 199, 0.55) !important;
 }
 .no-btn-teal:hover {
     background-image: linear-gradient(to left, #16c1ae, #11827a) !important;
-    box-shadow: 0 16px 32px -10px rgba(20, 131, 122, 0.65) !important;
+    box-shadow: 0 16px 32px -10px rgba(2, 132, 199, 0.65) !important;
 }
 .no-btn-teal::after { background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.4), transparent); }
 /* نوار پیشرفت ترکیب حقوق — رشد از راست */
@@ -444,7 +444,7 @@ html.dark .ui-row-btn.no-row-activate:hover { color: #a5f5cd; }
     width: 0.35rem;
     height: 1rem;
     border-radius: 9999px;
-    background: linear-gradient(180deg, #d69c5c, #a8652e);
+    background: linear-gradient(180deg, #3b82f6, #2563eb);
 }
 [data-tone='org'] .no-card-title::before,
 .no-card-title[data-tone='org']::before { background: linear-gradient(180deg, #2cb1a6, #14837a); }

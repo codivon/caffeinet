@@ -243,6 +243,20 @@ if (! function_exists('en_digits')) {
     }
 }
 
+if (! function_exists('mask_key')) {
+    /** فاز ۴۷ — ماسک امن کلید/توکن برای نمایش: cnk_abcdefgh…wxyz */
+    function mask_key(string $key, int $head = 11, int $tail = 4): string
+    {
+        $len = mb_strlen($key);
+
+        if ($len <= $head + $tail + 1) {
+            return $key;
+        }
+
+        return mb_substr($key, 0, $head) . '…' . mb_substr($key, -$tail);
+    }
+}
+
 if (! function_exists('fa_date') && class_exists(\Morilog\Jalali\Jalalian::class)) {
     /** تاریخ شمسی خوانا از تاریخ میلادی */
     function fa_date(mixed $date, string $format = 'Y/m/d H:i'): ?string

@@ -1,0 +1,117 @@
+/* ==========================================================================
+   کافی‌نت آنلاین — فاز ۶۰ — QR سفارش/پرداخت
+   اسکوپ: .ak-qr*  — خودکفا (پنل ستافی + قابل استفاده در اپ مشتری)
+   شامل: دارک‌مود کامل (html.dark) — پس‌زمینهٔ QR همیشه سفید تا خوانا بماند
+   ========================================================================== */
+
+/* کارت میزبان (در پنل ستافی برای هم‌ترازی با بقیهٔ کارت‌ها) */
+.ak-qr-card {
+    border: 1px solid rgba(250, 204, 21, .25);
+    background:
+        linear-gradient(0deg, rgba(250, 204, 21, .04), rgba(250, 204, 21, .04)),
+        #ffffff;
+}
+
+/* باکس QR — پس‌زمینهٔ سفید دائمی (خوانایی در تم روشن/تیره) */
+.ak-qr {
+    display: grid;
+    place-items: center;
+    padding: 8px;
+    border-radius: 14px;
+    background: #ffffff;
+    border: 1px solid rgba(28, 25, 23, .08);
+    box-shadow: 0 10px 24px -16px rgba(28, 25, 23, .35);
+    min-width: 120px;
+    min-height: 120px;
+}
+
+/* تصویر/جدول تولیدی qrcodejs — لبه‌های تمیز */
+.ak-qr img,
+.ak-qr canvas,
+.ak-qr table {
+    display: block;
+    border-radius: 6px;
+    image-rendering: pixelated;
+}
+
+/* حالت خطا (کتابخانه بارگیری نشده) */
+.ak-qr-fallback {
+    font: 800 11px/1 ui-monospace, monospace;
+    color: #a8a29e;
+    letter-spacing: .08em;
+}
+
+/* URL نمایشی داخل کارت — انتخاب‌پذیر */
+.ak-qr-url {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    direction: ltr;
+    text-align: left;
+    background: #fafaf9;
+    border: 1px dashed #e7e5e4;
+    border-radius: 10px;
+    padding: 7px 10px;
+    user-select: all;
+}
+
+/* ---------- فاز ۶۰ — اپ مشتری: چیدمان کارت «لینک پرداخت برای اشتراک‌گذاری» ----------
+   (show.blade.php — آیدی‌ها با order-detail.js مدیریت می‌شوند؛ اینجا فقط اسکلت بصری) */
+.ak-share-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.ak-share-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+    flex: 1 1 160px;
+}
+
+/* نسخهٔ اپ — سایز درجهٔ یک‌پارچه با کارت‌های اپ؛ بقیهٔ ظاهر از .ak-qr می‌آید */
+.ak-qr--app {
+    flex: 0 0 auto;
+}
+
+/* هینت «اعتبار ۲۰ دقیقه» کنار دکمهٔ کپی — خودش tiny/text-faint دارد */
+.ak-qr-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* بازخورد کپی موفق روی دکمه */
+.ak-copied {
+    outline: 2px solid rgba(22, 163, 74, .35);
+    outline-offset: 1px;
+}
+
+/* ---------- دارک‌مود — سطح مقطع پنل ---------- */
+html.dark .ak-qr-card {
+    border-color: rgba(250, 204, 21, .18);
+    background:
+        linear-gradient(0deg, rgba(250, 204, 21, .05), rgba(250, 204, 21, .05)),
+        var(--th-surface, #2d2d4a);
+}
+
+html.dark .ak-qr {
+    border-color: rgba(255, 255, 255, .12);
+    box-shadow: 0 10px 24px -14px rgba(0, 0, 0, .6);
+}
+
+html.dark .ak-qr-url {
+    background: rgba(255, 255, 255, .06);
+    border-color: rgba(255, 255, 255, .12);
+    color: #d6d3d1;
+}
+
+html.dark .ak-qr-fallback {
+    color: #78716c;
+}

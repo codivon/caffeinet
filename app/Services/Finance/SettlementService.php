@@ -250,6 +250,13 @@ class SettlementService
             ];
         }
 
+        /* ---------- فاز ۵۳ — کمیسیون فروشنده (معرف مشتری) ---------- */
+        $resellerRow = $this->resellerRow($order, $base);
+
+        if ($resellerRow !== null) {
+            $rows[] = $resellerRow;
+        }
+
         $snapshot = [
             'settled_at' => now()->format('Y-m-d H:i:s'),
             'order_number' => $order->order_number,
@@ -454,5 +461,58 @@ class SettlementService
             'mode' => 'per_order',
             'org_share' => $orgShare,
         ]];
+    }
+
+    /**
+     * فاز ۵۳ — کمیسیون فروشنده: اگر مشتری با لینک ?ref= یک سازمانِ
+     * فروشنده ثبت‌نام کرده باشد، درصدی از پایهٔ کمیسیون به کیف همان
+     * سازمان می‌رود (سقف: پایهٔ کمیسیون).
+     *
+     * سوییچ: features.reseller — درصد: organizations.reseller_percent
+     * و اگر خالی بود مقدار سراسری «referral_settings.reseller_percent»
+     * و اگر آن هم خالی بود پیش‌فرض ۳٪.
+     *
+     * @return array|null  ردیف payout یا null
+     */
+    protected function resellerRow(\App\Models\Order $order, float $base): ?array
+    {
+        try {
+            if (! $this->settings->get('features.reseller', false)) {
+                return null;
+            }
+
+            $org = $order->customer?->referredOrg()->first();
+
+            if (! $org
+                || ! $org->is_reseller
+                || $org->status !== \App\Enums\OrganizationStatus::Approved
+                || $base <= 0) {
+                return null;
+            }
+
+            // درصد فروشنده: مخصوص همان سازمان → وگرنه پاداش سراسری per_order → وگرنه ۳٪
+            $fallbackPercent = ReferralSetting::current()->per_order_type === 'percent'
+                ? (float) (ReferralSetting::current()->per_order_value ?: 3)
+                : 3;
+
+            $percent = (float) ($org->reseller_percent ?: $fallbackPercent);
+
+            $amount = round(min($base * ($percent / 100), $base), 2);
+
+            if ($amount <= 0) {
+                return null;
+            }
+
+            return [
+                'role' => 'reseller',
+                'holder' => $org,
+                'amount' => $amount,
+                'desc' => 'کمیسیون فروشنده «'.$org->name.'» — سفارش '.$order->order_number.' ('.fa_digits(number_format($percent, 1)).'٪)',
+            ];
+        } catch (\Throwable $e) {
+            report($e);
+
+            return null;
+        }
     }
 }

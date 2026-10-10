@@ -16,10 +16,12 @@
 
     {{-- استایل و اسکریپت — کاملاً بدون Node / بدون بیلد --}}
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v=10">
-    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=10">
-    <link rel="stylesheet" href="{{ asset('assets/css/pages/operator.css') }}?v=10">
+    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=18">
+    <link rel="stylesheet" href="{{ asset('assets/css/pages/operator.css') }}?v=21">
     {{-- سیستم تم روشن/تاریک (فاز ۱۰) — باید آخرین CSS باشد تا برنده بماند --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}?v=10">
+    <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}?v=11">
+    {{-- پوستهٔ پویا: پالت اختصاصی این پنل (بعد از theme.css) --}}
+    @include('partials.appearance', ['panel' => 'operator'])
 </head>
 <body class="font-sans antialiased selection:bg-amber-200 selection:text-amber-950">
 
@@ -32,7 +34,7 @@
 <main class="relative min-h-screen grid place-items-center overflow-hidden bg-[#171009] px-4 py-10">
 
     <div class="pointer-events-none fixed inset-0" aria-hidden="true">
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_50%_-10%,rgba(196,127,61,0.25),transparent)]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_50%_-10%,rgba(37,99,235,0.25),transparent)]"></div>
         {{-- حباب‌های شناور گرم --}}
         <span class="ui-blob" data-tone="amber" data-pos="1"></span>
         <span class="ui-blob" data-tone="deep" data-pos="2"></span>
@@ -76,9 +78,8 @@
     </div>
 </main>
 
-<script src="{{ asset('assets/js/vendor/jquery.min.js') }}?v=10"></script>
-<script src="{{ asset('back/assets/js/core.js') }}?v=10"></script>
-<script src="{{ asset('back/assets/js/ui.js') }}?v=10"></script>
+<script src="{{ asset('back/assets/js/core.js') }}?v=15"></script>
+<script src="{{ asset('back/assets/js/ui.js') }}?v=13"></script>
 <script src="{{ asset('back/assets/js/pages/operator/auth/choose.js') }}?v=10"></script>
 </body>
 </html>

@@ -185,6 +185,33 @@ class PaymentGatewayService
     }
 
     /**
+     * فاز ۶۰ — لینک پرداخت سریع (همان URL امضاشدهٔ ۲۰ دقیقه‌ای).
+     * بازاستفاده از paymentUrl — منطق امضا فقط یک‌جا ساخته می‌شود؛
+     * برای نمایش/کپی/QR در پنل ستافی و اپ مشتری استفاده می‌شود.
+     */
+    public function paymentLink(Payment $payment): string
+    {
+        return $this->paymentUrl($payment);
+    }
+
+    /** فاز ۶۰ — سفارشِ قابل پرداخت؟ (عمومی برای پنل ستافی/اپ مشتری) */
+    public function isPayable(Order $order): bool
+    {
+        return $this->payable($order);
+    }
+
+    /**
+     * فاز ۶۰ — آخرین Payment معلقِ آنلاین سفارش (بدون اثر جانبی).
+     * برای نمایش «کپی لینک پرداخت» فقط پرداختِ از قبل معلق برگردانده می‌شود؛
+     * ساختنِ پرداخت جدید تنها با اکشن صریح (startOnline) انجام می‌شود.
+     */
+    public function pendingOnlinePayment(Order $order): ?Payment
+    {
+        return $order->payments
+            ->first(fn (Payment $p) => $p->status === PaymentStatus::Pending && ! $p->isForWallet());
+    }
+
+    /**
      * مسیر نسبیِ همان لینک امضاشده (بدون دامنه) — برای redirect درون‌برنامه‌ای؛
      * هم در لوکال، هم پشت گیت‌وی (با ?XTransformPort=) و هم روی دامنهٔ واقعی کار می‌کند.
      */
@@ -210,6 +237,25 @@ class PaymentGatewayService
     {
         $this->syncGatewayConfig($payment->driver);
 
+        // فاز ۱۳ — رنگ‌های درگاه از پالت انتخابی پنل اپ مشتری (Appearance) تزریق می‌شود
+        // تا صفحهٔ درگاه (تست/انتقال) با تم پنل‌ها یکدست شود — دیگر قهوه‌ای نیست.
+        $paletteDetails = [];
+        try {
+            $t = \App\Support\Appearance::tokensFor('app');
+            $ramp = $t['ramp'];
+            $paletteDetails = [
+                'brand50' => (string) ($ramp['50'] ?? '#eff6ff'),
+                'brand100' => (string) ($ramp['100'] ?? '#dbeafe'),
+                'brand300' => (string) ($ramp['300'] ?? '#93c5fd'),
+                'brand600' => (string) ($ramp['600'] ?? '#2563eb'),
+                'brand700' => (string) ($ramp['700'] ?? '#1d4ed8'),
+                'brand900' => (string) ($ramp['900'] ?? '#1e3a8a'),
+                'pageBg' => (string) ($t['page_bg'] ?? '#f4f7fb'),
+            ];
+        } catch (\Throwable) {
+            // تنظیمات ظاهری در دسترس نیست — نما از fallback رنگی خودش استفاده می‌کند
+        }
+
         $form = PaymentFacade::via($payment->driver)
             ->amount((int) round($this->paymentAmount($payment)))
             ->transactionId($payment->id)
@@ -220,6 +266,21 @@ class PaymentGatewayService
                 $payment->forceFill(['ref_id' => (string) $transactionId])->save();
             })
             ->pay();
+
+        // تزریق رنگ‌ها به متغیرهای نمای درگاه (بدون دست‌زدن به vendor) —
+        // ورودی‌های درایور کلیدهای ثابت دارند و detail() به نما نمی‌رسد؛
+        // در redirect.php کلیدهای رنگی از hidden inputs فیلتر می‌شوند تا به درگاه POST نشوند.
+        if ($paletteDetails !== []) {
+            RedirectionForm::setViewRenderer(
+                static function (string $view, string $action, array $inputs, string $method) use ($paletteDetails): string {
+                    $inputs = array_merge($inputs, $paletteDetails);
+                    ob_start();
+                    require($view);
+
+                    return (string) ob_get_clean();
+                }
+            );
+        }
 
         // نمای اختصاصی (بعد از pay که درایور مسیر خودش را ست می‌کند، قبل از render)
         RedirectionForm::setViewPath(
@@ -265,7 +326,8 @@ class PaymentGatewayService
 
         try {
             return DB::transaction(function () use ($order, $user, $total) {
-                $transaction = $this->wallets->debit(
+                // فاز ۵۳ — زیرحساب خانواده: برداشت از کیف پول حساب اصلی (با سقف‌ها)
+                $transaction = app(\App\Services\Finance\FamilyWalletService::class)->debitFor(
                     $user,
                     $total,
                     'order',
@@ -302,6 +364,11 @@ class PaymentGatewayService
      */
     public function handleCallback(Request $request): Payment
     {
+        // فاز ۵۹ (F5 ممیزی) — درگاه تست local در محیط عملیاتی قفل است (callback قابل جعل است)
+        if (app()->environment('production') && $this->driverName() === 'local') {
+            abort(403, 'درگاه تست در محیط عملیاتی غیرفعال است — درگاه آنلاین را از تنظیمات انتخاب کنید.');
+        }
+
         $transactionId = (string) en_digits((string) $request->input('transactionId', ''));
 
         /** @var Payment|null $payment */
@@ -424,6 +491,12 @@ class PaymentGatewayService
         ], true);
     }
 
+    /** فاز ۵۲ — آیا تعهد زمان تحویل (SLA) فعال است؟ */
+    protected function slaEnabled(): bool
+    {
+        return (bool) $this->settings->get('features.sla_enabled', false);
+    }
+
     /** سفارش → paid + تاریخچه + لاگ (idempotent) — دو مسیر فاز ۱۱/legacy */
     protected function markOrderPaid(Order $order, ?User $user, string $note, string $driver): void
     {
@@ -438,6 +511,10 @@ class PaymentGatewayService
         $order->forceFill([
             'status' => OrderStatus::Paid,
             'paid_at' => now(),
+            // فاز ۵۲ — مهلت تعهدی تحویل (SLA) برای تایمر مشتری و بج دیرکرد
+            'sla_deadline_at' => $this->slaEnabled()
+                ? now()->addMinutes(max(5, (int) $this->settings->get('features.sla_minutes', 60)))
+                : null,
         ])->save();
 
         $order->statusHistory()->create([

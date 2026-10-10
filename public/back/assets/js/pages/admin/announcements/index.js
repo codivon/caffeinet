@@ -1,12 +1,12 @@
 /**
  * کافی‌نت آنلاین — صفحه «اطلاعیه‌های سامانه» (فاز ۱۵)
  * لیست + ایجاد/ویرایش با رسانه (تصویر/ویدیو) + مخاطب + پنجره نمایش
+ * فایل مستقل (Vanilla JS — بدون jQuery) — بدون Node / بدون بیلد
+ * بهینه‌سازی تصویر: فشرده‌سازی سمت کلاینت فایل‌های JPG/PNG/WebP بزرگ‌تر از ۴۰۰KB
  */
-/* global App, PanelUI, jQuery, CNJdp */
+/* global App, PanelUI, CNJdp */
 (function () {
     'use strict';
-
-    const $ = jQuery;
 
     /* ---------- هلپرهای محلی ---------- */
     const esc = v => String(v ?? '')
@@ -283,7 +283,22 @@
         el('an-video-link').classList.toggle('hidden', tab !== 'link');
     }
 
-    /* ---------- آپلود تصویر ---------- */
+    /* ---------- بهینه‌سازی تصویر ----------
+     * تصویرهای JPG/PNG/WebP بزرگ‌تر از ۴۰۰KB سمت کلاینت فشرده می‌شوند
+     * (App.compressImage در core.js — اگر تعریف نشده بود یا خطا داد، فایل اصلی حفظ می‌شود). */
+    const COMPRESS_MIN_BYTES = 400 * 1024;
+
+    async function compressImageIfLarge(file) {
+        if (!file || file.size <= COMPRESS_MIN_BYTES) return file;
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return file;
+        try {
+            return window.App?.compressImage ? await App.compressImage(file) : file;
+        } catch {
+            return file;
+        }
+    }
+
+    /* ---------- آپلود رسانه ---------- */
     function bindUploadZone(zoneId, inputId, onFile) {
         const zone = el(zoneId);
         const input = el(inputId);
@@ -317,13 +332,13 @@
         });
     }
 
-    bindUploadZone('an-image-zone', 'an-image-file', file => {
+    bindUploadZone('an-image-zone', 'an-image-file', async file => {
         if (!file.type.startsWith('image/')) {
             App.toast('فایل انتخاب‌شده تصویر نیست.', 'error');
             return;
         }
-        imageFile = file;
-        el('an-image-preview-img').src = URL.createObjectURL(file);
+        imageFile = await compressImageIfLarge(file);
+        el('an-image-preview-img').src = URL.createObjectURL(imageFile);
         el('an-image-preview').classList.remove('hidden');
     });
 

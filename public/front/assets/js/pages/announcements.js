@@ -2,8 +2,9 @@
  * کافی‌نت آنلاین — اپ مشتری: مودال اطلاعیه‌های سامانه (فاز ۱۵)
  * اطلاعیه‌های متن/تصویر/ویدیو را از API می‌گیرد و به‌صورت صف نمایش می‌دهد.
  */
-/* global CN, jQuery */
-(function ($) {
+/* [Task 9] Vanilla JS — بدون جی‌کوئری */
+/* global CN */
+(function () {
     'use strict';
 
     if (!CN.token()) { return; } // فقط کاربران واردشده
@@ -46,23 +47,29 @@
             '  </div>' +
             '</div>';
 
-        var $wrap = $(html);
-        $('body').append($wrap);
+        /* [Task 9] ساخت عنصر از رشتهٔ HTML و افزودن به body (جایگزین builder قدیمی) */
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        var wrap = tmp.firstElementChild;
+        document.body.appendChild(wrap);
 
         function close() {
-            $wrap.find('video').each(function () { try { this.pause(); } catch (e) { /* noop */ } });
-            $wrap.addClass('closing');
+            Array.prototype.forEach.call(wrap.querySelectorAll('video'), function (video) {
+                try { video.pause(); } catch (e) { /* noop */ }
+            });
+            wrap.classList.add('closing');
             markRead(item.id);
             window.setTimeout(function () {
-                $wrap.remove();
+                wrap.remove();
                 active = null;
                 next();
             }, 240);
         }
 
-        $wrap.find('.ann-ok').on('click', close);
-        $wrap.on('click', function (e) {
-            if (e.target === $wrap[0]) { close(); }
+        var okBtn = wrap.querySelector('.ann-ok');
+        if (okBtn) { okBtn.addEventListener('click', close); }
+        wrap.addEventListener('click', function (e) {
+            if (e.target === wrap) { close(); }
         });
     }
 
@@ -74,18 +81,18 @@
         CN.api('/announcements/' + id + '/read', { method: 'POST' });
     }
 
-    /* بارگذاری اطلاعیه‌ها هنگام ورود به صفحه */
-    $(function () {
-        window.setTimeout(function () {
-            CN.api('/announcements', {
-                success: function (resp) {
-                    var items = (resp.data || []);
-                    if (!items.length) { return; }
-                    items.reverse(); // قدیمی → جدید
-                    queue = items;
-                    next();
-                }
-            });
-        }, 800);
-    });
-})(jQuery);
+    /* بارگذاری اطلاعیه‌ها هنگام ورود به صفحه
+       [Task 9] آماده‌سازی قدیمی روی ready بود → اسکریپت با defer در انتهای body است؛
+       اجرای فوری عین آماده‌بودن DOM */
+    window.setTimeout(function () {
+        CN.api('/announcements', {
+            success: function (resp) {
+                var items = (resp.data || []);
+                if (!items.length) { return; }
+                items.reverse(); // قدیمی → جدید
+                queue = items;
+                next();
+            }
+        });
+    }, 800);
+})();

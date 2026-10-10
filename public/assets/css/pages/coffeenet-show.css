@@ -86,7 +86,7 @@ html.dark .cs-act { box-shadow: 0 4px 14px -8px rgba(0, 0, 0, 0.5); }
 .cs-col-title svg {
     width: 1rem;
     height: 1rem;
-    color: var(--ui-brand-600, #a8652e);
+    color: var(--ui-brand-600, #2563eb);
     flex-shrink: 0;
 }
 
@@ -157,7 +157,7 @@ html.dark .cs-act { box-shadow: 0 4px 14px -8px rgba(0, 0, 0, 0.5); }
 
 .cs-range-btn {
     border: 1px solid var(--th-line);
-    background: var(--th-surface, #fafaf9);
+    background: var(--th-surface, #f8fafc);
     color: var(--th-ink-soft);
     border-radius: 0.85rem;
     padding: 0.42rem 0.9rem;
@@ -167,13 +167,13 @@ html.dark .cs-act { box-shadow: 0 4px 14px -8px rgba(0, 0, 0, 0.5); }
     transition: all 0.18s ease;
 }
 
-.cs-range-btn:hover { border-color: #d97706; color: #b45309; }
+.cs-range-btn:hover { border-color: #2563eb; color: #1d4ed8; }
 
 .cs-range-btn.is-active {
-    background: linear-gradient(135deg, #d97706, #b45309);
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
     border-color: transparent;
     color: #fffbeb;
-    box-shadow: 0 6px 14px -6px rgba(180, 83, 9, 0.55);
+    box-shadow: 0 6px 14px -6px rgba(29, 78, 216, 0.55);
 }
 
 html.dark .cs-range-btn {
@@ -182,7 +182,7 @@ html.dark .cs-range-btn {
 }
 
 html.dark .cs-range-btn.is-active {
-    background: linear-gradient(135deg, #f5b453, #d97706);
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
     color: #431407;
 }
 
@@ -195,7 +195,7 @@ html.dark .cs-range-btn.is-active {
     padding: 0.9rem 1rem;
     border: 1px dashed var(--th-line);
     border-radius: 1rem;
-    background: var(--th-surface, #fafaf9);
+    background: var(--th-surface, #f8fafc);
 }
 
 .cs-custom-range.hidden { display: none; }
@@ -222,7 +222,7 @@ html.dark .cs-range-btn.is-active {
     min-height: 240px;
     border: 1px solid var(--th-line);
     border-radius: 1.2rem;
-    background: var(--th-surface, #fafaf9);
+    background: var(--th-surface, #f8fafc);
     padding: 1rem 1.1rem 0.6rem;
 }
 
@@ -232,7 +232,7 @@ html.dark .cs-range-btn.is-active {
     inset: 0;
     display: grid;
     place-items: center;
-    background: rgba(250, 250, 249, 0.72);
+    background: rgba(248, 250, 252, 0.72);
     font-size: 0.75rem;
     font-weight: 700;
     color: var(--th-ink-soft);
@@ -241,5 +241,5 @@ html.dark .cs-range-btn.is-active {
 }
 
 html.dark .cs-chart-wrap.is-loading::after {
-    background: rgba(28, 25, 23, 0.72);
+    background: rgba(2, 6, 23, 0.72);
 }

@@ -17,7 +17,7 @@
     position: relative;
     padding: 0.9rem 1rem;
     border-radius: 1rem;
-    border: 1px solid var(--th-line, var(--ui-line, #e7e1da));
+    border: 1px solid var(--th-line, var(--ui-line, #dbeafe));
     background: var(--th-surface, #fff);
     overflow: hidden;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -27,14 +27,14 @@
     display: block;
     font-size: 1.15rem;
     font-weight: 800;
-    color: var(--th-ink, #3a2f25);
+    color: var(--th-ink, #2d2d4a);
     font-variant-numeric: tabular-nums;
 }
 .tk-stat span {
     display: block;
     font-size: 0.65rem;
     font-weight: 600;
-    color: var(--th-ink-soft, #7a6a58);
+    color: var(--th-ink-soft, #2563eb);
     margin-top: 0.15rem;
 }
 .tk-stat::after {
@@ -44,15 +44,15 @@
     top: 0;
     bottom: 0;
     width: 3px;
-    background: var(--tk-tone, var(--ui-brand, #a8652e));
+    background: var(--tk-tone, var(--ui-brand, #2563eb));
     border-radius: 0 3px 3px 0;
 }
-.tk-stat[data-tone='open'] { --tk-tone: #d97706; }
+.tk-stat[data-tone='open'] { --tk-tone: #2563eb; }
 .tk-stat[data-tone='answered'] { --tk-tone: #059669; }
 .tk-stat[data-tone='customer'] { --tk-tone: #0d9488; }
-.tk-stat[data-tone='closed'] { --tk-tone: #78716c; }
+.tk-stat[data-tone='closed'] { --tk-tone: #2563eb; }
 .tk-stat[data-tone='high'] { --tk-tone: #e11d48; }
-.tk-stat[data-tone='total'] { --tk-tone: #a8652e; }
+.tk-stat[data-tone='total'] { --tk-tone: #2563eb; }
 
 /* ---------- بج وضعیت/اولویت تیکت ---------- */
 .tk-badge {
@@ -66,20 +66,20 @@
     border: 1px solid transparent;
     white-space: nowrap;
 }
-.tk-status-open { background: rgba(217, 119, 6, 0.1); color: #b45309; border-color: rgba(217, 119, 6, 0.25); }
+.tk-status-open { background: rgba(37, 99, 235, 0.1); color: #1d4ed8; border-color: rgba(37, 99, 235, 0.25); }
 .tk-status-answered { background: rgba(5, 150, 105, 0.1); color: #047857; border-color: rgba(5, 150, 105, 0.25); }
 .tk-status-customer_reply { background: rgba(13, 148, 136, 0.1); color: #0f766e; border-color: rgba(13, 148, 136, 0.25); }
-.tk-status-closed { background: rgba(120, 113, 108, 0.1); color: #57534e; border-color: rgba(120, 113, 108, 0.25); }
+.tk-status-closed { background: rgba(100, 116, 139, 0.1); color: #1d4ed8; border-color: rgba(100, 116, 139, 0.25); }
 
-.tk-prio-low { background: rgba(120, 113, 108, 0.08); color: #6b7280; border-color: rgba(120, 113, 108, 0.2); }
-.tk-prio-normal { background: rgba(168, 101, 46, 0.1); color: #9a5a28; border-color: rgba(168, 101, 46, 0.25); }
+.tk-prio-low { background: rgba(100, 116, 139, 0.08); color: #6b7280; border-color: rgba(100, 116, 139, 0.2); }
+.tk-prio-normal { background: rgba(37, 99, 235, 0.1); color: #1d4ed8; border-color: rgba(37, 99, 235, 0.25); }
 .tk-prio-high { background: rgba(225, 29, 72, 0.1); color: #be123c; border-color: rgba(225, 29, 72, 0.28); }
 html.dark .tk-prio-low { color: #9ca3af; }
-html.dark .tk-prio-normal { color: #d19a66; }
+html.dark .tk-prio-normal { color: #3b82f6; }
 html.dark .tk-status-open { color: #fbbf24; }
 html.dark .tk-status-answered { color: #34d399; }
 html.dark .tk-status-customer_reply { color: #2dd4bf; }
-html.dark .tk-status-closed { color: #a8a29e; }
+html.dark .tk-status-closed { color: #60a5fa; }
 html.dark .tk-prio-high { color: #fb7185; }
 
 /* ---------- صفحه گفتگوی تیکت ---------- */
@@ -94,26 +94,26 @@ html.dark .tk-prio-high { color: #fb7185; }
 /* کارت اطلاعات تیکت */
 .tk-info-card {
     border-radius: 1.2rem;
-    border: 1px solid var(--th-line, var(--ui-line, #e7e1da));
+    border: 1px solid var(--th-line, var(--ui-line, #dbeafe));
     background: var(--th-surface, #fff);
     overflow: hidden;
 }
 .tk-info-head {
     padding: 1rem 1.1rem;
-    border-bottom: 1px solid var(--th-line, #efeadf);
-    background: color-mix(in srgb, var(--ui-brand, #a8652e) 5%, var(--th-surface, #fff));
+    border-bottom: 1px solid var(--th-line, #dbeafe);
+    background: color-mix(in srgb, var(--ui-brand, #2563eb) 5%, var(--th-surface, #fff));
 }
 .tk-info-head .tk-number {
     font-family: ui-monospace, monospace;
     font-size: 0.68rem;
-    color: var(--ui-brand-600, #a8652e);
+    color: var(--ui-brand-600, #2563eb);
     font-weight: 700;
     letter-spacing: 0.02em;
 }
 .tk-info-head h2 {
     font-size: 0.95rem;
     font-weight: 800;
-    color: var(--th-ink, #3a2f25);
+    color: var(--th-ink, #2d2d4a);
     margin-top: 0.25rem;
     line-height: 1.6;
 }
@@ -125,14 +125,14 @@ html.dark .tk-prio-high { color: #fb7185; }
     gap: 0.5rem;
     font-size: 0.72rem;
 }
-.tk-row > span:first-child { color: var(--th-ink-faint, #a89a8c); font-weight: 600; }
-.tk-row > span:last-child, .tk-row > strong { color: var(--th-ink, #3a2f25); font-weight: 700; text-align: end; }
-.tk-row a { color: var(--ui-brand-600, #a8652e); text-decoration: none; }
+.tk-row > span:first-child { color: var(--th-ink-faint, #3b82f6); font-weight: 600; }
+.tk-row > span:last-child, .tk-row > strong { color: var(--th-ink, #2d2d4a); font-weight: 700; text-align: end; }
+.tk-row a { color: var(--ui-brand-600, #2563eb); text-decoration: none; }
 .tk-row a:hover { text-decoration: underline; }
 
 .tk-info-actions {
     padding: 0.8rem 1.1rem 1rem;
-    border-top: 1px solid var(--th-line, #efeadf);
+    border-top: 1px solid var(--th-line, #dbeafe);
     display: grid;
     gap: 0.55rem;
 }
@@ -149,12 +149,12 @@ html.dark .tk-prio-high { color: #fb7185; }
     overscroll-behavior: contain;
 }
 .tk-thread::-webkit-scrollbar { width: 5px; }
-.tk-thread::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ui-brand, #a8652e) 30%, transparent); border-radius: 99px; }
+.tk-thread::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ui-brand, #2563eb) 30%, transparent); border-radius: 99px; }
 
 .tk-day-sep {
     text-align: center;
     font-size: 0.6rem;
-    color: var(--th-ink-faint, #a89a8c);
+    color: var(--th-ink-faint, #3b82f6);
     position: relative;
     margin: 0.3rem 0;
 }
@@ -164,7 +164,7 @@ html.dark .tk-prio-high { color: #fb7185; }
     top: 50%;
     width: 28%;
     height: 1px;
-    background: var(--th-line, #efeadf);
+    background: var(--th-line, #dbeafe);
 }
 .tk-day-sep::before { inset-inline-start: 0; }
 .tk-day-sep::after { inset-inline-end: 0; }
@@ -183,21 +183,21 @@ html.dark .tk-prio-high { color: #fb7185; }
     white-space: pre-wrap;
 }
 .tk-msg.tk-mine .tk-msg-bubble {
-    background: linear-gradient(135deg, color-mix(in srgb, var(--ui-brand, #a8652e) 12%, var(--th-surface, #fff)), color-mix(in srgb, var(--ui-brand, #a8652e) 7%, var(--th-surface, #fff)));
-    border: 1px solid color-mix(in srgb, var(--ui-brand, #a8652e) 25%, transparent);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--ui-brand, #2563eb) 12%, var(--th-surface, #fff)), color-mix(in srgb, var(--ui-brand, #2563eb) 7%, var(--th-surface, #fff)));
+    border: 1px solid color-mix(in srgb, var(--ui-brand, #2563eb) 25%, transparent);
     border-start-start-radius: 0.35rem;
-    color: var(--th-ink, #3a2f25);
+    color: var(--th-ink, #2d2d4a);
 }
 .tk-msg:not(.tk-msg.tk-mine) .tk-msg-bubble {
-    background: color-mix(in srgb, var(--th-ink, #57534e) 6%, var(--th-surface, #fff));
-    border: 1px solid var(--th-line, #e7e1da);
+    background: color-mix(in srgb, var(--th-ink, #1d4ed8) 6%, var(--th-surface, #fff));
+    border: 1px solid var(--th-line, #dbeafe);
     border-start-end-radius: 0.35rem;
 }
 
 /* یادداشت داخلی */
 .tk-msg.tk-internal .tk-msg-bubble {
-    background: repeating-linear-gradient(-45deg, rgba(217, 119, 6, 0.05), rgba(217, 119, 6, 0.05) 10px, rgba(217, 119, 6, 0.09) 10px, rgba(217, 119, 6, 0.09) 20px);
-    border: 1px dashed rgba(217, 119, 6, 0.45);
+    background: repeating-linear-gradient(-45deg, rgba(37, 99, 235, 0.05), rgba(37, 99, 235, 0.05) 10px, rgba(37, 99, 235, 0.09) 10px, rgba(37, 99, 235, 0.09) 20px);
+    border: 1px dashed rgba(37, 99, 235, 0.45);
     max-width: 100%;
 }
 .tk-msg.tk-internal { align-self: center; max-width: min(92%, 38rem); }
@@ -207,16 +207,16 @@ html.dark .tk-prio-high { color: #fb7185; }
     align-items: center;
     gap: 0.4rem;
     font-size: 0.6rem;
-    color: var(--th-ink-faint, #a89a8c);
+    color: var(--th-ink-faint, #3b82f6);
     margin-top: 0.28rem;
     padding: 0 0.3rem;
 }
-.tk-msg-meta .tk-sender { font-weight: 700; color: var(--th-ink-soft, #7a6a58); }
+.tk-msg-meta .tk-sender { font-weight: 700; color: var(--th-ink-soft, #2563eb); }
 .tk-internal-tag {
     display: inline-flex;
     align-items: center;
     gap: 0.2rem;
-    color: #b45309;
+    color: #1d4ed8;
     font-weight: 800;
 }
 html.dark .tk-internal-tag { color: #fbbf24; }
@@ -229,50 +229,50 @@ html.dark .tk-internal-tag { color: #fbbf24; }
     margin-top: 0.45rem;
     padding: 0.45rem 0.7rem;
     border-radius: 0.7rem;
-    background: color-mix(in srgb, var(--th-surface, #fff) 60%, #f1ece5);
-    border: 1px solid var(--th-line, #e7e1da);
+    background: color-mix(in srgb, var(--th-surface, #fff) 60%, #dbeafe);
+    border: 1px solid var(--th-line, #dbeafe);
     text-decoration: none;
     max-width: 100%;
     transition: transform 0.15s ease;
 }
 .tk-attach:hover { transform: translateY(-1px); }
-.tk-attach svg { width: 1rem; height: 1rem; color: var(--ui-brand-600, #a8652e); flex-shrink: 0; }
+.tk-attach svg { width: 1rem; height: 1rem; color: var(--ui-brand-600, #2563eb); flex-shrink: 0; }
 .tk-attach .tk-file-name {
     font-size: 0.68rem;
     font-weight: 700;
-    color: var(--th-ink, #3a2f25);
+    color: var(--th-ink, #2d2d4a);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 11rem;
 }
-.tk-attach .tk-file-size { font-size: 0.58rem; color: var(--th-ink-faint, #a89a8c); }
+.tk-attach .tk-file-size { font-size: 0.58rem; color: var(--th-ink-faint, #3b82f6); }
 .tk-attach img.tk-thumb {
     width: 100%;
     max-height: 15rem;
     object-fit: contain;
     border-radius: 0.7rem;
-    border: 1px solid var(--th-line, #e7e1da);
+    border: 1px solid var(--th-line, #dbeafe);
     margin-top: 0.45rem;
     display: block;
 }
 
 /* ---------- پاسخ‌دهنده ---------- */
 .tk-composer {
-    border-top: 1px solid var(--th-line, #efeadf);
+    border-top: 1px solid var(--th-line, #dbeafe);
     padding: 0.9rem 1.1rem;
     display: grid;
     gap: 0.6rem;
-    background: color-mix(in srgb, var(--ui-brand, #a8652e) 2.5%, var(--th-surface, #fff));
+    background: color-mix(in srgb, var(--ui-brand, #2563eb) 2.5%, var(--th-surface, #fff));
 }
 .tk-composer textarea {
     width: 100%;
     min-height: 4.5rem;
     resize: vertical;
     border-radius: 0.9rem;
-    border: 1px solid var(--th-line, var(--ui-line, #e7e1da));
+    border: 1px solid var(--th-line, var(--ui-line, #dbeafe));
     background: var(--th-surface, #fff);
-    color: var(--th-ink, #3a2f25);
+    color: var(--th-ink, #2d2d4a);
     padding: 0.65rem 0.85rem;
     font-size: 0.78rem;
     font-family: inherit;
@@ -281,8 +281,8 @@ html.dark .tk-internal-tag { color: #fbbf24; }
 }
 .tk-composer textarea:focus {
     outline: none;
-    border-color: var(--ui-brand-500, #c07c40);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-brand, #a8652e) 18%, transparent);
+    border-color: var(--ui-brand-500, #3b82f6);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-brand, #2563eb) 18%, transparent);
 }
 .tk-composer-foot {
     display: flex;
@@ -296,21 +296,47 @@ html.dark .tk-internal-tag { color: #fbbf24; }
     gap: 0.4rem;
     font-size: 0.68rem;
     font-weight: 700;
-    color: var(--th-ink-soft, #7a6a58);
-    border: 1px dashed var(--th-line, #d8cfc4);
+    color: var(--th-ink-soft, #2563eb);
+    border: 1px dashed var(--th-line, #bfdbfe);
     border-radius: 0.7rem;
     padding: 0.4rem 0.7rem;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 .tk-file-label:hover {
-    border-color: var(--ui-brand-500, #c07c40);
-    color: var(--ui-brand-600, #a8652e);
-    background: color-mix(in srgb, var(--ui-brand, #a8652e) 6%, transparent);
+    border-color: var(--ui-brand-500, #3b82f6);
+    color: var(--ui-brand-600, #2563eb);
+    background: color-mix(in srgb, var(--ui-brand, #2563eb) 6%, transparent);
 }
 .tk-file-label svg { width: 0.9rem; height: 0.9rem; }
 .tk-file-label input { display: none; }
-.tk-file-label .tk-file-picked { color: var(--ui-brand-600, #a8652e); font-weight: 800; max-width: 9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tk-file-label .tk-file-picked {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--ui-brand-600, #2563eb);
+    font-weight: 800;
+    max-width: 12rem;
+    overflow: hidden;
+}
+.tk-file-label .tk-file-picked > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* F-3 — پیش‌نمایش تصویر پیوست انتخاب‌شده (هم‌خانوادهٔ .tk-thumb) */
+.tk-file-thumb {
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1px solid var(--th-line, #dbeafe);
+    background: var(--th-surface, #fff);
+    box-shadow: 0 3px 10px -6px rgba(49, 25, 14, 0.35);
+}
+.tk-file-thumb[hidden] { display: none; }
+html.dark .tk-file-thumb {
+    border-color: rgba(251, 191, 36, 0.28);
+    box-shadow: 0 3px 10px -6px rgba(0, 0, 0, 0.6);
+}
 
 .tk-internal-check {
     display: inline-flex;
@@ -318,12 +344,12 @@ html.dark .tk-internal-tag { color: #fbbf24; }
     gap: 0.35rem;
     font-size: 0.68rem;
     font-weight: 700;
-    color: #b45309;
+    color: #1d4ed8;
     cursor: pointer;
     user-select: none;
 }
 html.dark .tk-internal-check { color: #fbbf24; }
-.tk-internal-check input { accent-color: #d97706; width: 0.95rem; height: 0.95rem; cursor: pointer; }
+.tk-internal-check input { accent-color: #2563eb; width: 0.95rem; height: 0.95rem; cursor: pointer; }
 
 .tk-send-btn {
     margin-inline-start: auto;
@@ -337,7 +363,7 @@ html.dark .tk-internal-check { color: #fbbf24; }
     border: none;
     cursor: pointer;
     color: #fff;
-    background: linear-gradient(135deg, #c07c40, #96521f);
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
     box-shadow: 0 8px 18px -8px rgba(150, 82, 31, 0.55);
     transition: all 0.18s ease;
 }
@@ -352,11 +378,148 @@ html.dark .tk-internal-check { color: #fbbf24; }
 }
 
 /* ============================================================
+   v45 — موبایل صفحهٔ گفتگوی تیکت (ادمین):
+   • گفتگو و پاسخ‌دهنده تمام‌صفحه — ثابت زیر نوار بالای پنل
+   • کارت اطلاعات/عملیات داخل شیت «اطلاعات تیکت» (دکمهٔ ⓘ نوار چت)
+   ============================================================ */
+@media (max-width: 1023.98px) {
+    .tk-thread-wrap { display: block; }
+
+    /* گفتگو تمام‌صفحه — زیر نوار بالای پنل (h-16 = 4rem) */
+    .tk-chat-card {
+        position: fixed;
+        top: 4rem;
+        inset-inline: 0;
+        bottom: 0;
+        z-index: 25;
+        margin: 0;
+        border-radius: 0;
+        border-inline: none;
+        border-bottom: none;
+    }
+    .tk-chat-card .tk-thread {
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: none;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+    .tk-chat-card .tk-composer { flex: none; }
+
+    /* نوار سربرگ موبایل چت */
+    .tk-mob-head {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.55rem 0.8rem;
+        border-bottom: 1px solid var(--th-line, #dbeafe);
+        background: color-mix(in srgb, var(--ui-brand, #2563eb) 4%, var(--th-surface, #fff));
+        flex: none;
+    }
+    .tk-mob-back {
+        flex: none;
+        width: 2.2rem;
+        height: 2.2rem;
+        display: grid;
+        place-items: center;
+        border-radius: 0.8rem;
+        color: var(--th-ink-soft, #2563eb);
+        background: color-mix(in srgb, var(--ui-brand, #2563eb) 8%, transparent);
+        text-decoration: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .tk-mob-back:active { transform: scale(0.94); }
+    .tk-mob-back svg { width: 1.1rem; height: 1.1rem; }
+    .tk-mob-title {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: var(--th-ink, #2d2d4a);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .tk-mob-info {
+        flex: none;
+        width: 2.2rem;
+        height: 2.2rem;
+        display: grid;
+        place-items: center;
+        border-radius: 0.8rem;
+        border: 1px dashed var(--th-line, #bfdbfe);
+        color: var(--th-ink-soft, #2563eb);
+        background: transparent;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .tk-mob-info:active { transform: scale(0.94); }
+    .tk-mob-info svg { width: 1.15rem; height: 1.15rem; }
+
+    /* کارت اطلاعات — در موبایل فقط داخل شیت */
+    .tk-info-card { display: none; }
+    body.tk-info-open .tk-info-card {
+        display: block;
+        position: fixed;
+        inset-inline: 0;
+        bottom: 0;
+        top: auto;
+        z-index: 60;
+        max-height: 82dvh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0;
+        border-radius: 1.25rem 1.25rem 0 0;
+        border-bottom: none;
+        box-shadow: 0 -12px 40px rgba(2, 6, 23, 0.28);
+        animation: tkSheetUp 0.26s cubic-bezier(0.32, 0.72, 0.3, 1);
+    }
+    .tk-sheet-x {
+        position: absolute;
+        top: 0.6rem;
+        inset-inline-end: 0.7rem;
+        z-index: 2;
+        width: 2rem;
+        height: 2rem;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        border: 1px solid var(--th-line, #dbeafe);
+        background: var(--th-surface, #fff);
+        color: var(--th-ink-soft, #64748b);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .tk-sheet-x:active { transform: scale(0.92); }
+    .tk-sheet-x svg { width: 0.85rem; height: 0.85rem; }
+}
+@media (min-width: 1024px) {
+    .tk-mob-head, .tk-sheet-x { display: none !important; }
+    body.tk-info-open .tk-info-card { display: revert; }
+}
+@keyframes tkSheetUp {
+    from { transform: translateY(14%); opacity: 0.6; }
+    to   { transform: none; opacity: 1; }
+}
+
+/* پردهٔ شیت اطلاعات تیکت (فقط موبایل) */
+#tk-info-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: rgba(15, 23, 42, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+#tk-info-overlay.show { opacity: 1; pointer-events: auto; }
+
+/* ============================================================
    قالب‌های پیامک (ادمین — فاز ۱۰)
    ============================================================ */
 .tpl-card {
     border-radius: 1.1rem;
-    border: 1px solid var(--th-line, var(--ui-line, #e7e1da));
+    border: 1px solid var(--th-line, var(--ui-line, #dbeafe));
     background: var(--th-surface, #fff);
     padding: 1rem 1.1rem;
     display: grid;
@@ -373,7 +536,7 @@ html.dark .tk-internal-check { color: #fbbf24; }
     border-radius: 999px;
 }
 .tpl-active-badge.on { background: rgba(5, 150, 105, 0.1); color: #047857; }
-.tpl-active-badge.off { background: rgba(120, 113, 108, 0.1); color: #6b7280; }
+.tpl-active-badge.off { background: rgba(100, 116, 139, 0.1); color: #6b7280; }
 html.dark .tpl-active-badge.on { color: #34d399; }
 
 .tpl-foot {
@@ -383,7 +546,7 @@ html.dark .tpl-active-badge.on { color: #34d399; }
     gap: 0.75rem;
     flex-wrap: wrap;
     padding-top: 0.6rem;
-    border-top: 1px dashed var(--th-line, #efeadf);
+    border-top: 1px dashed var(--th-line, #dbeafe);
 }
 
 /* سوییچ فعال/غیرفعال */
@@ -393,7 +556,7 @@ html.dark .tpl-active-badge.on { color: #34d399; }
     width: 2.5rem;
     height: 1.35rem;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--th-ink, #57534e) 18%, transparent);
+    background: color-mix(in srgb, var(--th-ink, #1d4ed8) 18%, transparent);
     position: relative;
     transition: background 0.2s ease;
     flex-shrink: 0;
@@ -411,4 +574,4 @@ html.dark .tpl-active-badge.on { color: #34d399; }
 }
 .tpl-toggle input:checked + .tpl-toggle-track { background: #059669; }
 .tpl-toggle input:checked + .tpl-toggle-track .tpl-toggle-dot { transform: translateX(-1.15rem); }
-.tpl-toggle-label { font-size: 0.68rem; font-weight: 700; color: var(--th-ink-soft, #7a6a58); }
+.tpl-toggle-label { font-size: 0.68rem; font-weight: 700; color: var(--th-ink-soft, #2563eb); }

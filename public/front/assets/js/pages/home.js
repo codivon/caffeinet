@@ -1,6 +1,7 @@
 /* اپ مشتری — صفحه خانه (کاتالوگ) */
-/* global CN, jQuery */
-(function ($) {
+/* [Task 9] Vanilla JS — بدون جی‌کوئری */
+/* global CN */
+(function () {
     'use strict';
 
     if (!CN.requireCompleteProfile()) { return; }
@@ -41,7 +42,7 @@
     }
 
     function renderChips() {
-        var $row = $('#categoryChips');
+        var row = document.getElementById('categoryChips');
         var html = '<button class="chip' + (state.categoryId === 0 ? ' active' : '') + '" data-cat="0" type="button"><span class="chip-icon">✨</span> همه</button>';
 
         // اگر دسته فعالِ فرزند است → ریشه + خواهر/برادرها؛ وگرنه ریشه‌ها
@@ -69,22 +70,29 @@
             });
         }
 
-        $row.html(html);
+        if (row) { row.innerHTML = html; }
 
-        $row.off('click', '.chip').on('click', '.chip', function () {
-            state.categoryId = +$(this).data('cat');
-            renderChips();
-            resetAndLoad();
-        });
+        /* [Task 9] جایگزین اتصالِ delegate تکراری روی ردیف چیپ‌ها:
+           شنونده یک‌بار در بخش رویدادها به #categoryChips بسته می‌شود
+           و با بازرندر چیپ‌ها پابرجاست (رفتار عین قبل: هر لحظه فقط یک شنونده). */
     }
 
     /* ---------- خدمات ---------- */
     function resetAndLoad() {
         state.page = 1;
         state.hasMore = false;
-        $('#servicesList').empty();
-        $('#servicesEmpty').addClass('hidden');
+        var servicesList = document.getElementById('servicesList');
+        if (servicesList) { servicesList.innerHTML = ''; }
+        var servicesEmpty = document.getElementById('servicesEmpty');
+        if (servicesEmpty) { servicesEmpty.classList.add('hidden'); }
         loadServices();
+    }
+
+    /* [Task 9] حذف همهٔ اسکلت‌ها از کل سند (جایگزین remove سراسری قدیمی) */
+    function removeSkeletons() {
+        Array.prototype.forEach.call(document.querySelectorAll('.skeleton'), function (sk) {
+            sk.remove();
+        });
     }
 
     function loadServices() {
@@ -92,9 +100,13 @@
         state.loading = true;
 
         if (state.page === 1) {
-            $('#servicesList').append('<div class="skeleton svc"></div><div class="skeleton svc"></div>');
+            var servicesList = document.getElementById('servicesList');
+            if (servicesList) {
+                servicesList.insertAdjacentHTML('beforeend', '<div class="skeleton svc"></div><div class="skeleton svc"></div>');
+            }
         } else {
-            $('#servicesMoreLoader').removeClass('hidden');
+            var servicesMoreLoader = document.getElementById('servicesMoreLoader');
+            if (servicesMoreLoader) { servicesMoreLoader.classList.remove('hidden'); }
         }
 
         var params = '?page=' + state.page;
@@ -104,28 +116,34 @@
         CN.api('/services' + params, {
             success: function (resp) {
                 state.loading = false;
-                $('.skeleton').remove();
-                $('#servicesMoreLoader').addClass('hidden');
+                removeSkeletons();
+                var servicesMoreLoader = document.getElementById('servicesMoreLoader');
+                if (servicesMoreLoader) { servicesMoreLoader.classList.add('hidden'); }
 
-                $('#servicesCount').text(CN.toFaDigits(resp.total || 0) + ' خدمت');
+                var servicesCount = document.getElementById('servicesCount');
+                if (servicesCount) { servicesCount.textContent = CN.toFaDigits(resp.total || 0) + ' خدمت'; }
 
+                var servicesList = document.getElementById('servicesList');
                 (resp.data || []).forEach(function (s) {
-                    $('#servicesList').append(serviceCard(s));
+                    if (servicesList) { servicesList.insertAdjacentHTML('beforeend', serviceCard(s)); }
                 });
 
                 state.hasMore = !!resp.next_page_url;
-                $('#loadMoreBtn').toggleClass('hidden', !state.hasMore);
+                var loadMoreBtn = document.getElementById('loadMoreBtn');
+                if (loadMoreBtn) { loadMoreBtn.classList.toggle('hidden', !state.hasMore); }
 
                 if (!resp.data || !resp.data.length) {
-                    $('#servicesEmpty').removeClass('hidden');
+                    var servicesEmpty = document.getElementById('servicesEmpty');
+                    if (servicesEmpty) { servicesEmpty.classList.remove('hidden'); }
                 }
 
                 loadFeatured(resp.data || []);
             },
             error: function () {
                 state.loading = false;
-                $('.skeleton').remove();
-                $('#servicesMoreLoader').addClass('hidden');
+                removeSkeletons();
+                var servicesMoreLoader = document.getElementById('servicesMoreLoader');
+                if (servicesMoreLoader) { servicesMoreLoader.classList.add('hidden'); }
             }
         });
     }
@@ -162,33 +180,89 @@
 
         var html = '';
         featured.slice(0, 6).forEach(function (s) {
+            /* فاز ۴۷ — طبق درخواست مالک: داخل کارت ویژه «فقط عنوان» —
+               آیکون دسته و ستارهٔ گوشهٔ کارت هم حذف شد. */
             html += '<a class="featured-card" href="' + CN.withPort('/app/service/' + s.id) + '">' +
-                '<div class="f-icon">' + CN.esc((s.category && s.category.icon) || '⭐') + '</div>' +
                 '<div class="f-name">' + CN.esc(s.name) + '</div>' +
-                '<div class="f-meta">' + CN.esc((s.category && s.category.name) || '') + ' · ' + CN.esc(s.estimated_time_label || '') + '</div>' +
-                '<div class="f-price">' + CN.faMoneyUnit(s.total_amount) + '</div>' +
                 '</a>';
         });
 
-        $('#featuredStrip').html(html);
-        $('#featuredSection').removeClass('hidden');
+        var featuredStrip = document.getElementById('featuredStrip');
+        if (featuredStrip) { featuredStrip.innerHTML = html; }
+        var featuredSection = document.getElementById('featuredSection');
+        if (featuredSection) { featuredSection.classList.remove('hidden'); }
     }
 
     /* ---------- رویدادها ---------- */
     var onSearch = CN.debounce(function () {
-        state.q = $('#searchInput').val().trim();
+        var searchInput = document.getElementById('searchInput');
+        state.q = (searchInput ? searchInput.value : '').trim();
         resetAndLoad();
     }, 420);
 
-    $('#searchInput').on('input', onSearch);
+    var searchInput = document.getElementById('searchInput');
+    if (searchInput) { searchInput.addEventListener('input', onSearch); }
 
-    $('#loadMoreBtn').on('click', function () {
-        if (!state.hasMore || state.loading) { return; }
-        state.page++;
-        loadServices();
-    });
+    /* کلیک چیپ‌های دسته — [Task 9] delegate یک‌بار روی #categoryChips (جایگزین off/on تکراری) */
+    var categoryChipsRow = document.getElementById('categoryChips');
+    if (categoryChipsRow) {
+        categoryChipsRow.addEventListener('click', function (e) {
+            var chip = e.target.closest ? e.target.closest('.chip') : null;
+            if (!chip || !categoryChipsRow.contains(chip)) { return; }
+
+            state.categoryId = +chip.dataset.cat;
+            renderChips();
+            resetAndLoad();
+        });
+    }
+
+    var loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function () {
+            if (!state.hasMore || state.loading) { return; }
+            state.page++;
+            loadServices();
+        });
+    }
+
+    /* ---------- فاز ۶۰ — سفارش مجدد (تا ۴ خدمت پرتکرار خودِ مشتری) ----------
+       اپ توکن‌محور است؛ داده از GET /api/v1/me/reorder می‌آید (قیمت زندهٔ
+       کاتالوگ + آیکون دسته سمت سرور). مهمان/بدون سابقه → ۴۰۱ یا خالی →
+       بخش مخفی می‌ماند (بدون فضای خالی). */
+    function loadReorder() {
+        var section = document.getElementById('reorderSection');
+        var strip = document.getElementById('reorderStrip');
+        if (!section || !strip) { return; }
+
+        CN.api('/me/reorder', {
+            success: function (resp) {
+                var items = (resp && resp.data && resp.data.items) || [];
+                if (!items.length) { return; }
+
+                var html = '';
+                items.forEach(function (s) {
+                    html += '<a class="ak-ro-card" href="' + CN.withPort('/app/service/' + s.id) + '" aria-label="سفارش مجدد ' + CN.esc(s.name) + '">' +
+                        '<span class="ak-ro-ic" aria-hidden="true">' + CN.esc(s.icon || '📄') + '</span>' +
+                        '<span class="ak-ro-body">' +
+                        '<span class="ak-ro-name">' + CN.esc(s.name) + '</span>' +
+                        '<span class="ak-ro-meta">' + CN.toFaDigits(s.count || 0) + ' سفارش قبلی</span>' +
+                        '<span class="ak-ro-price"><b>' + CN.faMoney(s.total_amount) + '</b><i>تومان</i></span>' +
+                        '</span>' +
+                        '<span class="ak-ro-go" aria-hidden="true">' +
+                        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>' +
+                        '</span>' +
+                        '</a>';
+                });
+
+                strip.innerHTML = html;
+                section.classList.remove('hidden');
+            },
+            error: function () { /* مهمان/خطا → مخفی می‌ماند */ }
+        });
+    }
 
     /* ---------- شروع ---------- */
     loadCategories();
     loadServices();
-})(jQuery);
+    loadReorder();
+})();

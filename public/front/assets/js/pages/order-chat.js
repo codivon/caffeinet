@@ -1,8 +1,8 @@
 /* اپ مشتری — گفتگوی سفارش (فاز ۷ — چت تلگرام‌گونه) */
 /* فاز ۱۲ — شیت پیوست تلگرامی + آپلودر زیبا + کش‌ودرگ + paste تصویر */
-/* فایل مستقل (Blade + jQuery) — بدون Node / بدون بیلد */
-/* global CN, jQuery */
-(function ($) {
+/* فایل مستقل (Vanilla JS — بدون jQuery) — بدون Node / بدون بیلد */
+/* global CN */
+(function () {
     'use strict';
 
     if (!CN.requireCompleteProfile()) { return; }
@@ -12,16 +12,18 @@
 
     var POLL_MS = 3000;
 
-    /* Realtime پوشر (فاز ۱۳): وقتی فعال است پولینگ «آرام» می‌شود (۱۲ ثانیه)
-       چون بیدارباش لحظه‌ای را پوشر انجام می‌دهد — کاهش فشار MySQL. */
-    var POLL_MS_REALTIME = 12000;
-    var currentPollMs = POLL_MS;
+    /* Realtime پوشر (فاز ۱۳ → v38 «پوشر کامل» → v41 پولینگ اضطراری آرام):
+       وقتی پوشر فعال و متصل است، پولینگ «کاملاً متوقف» می‌شود — فقط رویدادمحور.
+       با قطع اتصال، پولینگ اضطراری (هر ۲۰ ثانیه) برمی‌گردد و با وصل شدن دوباره خاموش می‌شود. */
     var rtBound = false;
+    var unConn = null;
+    var rtChannel = null;
 
     var lastId = 0;
     var pollTimer = null;
     var sending = false;
     var pendingFile = null; // { type, file, duration }
+    var pendingSeq = 0;     // [F-4] شمارندهٔ انتخاب فایل — گارد مسابقهٔ انتخاب فایل جدید حین فشرده‌سازی
     var groupedPrev = null;
     var thumbUrl = null;
 
@@ -405,45 +407,51 @@
 
         setUploadState(true);
 
-        $.ajax({
-            url: CN.apiUrl(API),
-            type: 'POST',
-            data: fd,
-            processData: false,
-            contentType: false,
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + CN.token()
-            },
-            xhr: function () {
-                var xhr = new XMLHttpRequest();
-                xhr.upload.addEventListener('progress', function (e) {
-                    if (e.lengthComputable) {
-                        var pct = Math.round((e.loaded / e.total) * 100);
-                        els.uploadFill.style.width = pct + '%';
-                        els.pPct.textContent = fa(pct) + '٪';
-                    }
-                }, false);
-                return xhr;
-            },
-            success: function (resp) {
+        /* [Task 9] vanilla XHR — جایگزین $.ajax با حفظ عین رفتار:
+           هدرهای Accept/Authorization + رویداد پیشرفت آپلود (نوار درصد) +
+           بدون مهلت زمانی. CN.api رویداد upload progress ندارد و تایم‌اوت
+           پیش‌فرض ۲۰ ثانیه‌اش آپلود فایل‌های حجیم را قطع می‌کرد. */
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', CN.apiUrl(API), true);
+        xhr.setRequestHeader('Accept', 'application/json');
+        xhr.setRequestHeader('Authorization', 'Bearer ' + CN.token());
+        xhr.upload.addEventListener('progress', function (e) {
+            if (e.lengthComputable) {
+                var pct = Math.round((e.loaded / e.total) * 100);
+                els.uploadFill.style.width = pct + '%';
+                els.pPct.textContent = fa(pct) + '٪';
+            }
+        }, false);
+        xhr.onload = function () {
+            var resp = null;
+            try { resp = JSON.parse(xhr.responseText); } catch (e) { resp = null; }
+
+            if ((xhr.status >= 200 && xhr.status < 300) || xhr.status === 304) {
                 setUploadState(false);
                 clearPendingFile();
                 els.input.value = '';
                 autoGrow();
-                ingestLocal(resp.data);
+                ingestLocal(resp ? resp.data : null);
                 scrollToBottom();
                 load(false);
                 done();
-            },
-            error: function (xhr) {
-                setUploadState(false);
-                var message = 'ارسال فایل ناموفق بود.';
-                try { message = JSON.parse(xhr.responseText).message || message; } catch (e) { /* noop */ }
-                CN.toast(message, 'error');
-                done();
+                return;
             }
-        });
+
+            setUploadState(false);
+            var message = 'ارسال فایل ناموفق بود.';
+            try { message = JSON.parse(xhr.responseText).message || message; } catch (e) { /* noop */ }
+            CN.toast(message, 'error');
+            done();
+        };
+        xhr.onerror = function () {
+            setUploadState(false);
+            var message = 'ارسال فایل ناموفق بود.';
+            try { message = JSON.parse(xhr.responseText).message || message; } catch (e) { /* noop */ }
+            CN.toast(message, 'error');
+            done();
+        };
+        xhr.send(fd);
     }
 
     /* حالت آپلود: کارت آپلودر زنده می‌شود (شیمر + درصد) */
@@ -564,10 +572,9 @@
     /* ---------- کش‌ودرگ روی چت + paste تصویر ---------- */
 
     function detectType(file) {
-        if (file.type && file.type.indexOf('image/') === 0) { return 'image'; }
-        if (file.type && file.type.indexOf('video/') === 0) { return 'video'; }
-        if (file.type && file.type.indexOf('audio/') === 0) { return 'audio'; }
-        return 'file';
+        /* فاز ۱۴ — CN.detectFileType: اگر file.type خالی باشد (گالری موبایل)
+           از پسوند نام فایل قضاوت می‌کند → پیش‌نمایش تصویر روی گوشی هم می‌آید */
+        return CN.detectFileType(file);
     }
 
     function bindDragDrop() {
@@ -608,7 +615,7 @@
             var items = e.clipboardData.files && e.clipboardData.files.length
                 ? e.clipboardData.files
                 : null;
-            if (items && items[0] && items[0].type.indexOf('image/') === 0) {
+            if (items && items[0] && CN.detectFileType(items[0]) === 'image') {
                 setPendingFile('image', items[0]);
             }
         });
@@ -616,7 +623,25 @@
 
     /* ---------- آپلودر زیبا ---------- */
 
+    /* [F-4] تصویر پیش از نمایش پیش‌نمایش فشرده می‌شود (ویدیو/صدا/فایل دست‌نخورده)؛
+       برچسب حجم از file.size فایل نهایی خوانده می‌شود. */
     function setPendingFile(type, file) {
+        if (type !== 'image' || !CN.compressImage || typeof CN.compressImage !== 'function') {
+            applyPendingFile(type, file);
+            return;
+        }
+        var seq = ++pendingSeq;
+        var use = function (f) {
+            if (seq !== pendingSeq) { return; } /* در میان راه فایل دیگری انتخاب شد */
+            applyPendingFile(type, f || file);
+        };
+        var p = null;
+        try { p = CN.compressImage(file); } catch (e) { p = null; }
+        if (!p || typeof p.then !== 'function') { use(file); return; }
+        p.then(use)['catch'](function () { use(file); });
+    }
+
+    function applyPendingFile(type, file) {
         pendingFile = { type: type, file: file, duration: null };
 
         var map = ATTACH_MAP[type];
@@ -626,6 +651,11 @@
         if (type === 'image') {
             try {
                 thumbUrl = URL.createObjectURL(file);
+                /* v42 — اگر گوشی فرمت را نشان نداد (مثل HEIC) → آیکن به‌جای خالی‌بودن */
+                els.pThumbImg.onerror = function () {
+                    els.pThumbImg.hidden = true;
+                    els.pThumbIcon.style.display = '';
+                };
                 els.pThumbImg.src = thumbUrl;
                 els.pThumbImg.hidden = false;
                 els.pThumbIcon.style.display = 'none';
@@ -752,43 +782,58 @@
         }
     }
 
-    function startPolling() {
+    function startPolling(slow) {
+        if (pollTimer) { return; }
+        /* v41 — بازهٔ پولینگ:
+           • پوشر فعال (RT.active) و هنوز وصل نشده → «پولینگ اضطراری» با بازهٔ
+             بلند ۲۰ ثانیه (هدف فاز ۱۳: با بالا رفتن تعداد مشتری، سرور زیر
+             بار پولینگ نرود؛ آنی بودن را وقتی پوشر وصل شد رویدادها می‌سازند).
+           • پوشر خاموش (مود پولینگ) → بازهٔ سریع ۳ ثانیه مثل قبل. */
+        var ms = slow ? 20000 : 3000;
         pollTimer = window.setInterval(function () {
             if (!document.hidden) { load(false); }
-        }, currentPollMs);
-
-        document.addEventListener('visibilitychange', function () {
-            if (!document.hidden) { load(false); }
-        });
-
-        /* v35: پیام پوش تحویلِ همین صفحه (برنامه باز → به‌جای نوتیف سیستمی)
-         * اگر پیام مال همین گفتگو بود (oid)، پیام‌ها همان لحظه تازه شوند */
-        document.addEventListener('cn:push', function (e) {
-            var d = (e && e.detail) || {};
-            var isChat = d.event === 'order.chat_message_customer' || d.event === 'order.chat_message_staff';
-            if (isChat && (!d.oid || Number(d.oid) === orderId)) { load(false); }
-        });
+        }, ms);
     }
 
-    /* پولینگ تطبیقی: با فعال شدن پوشر بازهٔ پول بزرگ می‌شود (ترفند منابع) */
-    function relaxPolling() {
-        if (currentPollMs === POLL_MS_REALTIME) { return; }
-        currentPollMs = POLL_MS_REALTIME;
-        if (pollTimer) {
-            window.clearInterval(pollTimer);
-            pollTimer = window.setInterval(function () {
-                if (!document.hidden) { load(false); }
-            }, currentPollMs);
-        }
+    function stopPolling() {
+        if (pollTimer) { window.clearInterval(pollTimer); pollTimer = null; }
     }
 
-    /* ---------- Realtime پوشر (فاز ۱۳) — بیدارباش چت ----------
+    /* شنونده‌های ثابت (یک‌بار برای همیشه): visibility + پیام پوش */
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) { load(false); }
+    });
+
+    /* v35: پیام پوش تحویلِ همین صفحه (برنامه باز → به‌جای نوتیف سیستمی)
+     * اگر پیام مال همین گفتگو بود (oid)، پیام‌ها همان لحظه تازه شوند */
+    document.addEventListener('cn:push', function (e) {
+        var d = (e && e.detail) || {};
+        var isChat = d.event === 'order.chat_message_customer' || d.event === 'order.chat_message_staff';
+        if (isChat && (!d.oid || Number(d.oid) === orderId)) { load(false); }
+    });
+
+    /* ---------- Realtime پوشر — حالت «پوشر کامل» (بدون پولینگ) ----------
        کانال/کلید از payload خود چت (data.rt) می‌آید؛ با رویداد message.new
-       پول همان لحظه اجرا می‌شود → پیام طرف مقابل آنی می‌رسد و MySQL
-       فقط با فاصلهٔ طولانی چک می‌شود. */
+       پیام‌ها همان لحظه از API خوانده می‌شوند — بدون هیچ setInterval.
+       قطع اتصال → پولینگ اضطراری (بازهٔ بلند ۲۰ ثانیه)؛ وصل شدن → توقف پولینگ.
+       نقطهٔ وضعیت «لحظه‌ای» سربرگ هم در هر تغییر اتصال تازه می‌شود. */
+    function setRtDot(up) {
+        var dot = document.getElementById('chRtDot');
+        if (!dot) { return; }
+        dot.classList.toggle('rt-on', !!up);
+        dot.classList.toggle('rt-off', !up);
+        dot.title = up
+            ? 'اتصال لحظه‌ای (پوشر) فعال است'
+            : 'اتصال لحظه‌ای برقرار نیست — دریافت دوره‌ای هر ۲۰ ثانیه';
+    }
+
     function bindRealtime(rt) {
         if (rtBound) { return; }
-        if (!rt || !rt.enabled || !rt.key || !rt.channel || !window.RT) { return; }
+        /* فاز ۱۲ — SSE کلید پوشر ندارد؛ فقط کانال و رویداد لازم است */
+        if (!rt || !rt.enabled || !rt.channel || !window.RT) { return; }
+        if (String(rt.method || '') !== 'sse' && !rt.key) { return; }
+
+        rtChannel = String(rt.channel);
 
         var ok = RT.on(rt.channel, rt.event || 'message.new', function () {
             if (document.hidden) { return; }
@@ -797,7 +842,29 @@
 
         if (ok) {
             rtBound = true;
-            relaxPolling();
+
+            /* پاک‌سازی هنگام خروج از صفحه (ناوبری SPA) — ضد زامبی:
+               کانال پوشرِ سفارش قبلی ترک می‌شود تا رویدادش صفحهٔ دیگری را بیدار نکند */
+            document.addEventListener('livewire:navigate', function () {
+                stopPolling();
+                if (unConn) { unConn(); unConn = null; }
+                if (rtChannel && window.RT && RT.leave) { RT.leave(rtChannel); }
+                rtChannel = null;
+            }, { once: true });
+
+            /* fallback اتصال: قطع → پولینگ اضطراری، وصل → توقف پولینگ */
+            unConn = RT.onConnection(function (up) {
+                setRtDot(up);
+                if (up) { stopPolling(); if (!document.hidden) { load(false); } }
+                else { startPolling(true); }
+            });
+
+            if (RT.connected()) {
+                setRtDot(true);
+                stopPolling(); // پوشر متصل — بدون پولینگ
+            } else {
+                setRtDot(false);
+            }
         }
     }
 
@@ -807,5 +874,7 @@
     bindStick();
     autoGrow();
     load(true);
-    startPolling();
-})(jQuery);
+    /* v41 — پوشر فعال است؟ منتظر اتصالش می‌مانیم (پولینگ اضطراری بلند)؛
+       خاموش است؟ پولینگ سریعِ مود پولینگ. */
+    startPolling(!!(window.RT && RT.active()));
+})();

@@ -52,7 +52,7 @@
     display: block;
     height: 5px;
     flex-shrink: 0;
-    background: linear-gradient(90deg, var(--ui-brand, #c47f3d), var(--ui-brand-600, #a8652e));
+    background: linear-gradient(90deg, var(--ui-brand, #3b82f6), var(--ui-brand-600, #2563eb));
 }
 
 /* هالهٔ پشت هدر */
@@ -77,7 +77,7 @@
     filter: blur(46px);
     opacity: 0.18;
     pointer-events: none;
-    background: var(--ui-brand, #c47f3d);
+    background: var(--ui-brand, #3b82f6);
 }
 
 /* آیکون بلندگو */
@@ -88,8 +88,8 @@
     height: 3.4rem;
     border-radius: 9999px;
     color: #fff;
-    background: linear-gradient(135deg, var(--ui-brand, #c47f3d), var(--ui-brand-700, #864e27));
-    box-shadow: 0 12px 28px -8px rgba(168, 101, 46, 0.55);
+    background: linear-gradient(135deg, var(--ui-brand, #3b82f6), var(--ui-brand-700, #1d4ed8));
+    box-shadow: 0 12px 28px -8px rgba(37, 99, 235, 0.55);
     flex-shrink: 0;
     animation: annm-icon-pop 0.55s var(--ui-ease-spring, ease) 0.12s both;
 }
@@ -122,9 +122,9 @@
     gap: 0.3rem;
     font-size: 0.6rem;
     font-weight: 800;
-    color: var(--ui-brand-600, #a8652e);
-    background: color-mix(in srgb, var(--ui-brand, #c47f3d) 10%, transparent);
-    border: 1px solid color-mix(in srgb, var(--ui-brand, #c47f3d) 22%, transparent);
+    color: var(--ui-brand-600, #2563eb);
+    background: color-mix(in srgb, var(--ui-brand, #3b82f6) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ui-brand, #3b82f6) 22%, transparent);
     border-radius: 999px;
     padding: 0.1rem 0.55rem;
 }
@@ -138,7 +138,7 @@
 }
 .annm-date {
     font-size: 0.62rem;
-    color: var(--th-ink-faint, #a8a29e);
+    color: var(--th-ink-faint, #60a5fa);
     margin-top: 0.15rem;
 }
 
@@ -152,7 +152,7 @@
 .annm-text {
     font-size: 0.82rem;
     font-weight: 500;
-    color: var(--th-ink-soft, #78716c);
+    color: var(--th-ink-soft, #2563eb);
     line-height: 2;
     white-space: pre-wrap;
     word-break: break-word;
@@ -161,7 +161,7 @@
 .annm-media {
     border-radius: 1.1rem;
     overflow: hidden;
-    border: 1px solid var(--th-line, #e7e5e4);
+    border: 1px solid var(--th-line, #f1f5f9);
     margin-bottom: 1.1rem;
     animation: annm-media-in 0.35s var(--ui-ease-out, ease) 0.15s both;
 }
@@ -175,7 +175,7 @@
     display: block;
     width: 100%;
     max-height: 300px;
-    background: #211d1a;
+    background: #1a1a2e;
 }
 @keyframes annm-media-in {
     from { opacity: 0; transform: translateY(12px) scale(0.98); }
@@ -188,13 +188,13 @@
     align-items: center;
     gap: 0.65rem;
     padding: 1.05rem 1.4rem 1.25rem;
-    background: var(--th-surface-2, #fafaf9);
-    border-top: 1px solid var(--th-line, #f0efee);
+    background: var(--th-surface-2, #f8fafc);
+    border-top: 1px solid var(--th-line, #f1f5f9);
     flex-shrink: 0;
 }
 .annm-count {
     font-size: 0.65rem;
-    color: var(--th-ink-faint, #a8a29e);
+    color: var(--th-ink-faint, #60a5fa);
 }
 .annm-btn {
     margin-inline-start: auto;
@@ -222,11 +222,11 @@
 
 /* ---------- تاریک ---------- */
 html.dark .annm {
-    background: #2e2925;
+    background: #2d2d4a;
     box-shadow: 0 30px 70px -18px rgba(0, 0, 0, 0.8);
 }
 html.dark .annm-backdrop { background: rgba(12, 9, 6, 0.62); }
-html.dark .annm-kicker { color: #f2b35c; }
+html.dark .annm-kicker { color: #60a5fa; }
 
 /* ---------- ریسپکت reduced-motion ---------- */
 @media (prefers-reduced-motion: reduce) {

@@ -23,6 +23,7 @@
         radio:         { label: 'تک‌انتخابی',   icon: '⭕', hint: 'یک گزینه' },
         checkbox:      { label: 'چندانتخابی',   icon: '☑️', hint: 'چند گزینه' },
         file:          { label: 'فایل',         icon: '📎', hint: 'بارگذاری مدرک' },
+        plate:         { label: 'شماره پلاک',   icon: '🚘', hint: 'پلاک ایران — دو رقم، حرف، سه رقم، کد استان' },
     };
     const OPTION_TYPES = ['select', 'radio', 'checkbox'];
 
@@ -111,6 +112,8 @@
             c.setAttribute('aria-checked', on ? 'true' : 'false');
         });
         el('svb-unavailable-note-group').classList.toggle('hidden', value !== 'unavailable');
+        /* فاز ۴۶ — «قطع از سایت اصلی» یعنی مهلت خدمت هم بی‌معناست: فرم مهلت (تاریخ/ساعت/پیام پایان) مخفی شود */
+        el('svb-expires-group')?.classList.toggle('hidden', value === 'unavailable');
         updateStateBadge();
     }
 
@@ -217,24 +220,44 @@
         });
     }
 
+    /* [F-4] پذیرش تصویر زون‌ها: فشرده‌سازی سمت کاربر پیش از انتساب + بررسی حجم روی
+       خروجی نهایی (عکس موبایل چند مگابایتی بعد از فشرده‌سازی زیر سقف ۲MB می‌آید)؛
+       منطق حذف/پیش‌نمایش دست‌نخورده باقی می‌ماند. */
+    let zoneImageSeq = 0;
+
+    function acceptZoneImage(file, apply) {
+        if (!file.type || !file.type.startsWith('image/')) { App.toast('فایل انتخاب‌شده تصویر نیست.', 'error'); return; }
+        const seq = ++zoneImageSeq;
+        const use = (f) => {
+            if (seq !== zoneImageSeq) { return; } // در این میان تصویر دیگری انتخاب شد
+            const finalFile = (f && f.size <= file.size) ? f : file;
+            if (finalFile.size > 2 * 1024 * 1024) { App.toast('حجم تصویر حداکثر ۲ مگابایت است.', 'error'); return; }
+            apply(finalFile);
+        };
+        let p = null;
+        try { p = App.compressImage?.(file); } catch (err) { p = null; }
+        if (!p || typeof p.then !== 'function') { use(file); return; }
+        p.then(use).catch(() => use(file));
+    }
+
     bindSvbZone('s-image-zone', 's-image-file', file => {
-        if (!file.type.startsWith('image/')) { App.toast('فایل انتخاب‌شده تصویر نیست.', 'error'); return; }
-        if (file.size > 2 * 1024 * 1024) { App.toast('حجم تصویر حداکثر ۲ مگابایت است.', 'error'); return; }
-        imageFile = file;
-        removeImage = false;
-        el('s-image-preview-img').src = URL.createObjectURL(file);
-        el('s-image-preview').classList.remove('hidden');
-        markDirty();
+        acceptZoneImage(file, finalFile => {
+            imageFile = finalFile;
+            removeImage = false;
+            el('s-image-preview-img').src = URL.createObjectURL(finalFile);
+            el('s-image-preview').classList.remove('hidden');
+            markDirty();
+        });
     });
 
     bindSvbZone('svb-alert-image-zone', 'svb-alert-image-file', file => {
-        if (!file.type.startsWith('image/')) { App.toast('فایل انتخاب‌شده تصویر نیست.', 'error'); return; }
-        if (file.size > 2 * 1024 * 1024) { App.toast('حجم تصویر حداکثر ۲ مگابایت است.', 'error'); return; }
-        alertImageFile = file;
-        removeAlertImage = false;
-        el('svb-alert-image-preview-img').src = URL.createObjectURL(file);
-        el('svb-alert-image-preview').classList.remove('hidden');
-        markDirty();
+        acceptZoneImage(file, finalFile => {
+            alertImageFile = finalFile;
+            removeAlertImage = false;
+            el('svb-alert-image-preview-img').src = URL.createObjectURL(finalFile);
+            el('svb-alert-image-preview').classList.remove('hidden');
+            markDirty();
+        });
     });
 
     el('s-image-remove')?.addEventListener('click', e => {
@@ -816,6 +839,18 @@
                     <p class="text-[10px] text-stone-400 mt-0.5">${esc(f.placeholder) || 'انتخاب فایل'}</p>
                 </div>`;
                 break;
+            case 'plate': {
+                /* فاز ۴۶ — پیش‌نمایش پلاک ایران (خواندنی) */
+                control = `<div class="ir-plate ir-plate--static" dir="ltr" aria-hidden="true">` +
+                    `<span class="ir-flag"><i></i><i></i><i></i><b>I.R.IRAN</b></span>` +
+                    `<span class="ir-cell ir-two">۱۲</span>` +
+                    `<span class="ir-cell ir-letter">ب</span>` +
+                    `<span class="ir-cell ir-three">۳۴۵</span>` +
+                    `<span class="ir-sep"></span>` +
+                    `<span class="ir-iran"><small>ایران</small><b>۷۹</b></span>` +
+                    `</div>`;
+                break;
+            }
             case 'mobile':
                 control = `<input class="field !py-2 !text-[12px] font-mono pointer-events-none" tabindex="-1" readonly dir="ltr" placeholder="${esc(f.placeholder) || '09xxxxxxxxx'}">`;
                 break;

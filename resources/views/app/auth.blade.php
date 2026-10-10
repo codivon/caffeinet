@@ -8,11 +8,7 @@
 <div class="auth-wrap">
     <div class="auth-brand fade-up">
         <div class="mark">
-            <div class="steam" aria-hidden="true"><span></span><span></span><span></span></div>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
-                <path d="M6 2v2"/><path d="M10 2v2"/><path d="M14 2v2"/>
-            </svg>
+            <img src="{{ asset('icons/icon-96.png') }}" alt="" width="44" height="44" loading="lazy" style="width:44px;height:44px;object-fit:contain">
         </div>
         <h1>کافی‌نت آنلاین</h1>
         <p>خدمات کافی‌نت، آنلاین و در جیب شما</p>
@@ -79,5 +75,5 @@
 @endsection
 
 @push('page')
-    <script src="{{ asset('front/assets/js/pages/auth.js') }}?v=2" defer></script>
+    <script src="{{ asset('front/assets/js/pages/auth.js') }}?v=3" defer></script>
 @endpush

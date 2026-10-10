@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Livewire\App\Support;
+
+use Livewire\Attributes\Layout;
+use Livewire\Component;
+
+/**
+ * «گفتگوی تیکت» اپ مشتری — نسخهٔ Livewire 4 [Task 7]
+ *
+ * صفحهٔ گفتگوی تیکت با support-detail.js (CN.api → API v1) اجرا می‌شود و
+ * دست‌نخورده است — شناسهٔ تیکت را mount از پارامتر روت می‌گیرد و در
+ * data-ticket-id به JS پاس می‌دهد (عین PagesController::supportShow).
+ */
+#[Layout('app.layout')]
+class Show extends Component
+{
+    /** شناسهٔ تیکت (از پارامتر روت support/{ticket}) */
+    public int $ticketId;
+
+    public function mount(int $ticket): void
+    {
+        $this->ticketId = $ticket;
+    }
+
+    public function render(): \Illuminate\View\View
+    {
+        return view('livewire.app.support.show', [
+            'ticketId' => $this->ticketId,
+        ])->layoutData([
+            'htmlTitle'  => 'تیکت پشتیبانی',
+            /* فاز ۱۴ — فیکس «اسکرول نمی‌خورد در گوشی»: پوستهٔ تمام‌ارتفاع مثل چت سفارش؛
+               پیام‌های تیکت تنها ناحیهٔ اسکرول‌اند و پاسخ‌دهنده چسبیده به پایین می‌مانده.
+               v43 — کلاس «tk-shell» (قواعد v42 در app.css)؛ هر دو کلاس ست می‌شود تا
+               اگر استایل قدیمی cache شد هم چیدمان فیت حفظ شود.
+               v44 — «tk-full» + chrome=false: صفحهٔ تیکت تمام‌صفحه شد — بدون هدر و
+               بدون منوی پایین تا بیشترین فضا برای گفتگو باشد؛ دکمهٔ بازگشتِ شناور
+               گوشهٔ بالا-چپ صفحه قرار گرفت (tk-float-back در app.css). */
+            'chrome'     => false,
+            'shellClass' => 'ticket-shell tk-shell tk-full',
+        ]);
+    }
+}

@@ -96,6 +96,17 @@ class DynamicFormValidator
 
                 return $value;
 
+            case 'plate':
+                // فاز ۴۶ — پلاک ایران: ارقام فارسی/عربی → لاتین، فاصله‌ها یکدست
+                if (is_string($value)) {
+                    $value = en_digits(trim($value));
+                    $value = preg_replace('/\s+/u', ' ', $value) ?? $value;
+
+                    return $value === '' ? null : $value;
+                }
+
+                return $value;
+
             case 'text':
             case 'textarea':
             case 'email':
@@ -174,6 +185,17 @@ class DynamicFormValidator
             case 'email':
                 $rules[] = 'email:filter';
                 $rules[] = 'max:190';
+                break;
+
+            case 'plate':
+                // فاز ۴۶ — قالب پلاک ایران: «۱۲ ب ۳۴۵ ایران ۷۹» (ارقام لاتین پس از نرمال‌سازی)
+                $rules[] = 'string';
+                $rules[] = function (string $attribute, mixed $value, \Closure $fail) {
+                    if ($value !== null && $value !== ''
+                        && ! preg_match('/^\d{2} [\x{0600}-\x{06FF}]{1,2} \d{3} ایران \d{2}$/u', (string) $value)) {
+                        $fail('قالب «پلاک ایران» معتبر نیست — هر چهار خانه (دو رقم، حرف، سه رقم، کد استان) را کامل وارد کنید.');
+                    }
+                };
                 break;
 
             case 'date':

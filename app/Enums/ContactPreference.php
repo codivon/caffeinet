@@ -3,29 +3,29 @@
 namespace App\Enums;
 
 /**
- * v39/v40 — راه‌های ارتباطی پیشنهادی مشتری پس از پایان مهلت پخش بدون پذیرش اپراتور.
+ * v39/v40/v41 — راه‌های ارتباطی پیشنهادی مشتری پس از پایان مهلت پخش بدون پذیرش اپراتور.
  *
- * v40 — مدل جدید (درخواست مالک): «تماس تلفنی» یک چک‌باکس مستقل است (می‌شود
- * تیکش را برداشت) و «چت» یک انتخاب یگانه از پیام‌رسان‌ها. مقدار ذخیره‌شده
- * در orders.contact_preference ترکیبی است:
+ * v41 — مدل نهایی (درخواست مالک): همهٔ راه‌ها در «یک لیست واحد» چندانتخابی‌اند؛
+ * «تماس تلفنی» گزینهٔ اول لیست است (دیگر چک‌باکس جدا نیست) و «فرقی ندارد» (any)
+ * حذف شده. کاربر هر تعداد را که خواست تیک می‌زند. مقدار ذخیره‌شده در
+ * orders.contact_preference ترکیبی است:
  *
- *      "call,telegram"   → تماس + چت تلگرام
- *      "call"            → فقط تماس تلفنی
- *      "telegram"        → فقط چت تلگرام
- *      "call,any"        → تماس + «فرقی ندارد»
+ *      "call,telegram"      → تماس + چت تلگرام
+ *      "call"               → فقط تماس تلفنی
+ *      "telegram,whatsapp"  → چت تلگرام + واتس‌اپ
  *
  * مقادیر تک‌بخشی نسخهٔ v39 (call/app_chat/telegram/whatsapp/bale/eitaa/any)
- * همچنان به‌درستی تفسیر می‌شوند (سازگاری با داده‌های موجود).
+ * و مدل v40 همچنان به‌درستی تفسیر می‌شوند (سازگاری با داده‌های موجود).
  */
 enum ContactPreference: string
 {
-    case Call = 'call'; // تماس تلفنی (چک‌باکس مستقل v40)
+    case Call = 'call'; // تماس تلفنی (v41: گزینهٔ اول لیست واحد)
     case AppChat = 'app_chat'; // چت داخل خود برنامه
     case Telegram = 'telegram';
     case WhatsApp = 'whatsapp';
     case Bale = 'bale';
     case Eitaa = 'eitaa';
-    case Any = 'any'; // فرقی ندارد
+    case Any = 'any'; // فرقی ندارد (فقط برای تفسیر داده‌های قدیمی — از v41 در UI نیست)
 
     /** عنوان فارسی */
     public function label(): string
@@ -75,13 +75,43 @@ enum ContactPreference: string
         return array_map(fn (self $c) => $c->value, self::cases());
     }
 
-    /** گزینه‌های بخش «چت» (انتخاب یگانه — v40) */
+    /** گزینه‌های بخش «چت» (مدل قدیمی v40 — برای سازگاری) */
     public static function chatOptions(): array
     {
         return [self::AppChat, self::Telegram, self::WhatsApp, self::Bale, self::Eitaa, self::Any];
     }
 
-    /** مقدار ترکیبی از اجزا می‌سازد: call?,chat */
+    /**
+     * v41 — گزینه‌های لیست واحد چندانتخابی، به ترتیب نمایش:
+     * تماس تلفنی اول، سپس راه‌های چت؛ «فرقی ندارد» حذف شده است.
+     *
+     * @return array<int, self>
+     */
+    public static function options(): array
+    {
+        return [self::Call, self::AppChat, self::Telegram, self::WhatsApp, self::Bale, self::Eitaa];
+    }
+
+    /**
+     * v41 — ساخت مقدار ترکیبی از آرایهٔ توکن‌های انتخابی (مرتب‌سازی کانونی).
+     * توکن‌های نامعتبر حذف می‌شوند؛ «any» هم به‌عنوان دادهٔ قدیمی می‌ماند.
+     */
+    public static function fromTokens(array $tokens): string
+    {
+        $valid = self::values();
+        $tokens = array_values(array_unique(array_filter(array_map(
+            fn ($t) => trim((string) $t),
+            $tokens
+        ), fn ($t) => $t !== '' && in_array($t, $valid, true))));
+
+        /* مرتب‌سازی کانونی: مطابق ترتیب options() — تماس تلفنی اول */
+        $order = array_map(fn (self $c) => $c->value, self::options());
+        usort($tokens, fn ($a, $b) => array_search($a, $order, true) <=> array_search($b, $order, true));
+
+        return implode(',', $tokens) ?: self::Any->value;
+    }
+
+    /** مقدار ترکیبی از اجزا می‌سازد: call?,chat (مدل قدیمی v40 — برای سازگاری) */
     public static function fromParts(bool $call, ?string $chat): string
     {
         $tokens = [];
@@ -96,53 +126,52 @@ enum ContactPreference: string
     }
 
     /**
-     * تجزیهٔ مقدار ذخیره‌شده → [call => bool, chat => enum|null].
+     * تجزیهٔ مقدار ذخیره‌شده → همهٔ توکن‌های انتخابی.
      * مقادیر قدیمی تک‌بخشی هم پشتیبانی می‌شوند.
      *
-     * @return array{call: bool, chat: self|null}
+     * @return array{call: bool, chat: self|null, all: array<int, self>}
      */
     public static function parse(?string $value): array
     {
         $value = trim((string) $value);
         if ($value === '') {
-            return ['call' => false, 'chat' => null];
+            return ['call' => false, 'chat' => null, 'all' => []];
         }
 
         $tokens = array_filter(array_map('trim', explode(',', $value)));
 
         $call = false;
         $chat = null;
+        $all = [];
 
         foreach ($tokens as $token) {
             if ($token === self::Call->value) {
                 $call = true;
+                $all[] = self::Call;
                 continue;
             }
             try {
-                $chat = self::from($token);
+                $enum = self::from($token);
+                $chat = $enum;
+                $all[] = $enum;
             } catch (\ValueError) {
                 // توکن ناشناخته — نادیده گرفته می‌شود
             }
         }
 
-        return ['call' => $call, 'chat' => $chat];
+        return ['call' => $call, 'chat' => $chat, 'all' => $all];
     }
 
-    /** شرح فارسی کامل ترکیب برای پنل ادمین (v40) */
+    /** شرح فارسی کامل ترکیب برای پنل ادمین (v41: همهٔ توکن‌ها) */
     public static function describe(?string $value): ?string
     {
-        if (! $value || trim($value) === '') {
+        if (! $value || trim((string) $value) === '') {
             return null;
         }
 
-        $parts = self::parse($value);
         $labels = [];
-
-        if ($parts['call']) {
-            $labels[] = '📞 '.self::Call->label();
-        }
-        if ($parts['chat']) {
-            $labels[] = $parts['chat']->icon().' '.$parts['chat']->label();
+        foreach (self::parse($value)['all'] as $enum) {
+            $labels[] = $enum->icon().' '.$enum->label();
         }
 
         return $labels ? implode(' + ', $labels) : null;

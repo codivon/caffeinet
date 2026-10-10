@@ -1,7 +1,7 @@
-/* اپ مشتری — ویرایش اطلاعات پروفایل (v24 — از صفحهٔ پروفایل جدا شد) */
+/* اپ مشتری — ویرایش اطلاعات پروفایل (v24 — از صفحهٔ پروفایل جدا شد) (Vanilla JS — بدون jQuery) */
 /* v39 — تاریخ تولد با سه لیست کشویی سال/ماه/روز شمسی (بدون دیت‌پیکر) */
-/* global CN, jQuery */
-(function ($) {
+/* global CN */
+(function () {
     'use strict';
 
     if (!CN.requireAuth()) { return; }
@@ -14,7 +14,8 @@
     try {
         isNewUser = new URLSearchParams(window.location.search).get('new') === '1';
     } catch (e) { isNewUser = false; }
-    $('#pfWelcomeBanner').toggleClass('hidden', !isNewUser);
+    var welcomeBanner = document.getElementById('pfWelcomeBanner');
+    if (welcomeBanner) { welcomeBanner.classList.toggle('hidden', !isNewUser); }
 
     /* ---------- v39 — انتخابگر تاریخ تولد (سه لیست کشویی) ---------- */
     var BIRTH_MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
@@ -76,7 +77,8 @@
         for (var y = maxYear; y >= minYear; y--) {
             opts += '<option value="' + y + '"' + (selected === y ? ' selected' : '') + '>' + CN.toFaDigits(y) + '</option>';
         }
-        $('#pBirthYear').html(opts);
+        var yearSel = document.getElementById('pBirthYear');
+        if (yearSel) { yearSel.innerHTML = opts; }
     }
 
     function fillBirthMonths(selected) {
@@ -85,26 +87,33 @@
             var m = i + 1;
             opts += '<option value="' + m + '"' + (selected === m ? ' selected' : '') + '>' + name + '</option>';
         });
-        $('#pBirthMonth').html(opts);
+        var monthSel = document.getElementById('pBirthMonth');
+        if (monthSel) { monthSel.innerHTML = opts; }
     }
 
     function fillBirthDays(selected) {
-        var y = parseInt(String($('#pBirthYear').val() || ''), 10) || 0;
-        var m = parseInt(String($('#pBirthMonth').val() || ''), 10) || 0;
+        var yearSel = document.getElementById('pBirthYear');
+        var monthSel = document.getElementById('pBirthMonth');
+        var y = parseInt(String((yearSel && yearSel.value) || ''), 10) || 0;
+        var m = parseInt(String((monthSel && monthSel.value) || ''), 10) || 0;
         var days = (y && m) ? jalaliMonthDays(y, m) : 31;
 
         var opts = '<option value="">انتخاب روز…</option>';
         for (var d = 1; d <= days; d++) {
             opts += '<option value="' + d + '"' + (selected === d ? ' selected' : '') + '>' + CN.toFaDigits(d) + '</option>';
         }
-        $('#pBirthDay').html(opts);
+        var daySel = document.getElementById('pBirthDay');
+        if (daySel) { daySel.innerHTML = opts; }
     }
 
     /** مقدار نهایی Y/M/D (ارقام انگلیسی) یا '' */
     function birthValue() {
-        var y = String($('#pBirthYear').val() || '');
-        var m = String($('#pBirthMonth').val() || '');
-        var d = String($('#pBirthDay').val() || '');
+        var yearSel = document.getElementById('pBirthYear');
+        var monthSel = document.getElementById('pBirthMonth');
+        var daySel = document.getElementById('pBirthDay');
+        var y = String((yearSel && yearSel.value) || '');
+        var m = String((monthSel && monthSel.value) || '');
+        var d = String((daySel && daySel.value) || '');
         if (!y || !m || !d) { return ''; }
         return y + '/' + (m.length < 2 ? '0' + m : m) + '/' + (d.length < 2 ? '0' + d : d);
     }
@@ -124,14 +133,17 @@
         fillBirthDays(d);
 
         // اگر مقدار ذخیره‌شده خارج از بازهٔ مجاز است، بازه را گسترش می‌دهیم تا دیده شود
-        if (String($('#pBirthYear').val() || '') !== String(y)) {
-            $('#pBirthYear').prepend('<option value="' + y + '" selected>' + CN.toFaDigits(y) + '</option>');
+        var yearSel = document.getElementById('pBirthYear');
+        if (yearSel && String(yearSel.value || '') !== String(y)) {
+            yearSel.insertAdjacentHTML('afterbegin', '<option value="' + y + '" selected>' + CN.toFaDigits(y) + '</option>');
         }
-        if (parseInt(String($('#pBirthMonth').val() || '0'), 10) !== mo) {
-            $('#pBirthMonth').val(mo);
+        var monthSel = document.getElementById('pBirthMonth');
+        if (monthSel && parseInt(String(monthSel.value || '0'), 10) !== mo) {
+            monthSel.value = mo;
         }
-        if (parseInt(String($('#pBirthDay').val() || '0'), 10) !== d) {
-            $('#pBirthDay').prepend('<option value="' + d + '" selected>' + CN.toFaDigits(d) + '</option>');
+        var daySel = document.getElementById('pBirthDay');
+        if (daySel && parseInt(String(daySel.value || '0'), 10) !== d) {
+            daySel.insertAdjacentHTML('afterbegin', '<option value="' + d + '" selected>' + CN.toFaDigits(d) + '</option>');
         }
     }
 
@@ -139,18 +151,27 @@
     fillBirthMonths();
     fillBirthDays();
 
-    $('#pBirthYear, #pBirthMonth').on('change', function () {
-        // با تغییر سال/ماه، روزها بازسازی می‌شود (۳۱/۳۰/۲۹ کبیسه)
-        fillBirthDays(parseInt(String($('#pBirthDay').val() || ''), 10) || null);
-        $('#pBirthdate').val(birthValue());
-        $('#pBirthdate').removeClass('invalid');
-        $('#pBirthdateError').removeClass('show').text('');
+    var birthHidden = document.getElementById('pBirthdate');
+    var birthErrorEl = document.getElementById('pBirthdateError');
+
+    Array.prototype.forEach.call(document.querySelectorAll('#pBirthYear, #pBirthMonth'), function (sel) {
+        sel.addEventListener('change', function () {
+            // با تغییر سال/ماه، روزها بازسازی می‌شود (۳۱/۳۰/۲۹ کبیسه)
+            var daySel = document.getElementById('pBirthDay');
+            fillBirthDays(parseInt(String((daySel && daySel.value) || ''), 10) || null);
+            if (birthHidden) { birthHidden.value = birthValue(); }
+            if (birthHidden) { birthHidden.classList.remove('invalid'); }
+            if (birthErrorEl) { birthErrorEl.classList.remove('show'); birthErrorEl.textContent = ''; }
+        });
     });
-    $('#pBirthDay').on('change', function () {
-        $('#pBirthdate').val(birthValue());
-        $('#pBirthdate').removeClass('invalid');
-        $('#pBirthdateError').removeClass('show').text('');
-    });
+    var dayInput = document.getElementById('pBirthDay');
+    if (dayInput) {
+        dayInput.addEventListener('change', function () {
+            if (birthHidden) { birthHidden.value = birthValue(); }
+            if (birthHidden) { birthHidden.classList.remove('invalid'); }
+            if (birthErrorEl) { birthErrorEl.classList.remove('show'); birthErrorEl.textContent = ''; }
+        });
+    }
 
     /* ---------- بارگذاری دادهٔ فرم (v40 — خطا → بنر + تلاش مجدد) ---------- */
     /* باگ گزارش‌شده: «فرم اطلاعات لود نمی‌شود و چندبار رفرش لازم است».
@@ -158,7 +179,8 @@
        فرم برای همیشه خالی می‌ماند. اکنون پس از تلاش مجدد خودکارِ CN.api،
        بنر خطا + دکمهٔ «تلاش مجدد» می‌آید. */
     function loadMe() {
-        $('#profileLoadError').addClass('hidden');
+        var loadErrorEl = document.getElementById('profileLoadError');
+        if (loadErrorEl) { loadErrorEl.classList.add('hidden'); }
 
         CN.api('/me', {
             timeout: 15000,
@@ -169,12 +191,17 @@
                 try { window.localStorage.setItem('cn_user', JSON.stringify(u)); } catch (e) { /* noop */ }
                 CN.updateAvatar(u);
 
-                $('#pName').val(u.name || '');
-                $('#pFamily').val(u.family || '');
-                $('#pNationalId').val(u.national_id || '');
-                $('#pNidVerifiedBadge').toggleClass('hidden', !u.national_id_verified_at);
+                var pNameEl = document.getElementById('pName');
+                if (pNameEl) { pNameEl.value = u.name || ''; }
+                var pFamilyEl = document.getElementById('pFamily');
+                if (pFamilyEl) { pFamilyEl.value = u.family || ''; }
+                var pNationalIdEl = document.getElementById('pNationalId');
+                if (pNationalIdEl) { pNationalIdEl.value = u.national_id || ''; }
+                var nidBadge = document.getElementById('pNidVerifiedBadge');
+                if (nidBadge) { nidBadge.classList.toggle('hidden', !u.national_id_verified_at); }
                 if (u.gender) {
-                    $('input[name="gender"][value="' + u.gender + '"]').prop('checked', true);
+                    var genderInput = document.querySelector('input[name="gender"][value="' + u.gender + '"]');
+                    if (genderInput) { genderInput.checked = true; }
                 }
                 if (u.birthdate_fa) {
                     setBirthFromFa(u.birthdate_fa);
@@ -183,20 +210,29 @@
                 if (u.province && u.province.id) {
                     selectedProvinceId = u.province.id;
                     loadProvinces(function () {
-                        $('#pProvince').val(u.province.id).trigger('change');
+                        var provinceSel = document.getElementById('pProvince');
+                        if (provinceSel) {
+                            provinceSel.value = u.province.id;
+                            provinceSel.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
                     });
                 } else {
                     loadProvinces();
                 }
             },
             error: function (xhr, message) {
-                $('#profileLoadErrorMsg').text(message || 'ارتباط با سرور برقرار نشد؛ اینترنت خود را بررسی کنید.');
-                $('#profileLoadError').removeClass('hidden');
+                var msgEl = document.getElementById('profileLoadErrorMsg');
+                if (msgEl) { msgEl.textContent = message || 'ارتباط با سرور برقرار نشد؛ اینترنت خود را بررسی کنید.'; }
+                var errBanner = document.getElementById('profileLoadError');
+                if (errBanner) { errBanner.classList.remove('hidden'); }
             }
         });
     }
 
-    $(document).on('click', '#profileLoadRetry', function () { loadMe(); });
+    document.addEventListener('click', function (e) {
+        var retry = e.target.closest ? e.target.closest('#profileLoadRetry') : null;
+        if (retry) { loadMe(); }
+    });
 
     loadMe();
 
@@ -216,166 +252,211 @@
                 (resp.data || []).forEach(function (p) {
                     opts += '<option value="' + p.id + '">' + CN.esc(p.name) + '</option>';
                 });
-                $('#pProvince').html(opts).prop('disabled', false);
+                var provinceSel = document.getElementById('pProvince');
+                if (provinceSel) {
+                    provinceSel.innerHTML = opts;
+                    provinceSel.disabled = false;
+                }
                 if (after) { after(); }
             },
             error: function () {
-                $('#pProvince').html('<option value="">بارگذاری استان‌ها ناموفق بود</option>').prop('disabled', false);
-                $('#geoLoadError').removeClass('hidden');
+                var provinceSel = document.getElementById('pProvince');
+                if (provinceSel) {
+                    provinceSel.innerHTML = '<option value="">بارگذاری استان‌ها ناموفق بود</option>';
+                    provinceSel.disabled = false;
+                }
+                var geoErr = document.getElementById('geoLoadError');
+                if (geoErr) { geoErr.classList.remove('hidden'); }
             }
         });
     }
 
-    $('#pProvince').on('change', function () {
-        var pid = $(this).val();
-        if (!pid) {
-            $('#pCity').prop('disabled', true).html('<option value="">ابتدا استان را انتخاب کنید</option>');
-            return;
-        }
-        selectedProvinceId = pid;
+    var pProvinceEl = document.getElementById('pProvince');
+    if (pProvinceEl) {
+        pProvinceEl.addEventListener('change', function () {
+            var pid = pProvinceEl.value;
+            var citySel = document.getElementById('pCity');
+            if (!pid) {
+                if (citySel) {
+                    citySel.disabled = true;
+                    citySel.innerHTML = '<option value="">ابتدا استان را انتخاب کنید</option>';
+                }
+                return;
+            }
+            selectedProvinceId = pid;
 
-        $('#pCity').prop('disabled', true).html('<option value="">در حال بارگذاری…</option>');
+            if (citySel) {
+                citySel.disabled = true;
+                citySel.innerHTML = '<option value="">در حال بارگذاری…</option>';
+            }
 
-        CN.api('/geo/cities/' + pid, {
-            timeout: 15000,
-            retries: 2,
-            success: function (resp) {
-                var opts = '<option value="">انتخاب شهر…</option>';
-                (resp.data || []).forEach(function (c) {
-                    opts += '<option value="' + c.id + '">' + CN.esc(c.name) + '</option>';
-                });
-                var $city = $('#pCity').html(opts).prop('disabled', false);
+            CN.api('/geo/cities/' + pid, {
+                timeout: 15000,
+                retries: 2,
+                success: function (resp) {
+                    var opts = '<option value="">انتخاب شهر…</option>';
+                    (resp.data || []).forEach(function (c) {
+                        opts += '<option value="' + c.id + '">' + CN.esc(c.name) + '</option>';
+                    });
+                    var cityEl = document.getElementById('pCity');
+                    if (cityEl) {
+                        cityEl.innerHTML = opts;
+                        cityEl.disabled = false;
+                    }
 
-                // اگر شهر قبلاً ذخیره شده و همین استان است
-                if (selectedProvinceId === pid) {
-                    var cached = CN.user();
-                    if (cached && cached.city && cached.city.id && cached.province && +cached.province.id === +pid) {
-                        $city.val(cached.city.id);
+                    // اگر شهر قبلاً ذخیره شده و همین استان است
+                    if (selectedProvinceId === pid) {
+                        var cached = CN.user();
+                        if (cached && cached.city && cached.city.id && cached.province && +cached.province.id === +pid) {
+                            if (cityEl) { cityEl.value = cached.city.id; }
+                        }
                     }
                 }
-            }
+            });
         });
-    });
+    }
 
     /* ---------- اعتبارسنجی زندهٔ فرم ---------- */
-    $('#pNationalId').on('input', function () {
-        $(this).removeClass('invalid');
-        $('#pNationalIdError').removeClass('show').text('');
-        $('#pNidVerifiedBadge').addClass('hidden'); // با ویرایش، وضعیت تأیید باید دوباره بررسی شود
+    var pNationalIdEl = document.getElementById('pNationalId');
+    if (pNationalIdEl) {
+        pNationalIdEl.addEventListener('input', function () {
+            pNationalIdEl.classList.remove('invalid');
+            var errEl = document.getElementById('pNationalIdError');
+            if (errEl) { errEl.classList.remove('show'); errEl.textContent = ''; }
+            var badgeEl = document.getElementById('pNidVerifiedBadge');
+            if (badgeEl) { badgeEl.classList.add('hidden'); } // با ویرایش، وضعیت تأیید باید دوباره بررسی شود
+        });
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('#pName, #pFamily'), function (input) {
+        input.addEventListener('input', function () {
+            input.classList.remove('invalid');
+            var errEl = document.getElementById(input.id + 'Error');
+            if (errEl) { errEl.classList.remove('show'); errEl.textContent = ''; }
+        });
     });
-    $('#pName, #pFamily').on('input', function () {
-        $(this).removeClass('invalid');
-        $('#' + this.id + 'Error').removeClass('show').text('');
+    Array.prototype.forEach.call(document.querySelectorAll('#pProvince, #pCity'), function (input) {
+        input.addEventListener('change', function () {
+            input.classList.remove('invalid');
+            var errEl = document.getElementById(input.id + 'Error');
+            if (errEl) { errEl.classList.remove('show'); errEl.textContent = ''; }
+        });
     });
-    $('#pProvince, #pCity').on('change', function () {
-        $(this).removeClass('invalid');
-        $('#' + this.id + 'Error').removeClass('show').text('');
-    });
-    $('#genderGroup input').on('change', function () {
-        $('#genderError').removeClass('show').text('');
+    Array.prototype.forEach.call(document.querySelectorAll('#genderGroup input'), function (radio) {
+        radio.addEventListener('change', function () {
+            var errEl = document.getElementById('genderError');
+            if (errEl) { errEl.classList.remove('show'); errEl.textContent = ''; }
+        });
     });
 
     /* ---------- ذخیره ---------- */
-    $('#profileForm').on('submit', function (e) {
-        e.preventDefault();
-        CN.clearFieldErrors('#profileForm');
+    if (document.getElementById('profileForm')) {
+        document.getElementById('profileForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            CN.clearFieldErrors(document.getElementById('profileForm'));
 
-        var name = $('#pName').val().trim();
-        var family = $('#pFamily').val().trim();
-        var gender = $('input[name="gender"]:checked').val() || '';
-        var provinceId = $('#pProvince').val() || '';
-        var cityId = $('#pCity').val() || '';
-        var birthdate = birthValue();
-        var nationalId = CN.toEnDigits($('#pNationalId').val() || '').trim();
+            var pNameEl = document.getElementById('pName');
+            var pFamilyEl = document.getElementById('pFamily');
+            var name = String(pNameEl ? pNameEl.value : '').trim();
+            var family = String(pFamilyEl ? pFamilyEl.value : '').trim();
+            var genderChecked = document.querySelector('input[name="gender"]:checked');
+            var gender = genderChecked ? genderChecked.value : '';
+            var provinceId = (pProvinceEl && pProvinceEl.value) || '';
+            var pCityEl = document.getElementById('pCity');
+            var cityId = (pCityEl && pCityEl.value) || '';
+            var birthdate = birthValue();
+            var nationalId = CN.toEnDigits((pNationalIdEl && pNationalIdEl.value) || '').trim();
 
-        var valid = true;
+            var valid = true;
 
-        if (name.length < 2) { CN.fieldError('pName', 'نام را وارد کنید (حداقل ۲ حرف).'); valid = false; }
-        if (family.length < 2) { CN.fieldError('pFamily', 'نام‌خانوادگی را وارد کنید (حداقل ۲ حرف).'); valid = false; }
-        if (!gender) { CN.fieldError('gender', 'جنسیت را انتخاب کنید.'); valid = false; }
+            if (name.length < 2) { CN.fieldError('pName', 'نام را وارد کنید (حداقل ۲ حرف).'); valid = false; }
+            if (family.length < 2) { CN.fieldError('pFamily', 'نام‌خانوادگی را وارد کنید (حداقل ۲ حرف).'); valid = false; }
+            if (!gender) { CN.fieldError('gender', 'جنسیت را انتخاب کنید.'); valid = false; }
 
-        /* v40 — کد ملی */
-        if (nationalId) {
-            if (!/^\d{10}$/.test(nationalId)) {
-                CN.fieldError('pNationalId', 'کد ملی باید دقیقاً ۱۰ رقم باشد.'); valid = false;
-            } else if (!isValidNationalId(nationalId)) {
-                CN.fieldError('pNationalId', 'کد ملی واردشده معتبر نیست؛ رقم آخر (رقم کنترل) نمی‌خورد.'); valid = false;
-            }
-        } else if (nidRequired) {
-            CN.fieldError('pNationalId', 'کد ملی برای احراز هویت الزامی است.'); valid = false;
-        }
-        if (!provinceId) { CN.fieldError('pProvince', 'استان را انتخاب کنید.'); valid = false; }
-        if (!cityId) { CN.fieldError('pCity', 'شهر را انتخاب کنید.'); valid = false; }
-        if (!birthdate) {
-            CN.fieldError('pBirthdate', 'سال، ماه و روز تولدتان را انتخاب کنید.');
-            valid = false;
-        } else {
-            // روز انتخابی نباید از طول واقعی ماه بیشتر باشد (کبیسه)
-            var by = parseInt(birthdate.split('/')[0], 10);
-            var bm = parseInt(birthdate.split('/')[1], 10);
-            var bd = parseInt(birthdate.split('/')[2], 10);
-            if (bd > jalaliMonthDays(by, bm)) {
-                CN.fieldError('pBirthdate', 'روز انتخابی با ماه سازگار نیست؛ دوباره انتخاب کنید.');
-                valid = false;
-            }
-        }
-
-        if (!valid) {
-            CN.toast('لطفاً فیلدهای الزامی را کامل کنید.', 'error');
-            return;
-        }
-
-        CN.btnLoading($('#saveProfileBtn'), true, 'در حال ذخیره…');
-
-        CN.api('/profile/complete', {
-            method: 'POST',
-            data: {
-                name: name,
-                family: family,
-                gender: gender,
-                province_id: +provinceId,
-                city_id: +cityId,
-                birthdate: birthdate,
-                national_id: nationalId || null
-            },
-            success: function (resp) {
-                CN.btnLoading($('#saveProfileBtn'), false);
-                CN.updateAvatar(resp.user);
-
-                // به‌روزرسانی کش کاربر → گارد requireCompleteProfile از همین لحظه پاس می‌شود
-                try { window.localStorage.setItem('cn_user', JSON.stringify(resp.user)); } catch (e) { /* noop */ }
-
-                CN.toast(resp.message || 'اطلاعات با موفقیت ذخیره شد.', 'success');
-
-                var redirectTo;
-                if (isNewUser) {
-                    // اولین ورود → شروع استفاده از اپ
-                    redirectTo = '/app/home';
-                } else {
-                    // ویرایش عادی → بازگشت به نمای پروفایل (اطلاعات به‌روز)
-                    redirectTo = '/app/profile';
+            /* v40 — کد ملی */
+            if (nationalId) {
+                if (!/^\d{10}$/.test(nationalId)) {
+                    CN.fieldError('pNationalId', 'کد ملی باید دقیقاً ۱۰ رقم باشد.'); valid = false;
+                } else if (!isValidNationalId(nationalId)) {
+                    CN.fieldError('pNationalId', 'کد ملی واردشده معتبر نیست؛ رقم آخر (رقم کنترل) نمی‌خورد.'); valid = false;
                 }
-                window.setTimeout(function () {
-                    window.location.replace(CN.withPort(redirectTo));
-                }, isNewUser ? 900 : 700);
-            },
-            error: function (xhr, message) {
-                CN.btnLoading($('#saveProfileBtn'), false);
-                var errors = (xhr.responseJSON && xhr.responseJSON.errors) || {};
-
-                var map = {
-                    name: 'pName', family: 'pFamily', gender: 'gender',
-                    province_id: 'pProvince', city_id: 'pCity', birthdate: 'pBirthdate',
-                    national_id: 'pNationalId'
-                };
-                Object.keys(errors).forEach(function (key) {
-                    var el = map[key];
-                    if (el && errors[key] && errors[key].length) {
-                        CN.fieldError(el, errors[key][0]);
-                    }
-                });
-                CN.toast(message, 'error');
+            } else if (nidRequired) {
+                CN.fieldError('pNationalId', 'کد ملی برای احراز هویت الزامی است.'); valid = false;
             }
+            if (!provinceId) { CN.fieldError('pProvince', 'استان را انتخاب کنید.'); valid = false; }
+            if (!cityId) { CN.fieldError('pCity', 'شهر را انتخاب کنید.'); valid = false; }
+            if (!birthdate) {
+                CN.fieldError('pBirthdate', 'سال، ماه و روز تولدتان را انتخاب کنید.');
+                valid = false;
+            } else {
+                // روز انتخابی نباید از طول واقعی ماه بیشتر باشد (کبیسه)
+                var by = parseInt(birthdate.split('/')[0], 10);
+                var bm = parseInt(birthdate.split('/')[1], 10);
+                var bd = parseInt(birthdate.split('/')[2], 10);
+                if (bd > jalaliMonthDays(by, bm)) {
+                    CN.fieldError('pBirthdate', 'روز انتخابی با ماه سازگار نیست؛ دوباره انتخاب کنید.');
+                    valid = false;
+                }
+            }
+
+            if (!valid) {
+                CN.toast('لطفاً فیلدهای الزامی را کامل کنید.', 'error');
+                return;
+            }
+
+            CN.btnLoading(document.getElementById('saveProfileBtn'), true, 'در حال ذخیره…');
+
+            CN.api('/profile/complete', {
+                method: 'POST',
+                data: {
+                    name: name,
+                    family: family,
+                    gender: gender,
+                    province_id: +provinceId,
+                    city_id: +cityId,
+                    birthdate: birthdate,
+                    national_id: nationalId || null
+                },
+                success: function (resp) {
+                    CN.btnLoading(document.getElementById('saveProfileBtn'), false);
+                    CN.updateAvatar(resp.user);
+
+                    // به‌روزرسانی کش کاربر → گارد requireCompleteProfile از همین لحظه پاس می‌شود
+                    try { window.localStorage.setItem('cn_user', JSON.stringify(resp.user)); } catch (e) { /* noop */ }
+
+                    CN.toast(resp.message || 'اطلاعات با موفقیت ذخیره شد.', 'success');
+
+                    var redirectTo;
+                    if (isNewUser) {
+                        // اولین ورود → شروع استفاده از اپ
+                        redirectTo = '/app/home';
+                    } else {
+                        // ویرایش عادی → بازگشت به نمای پروفایل (اطلاعات به‌روز)
+                        redirectTo = '/app/profile';
+                    }
+                    window.setTimeout(function () {
+                        window.location.replace(CN.withPort(redirectTo));
+                    }, isNewUser ? 900 : 700);
+                },
+                error: function (xhr, message) {
+                    CN.btnLoading(document.getElementById('saveProfileBtn'), false);
+                    var respData = null;
+                    try { respData = JSON.parse(xhr.responseText); } catch (parseErr) { respData = null; }
+                    var errors = (respData && respData.errors) || {};
+
+                    var map = {
+                        name: 'pName', family: 'pFamily', gender: 'gender',
+                        province_id: 'pProvince', city_id: 'pCity', birthdate: 'pBirthdate',
+                        national_id: 'pNationalId'
+                    };
+                    Object.keys(errors).forEach(function (key) {
+                        var el = map[key];
+                        if (el && errors[key] && errors[key].length) {
+                            CN.fieldError(el, errors[key][0]);
+                        }
+                    });
+                    CN.toast(message, 'error');
+                }
+            });
         });
-    });
-})(jQuery);
+    }
+})();

@@ -209,29 +209,44 @@ class OrdersController extends Controller
         ]);
     }
 
-    /** POST /api/v1/orders/{order}/contact-preference {preference}
+    /** POST /api/v1/orders/{order}/contact-preference {preferences: [...]}
      * v39 — مشتری پس از پایان مهلت پخش بدون پذیرش، راه ارتباطی دلخواه خود را ثبت می‌کند. */
     public function contactPreference(Request $request, Order $order): JsonResponse
     {
         $this->authorizeOwner($request, $order);
 
         /*
-         * v40 — مدل جدید: تماس تلفنی (چک‌باکس مستقل) + یکی از راه‌های چت.
-         * ورودی: { call: bool, chat: 'app_chat'|'telegram'|'whatsapp'|'bale'|'eitaa'|'any' }
-         * حداقل یکی از دو بخش باید انتخاب شود.
+         * v41 — مدل نهایی: همهٔ راه‌ها یک لیست واحد چندانتخابی‌اند؛
+         * «تماس تلفنی» گزینهٔ اول لیست است و «فرقی ندارد» حذف شده.
+         * ورودی جدید:  { preferences: ['call','telegram', ...] }  (حداقل یکی)
+         * ورودی قدیمی v40 (سازگاری): { call: bool, chat: 'telegram' }
+         * مقدار ذخیره‌شده در orders.contact_preference ترکیبی است: «call,telegram»
          */
-        $data = $request->validate([
-            'call' => ['nullable', 'boolean'],
-            'chat' => ['nullable', 'string', 'in:'.implode(',', array_map(
-                fn (\App\Enums\ContactPreference $c) => $c->value,
-                \App\Enums\ContactPreference::chatOptions()
-            ))],
-        ], [
-            'chat.in' => 'راه ارتباطی انتخاب‌شده معتبر نیست.',
-        ], [
-            'call' => 'تماس تلفنی',
-            'chat' => 'راه ارتباطی چت',
-        ]);
+        $hasLegacyShape = $request->hasAny(['call', 'chat']);
+
+        $data = $hasLegacyShape
+            ? $request->validate([
+                'call' => ['nullable', 'boolean'],
+                'chat' => ['nullable', 'string', 'in:'.implode(',', array_map(
+                    fn (\App\Enums\ContactPreference $c) => $c->value,
+                    \App\Enums\ContactPreference::chatOptions()
+                ))],
+            ], [
+                'chat.in' => 'راه ارتباطی انتخاب‌شده معتبر نیست.',
+            ], [
+                'call' => 'تماس تلفنی',
+                'chat' => 'راه ارتباطی چت',
+            ])
+            : $request->validate([
+                'preferences'   => ['required', 'array', 'min:1'],
+                'preferences.*' => ['string', 'in:'.implode(',', \App\Enums\ContactPreference::values())],
+            ], [
+                'preferences.required' => 'انتخاب حداقل یک راه ارتباطی الزامی است.',
+                'preferences.min'      => 'انتخاب حداقل یک راه ارتباطی الزامی است.',
+                'preferences.*.in'     => 'راه ارتباطی انتخاب‌شده معتبر نیست.',
+            ], [
+                'preferences' => 'راه‌های ارتباطی',
+            ]);
 
         // فقط در وضعیت‌های پیش از اتصال اپراتور معنا دارد (صف تعیین‌تکلیف و پخشِ تمام‌شده)
         if (! in_array($order->status?->value, ['queued', 'broadcasting'], true)) {
@@ -240,17 +255,24 @@ class OrdersController extends Controller
             ], 422);
         }
 
-        $call = (bool) ($data['call'] ?? false);
-        $chat = $data['chat'] ?? null;
+        if ($hasLegacyShape) {
+            $call = (bool) ($data['call'] ?? false);
+            $chat = $data['chat'] ?? null;
 
-        if (! $call && ! $chat) {
-            return response()->json([
-                'message' => 'حداقل یکی از «تماس تلفنی» یا یک راه چت را انتخاب کنید.',
-                'errors' => ['chat' => ['حداقل یک روش ارتباطی انتخاب کنید.']],
-            ], 422);
+            if (! $call && ! $chat) {
+                return response()->json([
+                    'message' => 'حداقل یک راه ارتباطی را انتخاب کنید.',
+                    'errors'  => ['preferences' => ['حداقل یک راه ارتباطی را انتخاب کنید.']],
+                ], 422);
+            }
+
+            $tokens = $call ? ['call'] : [];
+            if ($chat) { $tokens[] = $chat; }
+        } else {
+            $tokens = $data['preferences'];
         }
 
-        $preference = \App\Enums\ContactPreference::fromParts($call, $chat);
+        $preference = \App\Enums\ContactPreference::fromTokens($tokens);
 
         $order->forceFill(['contact_preference' => $preference])->save();
 

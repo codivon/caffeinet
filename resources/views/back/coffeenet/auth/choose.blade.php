@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- تم ذخیره‌شده قبل از رندر اعمال می‌شود (ضد-FOUC) --}}
-    <script src="{{ asset('assets/js/theme-boot.js') }}?v=1"></script>
+    <script src="{{ asset('assets/js/theme-boot.js') }}?v=4"></script>
 
     <title>انتخاب کافی‌نت — {{ config('app.name') }}</title>
     {{-- PWA (فاز ۱۴) --}}
@@ -19,10 +19,12 @@
 
     {{-- استایل و اسکریپت — کاملاً بدون Node / بدون بیلد --}}
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v=10">
-    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=15">
-    <link rel="stylesheet" href="{{ asset('assets/css/pages/net-org.css') }}?v=10">
+    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=18">
+    <link rel="stylesheet" href="{{ asset('assets/css/pages/net-org.css') }}?v=11">
     {{-- سیستم تم روشن/تاریک (فاز ۱۰) — باید آخرین CSS باشد تا برنده بماند --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}?v=10">
+    <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}?v=11">
+    {{-- پوستهٔ پویا: پالت اختصاصی این پنل (بعد از theme.css) --}}
+    @include('partials.appearance', ['panel' => 'coffeenet'])
 </head>
 <body class="font-sans antialiased selection:bg-amber-200 selection:text-amber-950">
 
@@ -35,7 +37,7 @@
 <main class="no-theme-net relative min-h-screen grid place-items-center overflow-hidden bg-[#171009] px-4 py-10">
 
     <div class="pointer-events-none fixed inset-0" aria-hidden="true">
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_50%_-10%,rgba(196,127,61,0.25),transparent)]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_50%_-10%,rgba(37,99,235,0.25),transparent)]"></div>
         <span class="ui-blob" data-tone="amber" data-pos="1"></span>
         <span class="ui-blob" data-tone="deep" data-pos="2"></span>
     </div>
@@ -44,9 +46,7 @@
 
         <div class="text-center mb-7 animate-fade-up">
             <span class="inline-grid place-items-center size-14 rounded-3xl bg-gradient-to-br from-amber-400 to-amber-700 shadow-xl shadow-amber-950/40 mb-4">
-                <svg class="size-7 text-amber-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/>
-                </svg>
+                <img src="{{ asset('icons/icon-96.png') }}" alt="" width="32" height="32" loading="lazy" style="width:32px;height:32px;object-fit:contain">
             </span>
             <h1 class="text-xl font-extrabold text-amber-50 tracking-tight">کافی‌نت خود را انتخاب کنید</h1>
             <p class="mt-1.5 text-xs text-amber-200/50 font-light">{{ auth()->user()?->full_name }} عزیز، مدیریت چند کافی‌نت با حساب شما ثبت شده است</p>
@@ -78,9 +78,8 @@
     </div>
 </main>
 
-<script src="{{ asset('assets/js/vendor/jquery.min.js') }}?v=10"></script>
-<script src="{{ asset('back/assets/js/core.js') }}?v=10"></script>
-<script src="{{ asset('back/assets/js/ui.js') }}?v=10"></script>
+<script src="{{ asset('back/assets/js/core.js') }}?v=15"></script>
+<script src="{{ asset('back/assets/js/ui.js') }}?v=13"></script>
 <script src="{{ asset('back/assets/js/pages/coffeenet/auth/choose.js') }}?v=10"></script>
 </body>
 </html>

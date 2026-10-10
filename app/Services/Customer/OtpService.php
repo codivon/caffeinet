@@ -170,6 +170,8 @@ class OtpService
                 'mobile_verified_at' => now(),
                 'profile_completed' => false,
                 'is_active' => true,
+                // فاز ۵۳ — معرف فروشنده (کوکی ?ref= در لندینگ)
+                'referred_org_id' => self::referredOrgId(),
             ]);
             $user->assignRole('customer');
         }
@@ -200,5 +202,36 @@ class OtpService
     protected static function hash(string $mobile, string $code): string
     {
         return hash('sha256', $mobile.'|'.$code.'|'.config('app.key'));
+    }
+
+    /**
+     * فاز ۵۳ — سازمان فروشندهٔ معرف از کوکی «?ref=» (لندینگ ست می‌کند).
+     *
+     * فقط وقتی سوییچ features.reseller روشن است و کد معتبر به یک
+     * سازمانِ فروشندهٔ فعال می‌رسد، شناسه‌اش برمی‌گردد؛ وگرنه null.
+     */
+    protected static function referredOrgId(): ?int
+    {
+        try {
+            if (! app(\App\Services\Settings\SettingsService::class)->get('features.reseller', false)) {
+                return null;
+            }
+
+            $code = trim((string) request()->cookie('cn_ref', ''));
+
+            if ($code === '') {
+                return null;
+            }
+
+            $org = \App\Models\Organization::query()
+                ->where('ref_code', $code)
+                ->where('is_reseller', true)
+                ->first(['id', 'status']);
+
+            // فقط سازمان تأییدشده معرف حساب می‌شود
+            return ($org && $org->status === \App\Enums\OrganizationStatus::Approved) ? $org->id : null;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

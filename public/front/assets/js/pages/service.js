@@ -1,7 +1,8 @@
 /* اپ مشتری — صفحه خدمت + فرم داینامیک سفارش */
 /* فاز ۱۲ — آپلودر زیبای مدارک (دراپ‌زون + چیپ فایل) */
-/* global CN, jQuery */
-(function ($) {
+/* [Task 9] Vanilla JS — بدون jQuery */
+/* global CN */
+(function () {
     'use strict';
 
     if (!CN.requireCompleteProfile()) { return; }
@@ -25,10 +26,8 @@
     };
 
     function fupDetectType(file) {
-        if (file.type && file.type.indexOf('image/') === 0) { return 'image'; }
-        if (file.type && file.type.indexOf('video/') === 0) { return 'video'; }
-        if (file.type && file.type.indexOf('audio/') === 0) { return 'audio'; }
-        return 'file';
+        /* فاز ۱۴ — CN.detectFileType: file.type خالی در گالری موبایل → قضاوت از پسوند */
+        return CN.detectFileType(file);
     }
 
     function fupFa(n) { return CN.toFaDigits(String(n || 0)); }
@@ -57,27 +56,57 @@
         if (!zone && root) { zone = root.querySelector('.fup-zone'); }
 
         function addFiles(fileList) {
-            var added = 0;
-            Array.prototype.forEach.call(fileList || [], function (file) {
-                if (!opts.multiple && files.length >= 1) {
-                    CN.toast('برای این فیلد فقط یک فایل قابل انتخاب است.', 'error');
-                    return;
-                }
-                if (opts.maxKb && file.size > opts.maxKb * 1024) {
-                    CN.toast('حجم «' + (file.name || 'فایل') + '» بیش از حد مجاز است (حداکثر ' + fupFa(opts.maxKb / 1024) + ' مگابایت).', 'error');
-                    return;
-                }
-                if (dup(file)) {
-                    CN.toast('این فایل قبلاً اضافه شده است.', 'info');
-                    return;
-                }
-                files.push(file);
-                var t = makeThumb(file);
-                thumbEls.push(t.el);
-                thumbUrls.push(t.url || null);
-                added++;
+            /* [F-4] پردازش ترتیبی فایل‌ها — شرط تک‌فایل و dup مثل قبل روی فایلِ اصلی
+               (نام+حجم پیش از فشرده‌سازی) بررسی می‌شود تا رفتار قدیمی عیناً حفظ شود. */
+            var list = Array.prototype.slice.call(fileList || []);
+            if (!list.length) { return; }
+            var before = files.length;
+            var chain = Promise.resolve();
+            list.forEach(function (file) {
+                chain = chain.then(function () { return addOneFile(file); });
             });
-            if (added) { render(); }
+            chain.then(function () {
+                if (files.length !== before) { render(); }
+            })['catch'](function () {
+                if (files.length !== before) { render(); }
+            });
+        }
+
+        function addOneFile(file) {
+            if (!opts.multiple && files.length >= 1) {
+                CN.toast('برای این فیلد فقط یک فایل قابل انتخاب است.', 'error');
+                return Promise.resolve();
+            }
+            if (opts.maxKb && file.size > opts.maxKb * 1024) {
+                CN.toast('حجم «' + (file.name || 'فایل') + '» بیش از حد مجاز است (حداکثر ' + fupFa(opts.maxKb / 1024) + ' مگابایت).', 'error');
+                return Promise.resolve();
+            }
+            if (dup(file)) {
+                CN.toast('این فایل قبلاً اضافه شده است.', 'info');
+                return Promise.resolve();
+            }
+
+            /* [F-4] تصویر → فشرده‌سازی سمت کاربر پیش از push (آپلود سریع‌تر) */
+            if (fupDetectType(file) === 'image' && CN.compressImage && typeof CN.compressImage === 'function') {
+                var p = null;
+                try { p = CN.compressImage(file); } catch (e) { p = null; }
+                if (p && typeof p.then === 'function') {
+                    return p.then(function (compressed) {
+                        pushFile(compressed && compressed.size <= file.size ? compressed : file);
+                    })['catch'](function () {
+                        pushFile(file);
+                    });
+                }
+            }
+            return Promise.resolve(pushFile(file));
+        }
+
+        function pushFile(file) {
+            if (!opts.multiple && files.length >= 1) { return; } /* گارد مجدد (جریان async) */
+            files.push(file);
+            var t = makeThumb(file); /* بندانگشتی از فایل نهایی (فشرده‌شده) — متن KB از file.size خوانده می‌شود */
+            thumbEls.push(t.el);
+            thumbUrls.push(t.url || null);
         }
 
         function dup(file) {
@@ -94,6 +123,13 @@
                     var img = document.createElement('img');
                     img.alt = '';
                     url = URL.createObjectURL(file);
+                    /* v42 — اگر مرورگر گوشی فرمت را نتوانست (مثل HEIC) → آیکن */
+                    img.onerror = function () {
+                        img.remove();
+                        if (url) { try { URL.revokeObjectURL(url); } catch (e) { /* noop */ } }
+                        var svg2 = el.querySelector('svg');
+                        if (svg2) { svg2.style.display = ''; }
+                    };
                     img.src = url;
                     el.appendChild(img);
                 } catch (e) { /* noop */ }
@@ -222,6 +258,74 @@
     var detailAttempts = 0;
     var DETAIL_MAX_TRIES = 3; // ۱ تلاش اول + ۲ تلاش مجدد
 
+    /* ---------- فاز ۵۷ — گیت لودینگ سفارش (درخواست مالک) ----------
+       «اگر فرم لود نشده، صفحه هم لود نشود (به‌جز موارد ثابت)»:
+       تا وقتی دیتای خدمت نرسیده، کارت هزینه + کارت فرم مخفی‌اند و فقط
+       قهرمان ثابت (svcHero) + یک کارت گیت لودینگ دیده می‌شود.
+       هر شکستی (شبکه/۴xx/۵xx/خطای رندر/انتظار طولانی) = کارت خطا با تلاش مجدد —
+       هیچ‌وقت صفحهٔ نصفه/اسکلتون ابدی. */
+    var GATE_WATCHDOG_MS = 20000;
+    var gateWatchdog = null;
+
+    function setGate(state, msg) {
+        var costCard = document.getElementById('costCard');
+        var formCard = document.getElementById('formCard');
+        var gate = document.getElementById('svcGate');
+
+        if (!gate) {
+            gate = document.createElement('div');
+            gate.id = 'svcGate';
+            gate.className = 'card fade-up d1';
+            var anchor = document.getElementById('costCard');
+            if (anchor && anchor.parentNode) { anchor.parentNode.insertBefore(gate, anchor); }
+            else if (formCard && formCard.parentNode) { formCard.parentNode.insertBefore(gate, formCard); }
+        }
+
+        var showMain = state === 'ready';
+        if (costCard) { costCard.classList.toggle('hidden', !showMain); }
+        if (formCard) { formCard.classList.toggle('hidden', !showMain); }
+
+        if (state === 'loading') {
+            gate.classList.remove('hidden');
+            gate.innerHTML =
+                '<div style="display:flex;align-items:center;gap:10px;padding:6px 2px">' +
+                    '<span class="spinner" style="width:18px;height:18px;border-color:var(--line);border-top-color:var(--brand-600)"></span>' +
+                    '<div style="min-width:0">' +
+                        '<b style="font-size:13px;color:var(--ink)">در حال آماده‌سازی فرم سفارش…</b>' +
+                        '<div class="text-faint" style="font-size:11px;margin-top:2px">دریافت جزئیات هزینه و فرم این خدمت</div>' +
+                    '</div>' +
+                '</div>';
+        } else if (state === 'error') {
+            gate.classList.remove('hidden');
+            gate.innerHTML =
+                '<div style="text-align:center;padding:10px 4px">' +
+                    '<div style="width:44px;height:44px;margin:0 auto;border-radius:14px;background:var(--brand-50,var(--surface));display:grid;place-items:center;font-size:20px">⚠️</div>' +
+                    '<b style="display:block;font-size:13.5px;color:var(--ink);margin-top:8px">فرم این خدمت بارگذاری نشد</b>' +
+                    '<div class="text-faint" style="font-size:11.5px;margin-top:3px">' + CN.esc(msg || 'ارتباط با سرور برقرار نشد.') + '</div>' +
+                    '<button type="button" id="svcGateRetry" class="btn btn-primary" style="margin-top:12px;padding:9px 22px;font-size:12.5px">↻ تلاش مجدد</button>' +
+                '</div>';
+            var retry = document.getElementById('svcGateRetry');
+            if (retry) {
+                retry.addEventListener('click', function () {
+                    detailAttempts = 0;
+                    setGate('loading');
+                    armGateWatchdog();
+                    loadDetail();
+                });
+            }
+        } else {
+            gate.classList.add('hidden');
+        }
+    }
+
+    function armGateWatchdog() {
+        if (gateWatchdog) { window.clearTimeout(gateWatchdog); }
+        gateWatchdog = window.setTimeout(function () {
+            /* اگر بعد از ۲۰ ثانیه هنوز دیتا نرسیده = هر چیزی که مانده را رها کن و خطا نشان بده */
+            if (!detail) { setGate('error', 'پاسخی از سرور دریافت نشد؛ لطفاً دوباره تلاش کنید.'); }
+        }, GATE_WATCHDOG_MS);
+    }
+
     function isTransientXhr(xhr) {
         if (!xhr) { return true; }
         if (!xhr.status || xhr.status === 0) { return true; } // شبکه/قطع/آبورت
@@ -232,31 +336,46 @@
     }
 
     function loadDetail() {
-        $('#svcName').text('در حال دریافت…');
-        $('#svcDesc').text('');
+        var svcNameEl = document.getElementById('svcName');
+        if (svcNameEl) { svcNameEl.textContent = 'در حال دریافت…'; }
+        var svcDescEl = document.getElementById('svcDesc');
+        if (svcDescEl) { svcDescEl.textContent = ''; }
+
+        /* فاز ۵۷ — گیت لودینگ: کارت‌های هزینه/فرم مخفی تا دیتا برسد */
+        setGate('loading');
 
         CN.api('/services/' + serviceId, {
             timeout: 15000,
             success: function (resp) {
                 detail = resp.data;
-                renderDetail();
+                try {
+                    renderDetail();
+                } catch (err) {
+                    /* فاز ۵۷ — خطای رندر (فرم بدشکل/فیلد ناشناخته) هرگز بی‌صدا نماند */
+                    detail = null;
+                    if (window.console && console.error) { console.error('[service] render failed:', err); }
+                    setGate('error', 'نمایش فرم این خدمت با خطا مواجه شد؛ دوباره تلاش کنید.');
+                }
             },
             error: function (xhr, message) {
                 detailAttempts += 1;
 
                 /* خطای گذرا → تلاش مجدد خودکار با فاصلهٔ کوتاه */
                 if (isTransientXhr(xhr) && detailAttempts < DETAIL_MAX_TRIES) {
-                    $('#svcName').text('تلاش مجدد برای دریافت خدمت… (' + CN.toFaDigits(detailAttempts) + '/' + CN.toFaDigits(DETAIL_MAX_TRIES - 1) + ')');
+                    var svcNameRetry = document.getElementById('svcName');
+                    if (svcNameRetry) { svcNameRetry.textContent = 'تلاش مجدد برای دریافت خدمت… (' + CN.toFaDigits(detailAttempts) + '/' + CN.toFaDigits(DETAIL_MAX_TRIES - 1) + ')'; }
                     window.setTimeout(loadDetail, 900 * detailAttempts);
                     return;
                 }
 
                 /* ۴۰۴ واقعی → خدمت حذف/غیرفعال شده */
                 if (xhr && xhr.status === 404) {
-                    $('#svcName').text('خدمت یافت نشد');
-                    $('#svcDesc').text(message);
-                    $('#dynamicFields').html('<p class="text-faint tiny">این خدمت وجود ندارد یا غیرفعال شده است.</p>');
-                    $('#costRows').html('');
+                    var svcName404 = document.getElementById('svcName');
+                    if (svcName404) { svcName404.textContent = 'خدمت یافت نشد'; }
+                    var svcDesc404 = document.getElementById('svcDesc');
+                    if (svcDesc404) { svcDesc404.textContent = message; }
+                    /* فاز ۵۷ — به‌جای نوشتن در فرمِ مخفی، گیت خطا نشان می‌دهد (بدون تلاش مجدد) */
+                    setGateFinal404();
                     return;
                 }
 
@@ -265,39 +384,54 @@
         });
     }
 
+    /* فاز ۵۷ — حالت «خدمت وجود ندارد»: گیت پیام + دکمهٔ بازگشت (بدون تلاش مجدد بی‌فایده) */
+    function setGateFinal404() {
+        if (gateWatchdog) { window.clearTimeout(gateWatchdog); }
+        setGate('error', 'این خدمت وجود ندارد یا غیرفعال شده است.');
+        var retry = document.getElementById('svcGateRetry');
+        if (retry) {
+            retry.textContent = 'بازگشت به خدمات';
+            retry.id = 'svcGateBack';
+            retry.addEventListener('click', function () {
+                window.location.href = CN.withPort ? CN.withPort('/app/services') : '/app/services';
+            });
+        }
+    }
+
     function renderDetailError(message) {
-        $('#svcName').text('خطا در دریافت خدمت');
-        $('#svcDesc').text(message || 'ارتباط با سرور برقرار نشد.');
+        var svcNameEl = document.getElementById('svcName');
+        if (svcNameEl) { svcNameEl.textContent = 'خطا در دریافت خدمت'; }
+        var svcDescEl = document.getElementById('svcDesc');
+        if (svcDescEl) { svcDescEl.textContent = message || 'ارتباط با سرور برقرار نشد.'; }
 
-        $('#costRows').html('');
-        $('#totalAmount').text('—');
-        $('#submitOrderBtn').prop('disabled', true);
-
-        $('#dynamicFields').html(
-            '<div class="form-group" style="text-align:center">' +
-            '<p class="help-text" style="font-size:13px">دریافت فرم این خدمت با خطا مواجه شد؛ اتصال اینترنت خود را بررسی کنید و دوباره تلاش کنید.</p>' +
-            '<button type="button" class="btn btn-outline" id="retryDetailBtn" style="margin-top:8px">' +
-            '↻ تلاش مجدد' +
-            '</button>' +
-            '</div>'
-        );
-
-        $('#retryDetailBtn').on('click', function () {
-            detailAttempts = 0;
-            $('#dynamicFields').html('<div class="skeleton" style="height:56px"></div><div class="skeleton" style="height:56px"></div>');
-            loadDetail();
-        });
+        /* فاز ۵۷ — خطای نهایی = گیت خطا (کارت‌های هزینه/فرم مخفی می‌مانند) */
+        setGate('error', message || 'ارتباط با سرور برقرار نشد.');
     }
 
     /* بازگشت از bfcache (دکمهٔ back) با فرم ناقص → دریافت مجدد */
-    $(window).on('pageshow', function (e) {
-        if (e.originalEvent && e.originalEvent.persisted && !detail) {
+    window.addEventListener('pageshow', function (e) {
+        if (e.persisted && !detail) {
             detailAttempts = 0;
+            armGateWatchdog();
             loadDetail();
         }
     });
 
-    loadDetail();
+    /* ---------- فاز ۵۷ — boot مقاوم ----------
+       ۱) اگر در ناوبری SPA فرم هنوز سواپ نشده باشد (#dynamicFields نیست)،
+          تا ۲ ثانیه با مهربانی منتظر می‌مانیم — نه مرگ بی‌صدای اسکریپت.
+       ۲) سگ‌بان ۲۰ ثانیه‌ای: هر چیزی که جلوی لود را بگیرد، در نهایت کارت
+          خطا با «تلاش مجدد» نشان داده می‌شود — صفحهٔ نیمه‌لود ممنوع. */
+    function bootServicePage() {
+        armGateWatchdog();
+        loadDetail();
+    }
+
+    (function waitDomThenBoot(tries) {
+        var fieldsReady = document.getElementById('dynamicFields');
+        if (fieldsReady || tries >= 40) { bootServicePage(); return; }
+        window.setTimeout(function () { waitDomThenBoot(tries + 1); }, 50);
+    })(0);
 
     /* ---------- فاز ۱۵: وضعیت ساعت کاری (برای گارد ثبت) ---------- */
     var workHours = null;
@@ -332,10 +466,12 @@
             '  </div>' +
             '</div>';
 
-        var $m = $(html);
-        $('body').append($m);
-        $m.find('.ann-ok').on('click', function () { $m.remove(); });
-        $m.on('click', function (e) { if (e.target === $m[0]) { $m.remove(); } });
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        var m = tmp.firstElementChild;
+        document.body.appendChild(m);
+        m.querySelector('.ann-ok').addEventListener('click', function () { m.remove(); });
+        m.addEventListener('click', function (e) { if (e.target === m) { m.remove(); } });
     }
 
     function checkWorkHours() {
@@ -369,10 +505,12 @@
             '  </div>' +
             '</div>';
 
-        var $m = $(html);
-        $('body').append($m);
-        $m.find('.ann-ok').on('click', function () { $m.remove(); });
-        $m.on('click', function (e) { if (e.target === $m[0]) { $m.remove(); } });
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        var m = tmp.firstElementChild;
+        document.body.appendChild(m);
+        m.querySelector('.ann-ok').addEventListener('click', function () { m.remove(); });
+        m.addEventListener('click', function (e) { if (e.target === m) { m.remove(); } });
     }
 
     function alertModal(alert) {
@@ -398,24 +536,42 @@
             '  </div>' +
             '</div>';
 
-        var $m = $(html);
-        $('body').append($m);
-        $m.find('.ann-ok').on('click', function () { $m.remove(); });
-        $m.on('click', function (e) { if (e.target === $m[0]) { $m.remove(); } });
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        var m = tmp.firstElementChild;
+        document.body.appendChild(m);
+        m.querySelector('.ann-ok').addEventListener('click', function () { m.remove(); });
+        m.addEventListener('click', function (e) { if (e.target === m) { m.remove(); } });
     }
 
     function renderDetail() {
         var d = detail;
 
-        /* قهرمان */
-        $('#svcIcon').text((d.category && d.category.icon) || '📄');
-        $('#svcName').text(d.name);
-        $('#svcDesc').text(d.description || '');
+        /* فاز ۵۷ — دیتا رسید: گیت باز و کارت‌های هزینه/فرم نمایش داده شوند */
+        setGate('ready');
 
-        /* فاز ۱۵ — تصویر خدمت */
+        /* قهرمان */
+        var svcIconEl = document.getElementById('svcIcon');
+        if (svcIconEl) { svcIconEl.textContent = (d.category && d.category.icon) || '📄'; }
+        var svcNameEl = document.getElementById('svcName');
+        if (svcNameEl) { svcNameEl.textContent = d.name; }
+        var svcDescEl = document.getElementById('svcDesc');
+        if (svcDescEl) { svcDescEl.textContent = d.description || ''; }
+
+        /* فاز ۱۵ — تصویر خدمت (+ فاز ۵۸: خطای بارگذاری → حذف تصویر و برگشت به آیکون) */
         if (d.image_url) {
-            $('#svcHero').prepend('<img class="svc-hero-img" src="' + CN.esc(d.image_url) + '" alt="' + CN.esc(d.name) + '">');
-            $('#svcIcon').addClass('hidden');
+            var svcHeroEl = document.getElementById('svcHero');
+            if (svcHeroEl) {
+                svcHeroEl.insertAdjacentHTML('afterbegin', '<img class="svc-hero-img" src="' + CN.esc(d.image_url) + '" alt="' + CN.esc(d.name) + '">');
+                var heroImg = svcHeroEl.querySelector('.svc-hero-img');
+                if (heroImg) {
+                    heroImg.addEventListener('error', function () {
+                        heroImg.remove();
+                        if (svcIconEl) { svcIconEl.classList.remove('hidden'); }
+                    });
+                }
+            }
+            if (svcIconEl) { svcIconEl.classList.add('hidden'); }
         }
 
         /* فاز ۱۵ — وضعیت برخط: قطع/انقضا → بنر + بلوکه کردن فرم */
@@ -427,8 +583,11 @@
                 '<div class="min-w-0"><b>' + (isExp ? 'مهلت خدمت به پایان رسیده است' : 'این خدمت موقتاً از سایت اصلی قطع است') + '</b>' +
                 '<p>' + CN.esc(d.availability_note || '') + '</p></div></div>';
 
-            $('#formCard').before(banner);
-            $('#formCard').addClass('hidden');
+            var formCardEl = document.getElementById('formCard');
+            if (formCardEl) {
+                formCardEl.insertAdjacentHTML('beforebegin', banner);
+                formCardEl.classList.add('hidden');
+            }
             stateModal(d.availability_state, d.availability_note, isExp ? d.expires_at_label : null);
             return; // فرم رندر نمی‌شود
         }
@@ -446,28 +605,29 @@
             badges += '<span class="badge badge-amber">⭐ پیشنهاد ویژه</span>';
         }
         if (d.estimated_time_label && d.estimated_time_label !== '—') {
-            badges += '<span class="badge badge-stone">⏱ ' + CN.esc(d.estimated_time_label) + '</span>';
+            /* فاز ۴۶ — واضح و مفهوم: کاربر باید بفهمد «حدود ۳۰ دقیقه» یعنی زمان انجام کار */
+            badges += '<span class="badge badge-stone">⏱ زمان انجام: ' + CN.esc(d.estimated_time_label) + '</span>';
         }
-        if (d.version) {
-            badges += '<span class="badge badge-stone">نسخه ' + CN.toFaDigits(d.version) + ' فرم</span>';
-        }
-        $('#svcBadges').html(badges);
-        $('#svcTime').text(d.estimated_time_label && d.estimated_time_label !== '—' ? d.estimated_time_label : '');
+        var svcBadgesEl = document.getElementById('svcBadges');
+        if (svcBadgesEl) { svcBadgesEl.innerHTML = badges; }
+        var svcTimeEl = document.getElementById('svcTime');
+        if (svcTimeEl) { svcTimeEl.textContent = d.estimated_time_label && d.estimated_time_label !== '—' ? ('زمان تقریبی انجام: ' + d.estimated_time_label) : ''; }
 
-        /* ردیف‌های قیمت */
+        /* ردیف‌های قیمت — v42: بج «مشمول کمیسیون» طبق درخواست مالک حذف شد */
         var rows = '';
-        rows += priceRow('💰', 'کارمزد خدمت', d.base_price, false);
+        rows += priceRow('💰', 'کارمزد خدمت', d.base_price);
         (d.costs || []).forEach(function (c) {
             rows += priceRow(
                 c.type === 'fee' ? '🧾' : '📦',
-                c.title + (c.is_commission ? '' : ''),
-                c.amount,
-                !!c.is_commission
+                c.title,
+                c.amount
             );
         });
-        rows += '<div class="price-row total"><span class="pr-title">هزینهٔ درخواست</span><span class="pr-amount">' + CN.faMoney(d.total_amount) + ' تومان</span></div>';
-        $('#costRows').html(rows);
-        $('#totalAmount').text(CN.faMoneyUnit(d.total_amount));
+        rows += '<div class="price-row total"><span class="pr-title">مبلغ قابل پرداخت</span><span class="pr-amount">' + CN.faMoney(d.total_amount) + ' تومان</span></div>';
+        var costRowsEl = document.getElementById('costRows');
+        if (costRowsEl) { costRowsEl.innerHTML = rows; }
+        var totalAmountEl = document.getElementById('totalAmount');
+        if (totalAmountEl) { totalAmountEl.textContent = CN.faMoneyUnit(d.total_amount); }
 
         /* فرم داینامیک */
         renderFields(d.form_fields || []);
@@ -477,18 +637,24 @@
 
         /* یادداشت مدارک — فقط وقتی خدمت واقعاً نیاز به آپلود دارد نمایش داده می‌شود */
         var needsUpload = !!(d.requires_upload || d.has_file_fields);
-        $('#extraDocsGroup').toggleClass('hidden', !needsUpload);
-        if (needsUpload) {
-            $('#extraDocsGroup .label').text(
-                d.requires_upload ? 'مدارک لازم (الزامی برای این خدمت)' : 'مدارک (پیوست فایل فرم)'
-            );
+        var extraDocsGroupEl = document.getElementById('extraDocsGroup');
+        if (extraDocsGroupEl) {
+            extraDocsGroupEl.classList.toggle('hidden', !needsUpload);
+            if (needsUpload) {
+                var extraLabelEl = extraDocsGroupEl.querySelector('.label');
+                if (extraLabelEl) {
+                    extraLabelEl.textContent =
+                        d.requires_upload ? 'مدارک لازم (الزامی برای این خدمت)' : 'مدارک (پیوست فایل فرم)';
+                }
+            }
         }
 
-        $('#submitOrderBtn').prop('disabled', false);
+        var submitBtnEl = document.getElementById('submitOrderBtn');
+        if (submitBtnEl) { submitBtnEl.disabled = false; }
     }
 
-    function priceRow(icon, title, amount, commission) {
-        return '<div class="price-row' + (commission ? ' commission' : '') + '">' +
+    function priceRow(icon, title, amount) {
+        return '<div class="price-row">' +
             '<span class="pr-title">' + CN.esc(icon) + ' ' + CN.esc(title) + '</span>' +
             '<span class="pr-amount">' + CN.faMoney(amount) + ' تومان</span>' +
             '</div>';
@@ -506,7 +672,8 @@
             html = '<p class="text-faint tiny">این خدمت فرم ندارد؛ مستقیم ثبت کنید.</p>';
         }
 
-        $('#dynamicFields').html(html);
+        var dynamicFieldsEl = document.getElementById('dynamicFields');
+        if (dynamicFieldsEl) { dynamicFieldsEl.innerHTML = html; }
 
         /* بایند تقویم شمسی روی فیلدهای تاریخ رندرشده */
         if (window.CNJdp) { window.CNJdp.bindAll(document.getElementById('dynamicFields')); }
@@ -576,6 +743,10 @@
                 group = inputShell(f, '<input class="field num" id="f_' + CN.esc(f.name) + '" type="email" placeholder="' + CN.esc(f.placeholder || 'name@mail.com') + '" dir="ltr" style="text-align:center">');
                 break;
 
+            case 'plate': // فاز ۴۶ — شماره پلاک ایران (خونه‌های جدا با ظاهر پلاک واقعی)
+                group = inputShell(f, plateHtml(f));
+                break;
+
             default: // text
                 group = inputShell(f, '<input class="field" id="f_' + CN.esc(f.name) + '" type="text" placeholder="' + CN.esc(f.placeholder || '') + '" maxlength="255">');
         }
@@ -587,6 +758,28 @@
         var req = f.is_required ? ' <span class="req">*</span>' : '';
         var help = f.help_text ? '<p class="help-text">' + CN.esc(f.help_text) + '</p>' : '';
         return shell(f, req, inputHtml, '<p class="field-error" id="err_' + CN.esc(f.name) + '"></p>', help);
+    }
+
+    /* فاز ۴۶ — حروف مجاز پلاک ایران */
+    var PLATE_LETTERS = ['ب', 'پ', 'ت', 'ث', 'ج', 'چ', 'ح', 'د', 'ز', 'ژ', 'س', 'ش', 'ص', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ک', 'گ', 'ل', 'م', 'ن', 'و', 'ه', 'ی'];
+
+    /* پلاک ایران — از چپ به راست: نوار پرچم، دورقمی، حرف (سلکت)، سه‌رقمی، پیچ، ایران + کد استان */
+    function plateHtml(f) {
+        var n = CN.esc(f.name);
+        var letterOpts = '<option value="">–</option>';
+        PLATE_LETTERS.forEach(function (L) {
+            letterOpts += '<option value="' + L + '">' + L + '</option>';
+        });
+        return '<div class="ir-plate" dir="ltr" data-plate="' + n + '">' +
+            '<span class="ir-flag" aria-hidden="true"><i></i><i></i><i></i><b>I.R.IRAN</b></span>' +
+            '<input class="ir-num ir-two" id="f_' + n + '_two" type="tel" inputmode="numeric" maxlength="2" placeholder="۱۲" aria-label="دو رقم اول پلاک">' +
+            '<select class="ir-letter" id="f_' + n + '_letter" aria-label="حرف پلاک">' + letterOpts + '</select>' +
+            '<input class="ir-num ir-three" id="f_' + n + '_three" type="tel" inputmode="numeric" maxlength="3" placeholder="۳۴۵" aria-label="سه رقم میانی پلاک">' +
+            '<span class="ir-sep" aria-hidden="true"></span>' +
+            '<span class="ir-iran"><small>ایران</small>' +
+            '<input class="ir-num ir-prov" id="f_' + n + '_prov" type="tel" inputmode="numeric" maxlength="2" placeholder="۷۹" aria-label="کد استان">' +
+            '</span>' +
+            '</div>';
     }
 
     function shell(f, req, inner, err, help) {
@@ -621,14 +814,38 @@
             var value = null;
 
             if (f.field_type === 'select') {
-                value = $('#f_' + f.name).val() || null;
+                var selectEl = document.getElementById('f_' + f.name);
+                value = (selectEl && selectEl.value) || null;
             } else if (f.field_type === 'radio') {
-                value = $('input[name="r_' + f.name + '"]:checked').val() || null;
+                var radioEl = document.querySelector('input[name="r_' + f.name + '"]:checked');
+                value = (radioEl && radioEl.value) || null;
             } else if (f.field_type === 'checkbox') {
-                var checked = $('input[name="c_' + f.name + '"]:checked').map(function () { return this.value; }).get();
+                var checked = Array.prototype.map.call(
+                    document.querySelectorAll('input[name="c_' + f.name + '"]:checked'),
+                    function (cb) { return cb.value; }
+                );
                 value = checked.length ? checked : null;
+            } else if (f.field_type === 'plate') {
+                /* فاز ۴۶ — پلاک: چهار خانه جدا → یک رشتهٔ «۱۲ ب ۳۴۵ ایران ۷۹» */
+                var pTwo = ((document.getElementById('f_' + f.name + '_two') || {}).value || '');
+                var pLetter = ((document.getElementById('f_' + f.name + '_letter') || {}).value || '');
+                var pThree = ((document.getElementById('f_' + f.name + '_three') || {}).value || '');
+                var pProv = ((document.getElementById('f_' + f.name + '_prov') || {}).value || '');
+                pTwo = CN.toEnDigits(pTwo).replace(/\D/g, '');
+                pThree = CN.toEnDigits(pThree).replace(/\D/g, '');
+                pProv = CN.toEnDigits(pProv).replace(/\D/g, '');
+
+                var filled = [pTwo, pLetter, pThree, pProv].filter(function (x) { return x; }).length;
+                if (filled > 0 && filled < 4) {
+                    /* پر کردن ناقص پلاک (حتی اختیاری) خطاست تا داده ناقص ذخیره نشود */
+                    ok = false;
+                    CN.fieldError(f.name, 'پلاک را کامل وارد کنید (هر چهار خانه).');
+                    return;
+                }
+                value = filled === 4 ? (pTwo + ' ' + pLetter + ' ' + pThree + ' ایران ' + pProv) : null;
             } else {
-                value = ($('#f_' + f.name).val() || '').trim() || null;
+                var inputEl = document.getElementById('f_' + f.name);
+                value = ((inputEl && inputEl.value) || '').trim() || null;
                 if (value !== null && ['number', 'mobile', 'national_code'].indexOf(f.field_type) !== -1) {
                     value = CN.toEnDigits(value).replace(/[,،]/g, '');
                 }
@@ -650,7 +867,8 @@
 
     /* ---------- ثبت سفارش ---------- */
     function submitOrder() {
-        CN.clearFieldErrors('#orderForm');
+        /* [Task 9] امضای جدید CN.clearFieldErrors عنصر خام می‌گیرد */
+        CN.clearFieldErrors(document.getElementById('orderForm'));
 
         /* فاز ۱۵ — گارد ساعت کاری (سمت کلاینت؛ سرور هم چک سخت دارد) */
         if (!checkWorkHours()) { return; }
@@ -663,7 +881,9 @@
         var formData = collectFormData();
         if (formData === null) {
             CN.toast('لطفاً فیلدهای الزامی را کامل کنید.', 'error');
-            $('html, body').animate({ scrollTop: ($('.form-group').first().offset() || { top: 0 }).top - 90 }, 300);
+            var firstGroup = document.querySelector('.form-group');
+            var groupTop = firstGroup ? (firstGroup.getBoundingClientRect().top + window.pageYOffset) : 0;
+            window.scrollTo({ top: groupTop - 90, behavior: 'smooth' });
             return;
         }
 
@@ -690,21 +910,24 @@
             fd.append('documents[]', file);
         });
 
-        CN.btnLoading($('#submitOrderBtn'), true, 'در حال ثبت…');
+        CN.btnLoading(document.getElementById('submitOrderBtn'), true, 'در حال ثبت…');
 
         CN.api('/orders', {
             method: 'POST',
             formData: fd,
             success: function (resp) {
-                CN.btnLoading($('#submitOrderBtn'), false);
+                CN.btnLoading(document.getElementById('submitOrderBtn'), false);
                 CN.toast('درخواست شما ثبت شد و برای اپراتورها ارسال شد.', 'success', 5200);
                 window.location.replace(CN.withPort('/app/orders/' + resp.data.id));
             },
             error: function (xhr, message) {
-                CN.btnLoading($('#submitOrderBtn'), false);
+                CN.btnLoading(document.getElementById('submitOrderBtn'), false);
 
-                /* فاز ۱۵ — پاسخ‌های ساختاریافتهٔ گاردها → مودال */
-                var body = (xhr.responseJSON || {});
+                /* فاز ۱۵ — پاسخ‌های ساختاریافتهٔ گاردها → مودال
+                   [Task 9] xhr دیگر responseJSON جی‌کوئری ندارد → پارس دستی */
+                var body = null;
+                try { body = JSON.parse(xhr.responseText); } catch (parseErr) { body = null; }
+                body = body || {};
                 if (body.code === 'outside_work_hours' && body.work_hours) {
                     workHoursModal({
                         start: body.work_hours.start,
@@ -720,15 +943,37 @@
                     return;
                 }
 
-                var errors = (xhr.responseJSON && xhr.responseJSON.errors) || {};
+                var errors = (body && body.errors) || {};
+
+                /* فاز ۵۸ — سگ‌بان ناهماهنگی فرم/سرور:
+                   اگر سرور برای فیلدی خطا داد که در فرم رندرشده نیست (نسخهٔ خدمت
+                   بعد از لود صفحه عوض شده یا snapshot دیر رسیده)، به‌جای پیام
+                   گمراه‌کنندهٔ «فیلد X الزامی است» روی فرمِ خالی، جزئیات خدمت
+                   را دوباره می‌گیریم و فرم را با فیلدهای تازه رندر می‌کنیم. */
+                var known = {};
+                ((detail && detail.form_fields) || []).forEach(function (f) { known[f.name] = true; });
+                var unknownKeys = Object.keys(errors).filter(function (k) { return !known[k]; });
+
+                if (unknownKeys.length) {
+                    CN.toast('فرم این خدمت به‌روزرسانی شد؛ لطفاً پس از بارگذاری، دوباره ثبت کنید.', 'error', 4500);
+                    detail = null;
+                    setGate('loading');
+                    armGateWatchdog();
+                    loadDetail();
+                    return;
+                }
+
                 CN.applyErrors(errors);
                 CN.toast(message, 'error');
             }
         });
     }
 
-    $('#orderForm').on('submit', function (e) {
-        e.preventDefault();
-        submitOrder();
-    });
-})(jQuery);
+    var orderFormEl = document.getElementById('orderForm');
+    if (orderFormEl) {
+        orderFormEl.addEventListener('submit', function (e) {
+            e.preventDefault();
+            submitOrder();
+        });
+    }
+})();

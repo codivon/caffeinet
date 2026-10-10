@@ -13,8 +13,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // اعتماد به پروکسی گیت‌وی برای تشخیص صحیح scheme/host
-        $middleware->trustProxies(at: '*');
+        // فاز ۵۹ (F3 ممیزی) — اعتماد فقط به پروکسی‌های معرفی‌شده در TRUSTED_PROXIES (.env)؛
+        // روی هاست اشتراکی/بدون پروکسی خالی بماند تا جعل X-Forwarded-For قفل‌های نرخی را دور نزند
+        $trustedProxies = array_values(array_filter(array_map('trim', explode(',', (string) env('TRUSTED_PROXIES', '')))));
+        $middleware->trustProxies(at: $trustedProxies);
+
+        // فاز ۵۴ — کوکی زبان JS-ست (چندزبانه) از رمزگشایی مستثنا
+        $middleware->encryptCookies(except: ['cn_locale']);
 
         // گارد پیش‌فرض درخواست‌های API → sanctum (برای auth() در سرویس‌های مشترک)
         $middleware->append(\App\Http\Middleware\ApiDefaultGuard::class);
@@ -23,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\UpdateLastSeen::class,
             \App\Http\Middleware\FixPreviewAssetQuery::class, // v31 — اصلاح ?XTransformPort=8000?v=NN در گیت‌وی پیش‌نمایش
+            \App\Http\Middleware\SetPanelLocale::class, // فاز ۵۴ — چندزبانه (سوییچ features.i18n)
         ]);
         $middleware->api(append: [\App\Http\Middleware\UpdateLastSeen::class]);
 
@@ -40,6 +46,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'coffeenet.context' => \App\Http\Middleware\EnsureCoffeenetContext::class,
             'operator.context' => \App\Http\Middleware\EnsureOperatorContext::class,
             'admin.access' => \App\Http\Middleware\AdminSectionAccess::class,
+            // فاز ۴۷ — الزام کلید وب‌سرویس روی API (هدر X-Api-Key)
+            'api.key' => \App\Http\Middleware\VerifyApiKey::class,
+            // فاز ۵۱ — لاگ مصرف API (چه کسی/چه دستگاهی)
+            'api.usage' => \App\Http\Middleware\LogApiUsage::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

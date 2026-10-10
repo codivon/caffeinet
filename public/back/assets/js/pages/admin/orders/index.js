@@ -148,6 +148,7 @@
                 <td>
                     <span class="badge ${STATUS_COLORS[row.status.color] || STATUS_COLORS.amber} whitespace-nowrap">${escapeHtml(row.status.label)}</span>
                     ${countdown}
+                    ${row.sla_late ? `<span class="badge bg-rose-100 text-rose-700 whitespace-nowrap mt-1" title="از مهلت تعهدی تحویل (SLA) گذشته است">⏱ دیرکرد</span>` : ''}
                 </td>
                 ${ratingCell(row)}
                 <td class="text-[11px] text-stone-400 whitespace-nowrap">${escapeHtml(row.created_fa || '—')}</td>
@@ -789,9 +790,29 @@
             cnDebounce = setTimeout(() => loadCoffeenets(els.assignSearch.value.trim()), 350);
         });
 
-        /* polling آمار */
+        /* polling آمار — v38 «پوشر کامل»: پوشر فعال و متصل → بدون setInterval؛
+           سفارش جدید/تغییر وضعیت → رویداد orders.changed روی کانال سراسری پنل‌ها
+           → آمار همان لحظه تازه می‌شود. قطع اتصال → پولینگ اضطراری. */
         if (countsTimer) clearInterval(countsTimer);
-        countsTimer = setInterval(loadCounts, 8000);
+
+        if (window.RT && RT.active() && RT.cfg.panel_channel) {
+            RT.on(RT.cfg.panel_channel, 'orders.changed', () => {
+                if (!document.hidden) loadCounts();
+            });
+
+            if (RT.connected()) { countsTimer = null; } else { countsTimer = setInterval(loadCounts, 8000); }
+
+            RT.onConnection((up) => {
+                if (up) {
+                    if (countsTimer) { clearInterval(countsTimer); countsTimer = null; }
+                    if (!document.hidden) loadCounts();
+                } else if (!countsTimer) {
+                    countsTimer = setInterval(loadCounts, 8000);
+                }
+            });
+        } else {
+            countsTimer = setInterval(loadCounts, 8000);
+        }
     }
 
     /* ---------- helpers ---------- */

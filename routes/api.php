@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\ChatController;
 use App\Http\Controllers\Api\V1\GeoController;
+use App\Http\Controllers\Api\V1\FamilyController;
 use App\Http\Controllers\Api\V1\NotificationsController;
 use App\Http\Controllers\Api\V1\OrdersController;
 use App\Http\Controllers\Api\V1\ProfileController;
@@ -20,9 +21,14 @@ use Illuminate\Support\Facades\Route;
 | احراز هویت با Sanctum (توکن Bearer). اپ موبایل و اپ وب مشتری
 | هر دو از همین اندپوینت‌ها استفاده می‌کنند.
 |
+| فاز ۴۷ — الزام کلید وب‌سرویس: همهٔ مسیرهای v1 (به‌جز health) باید
+| هدر «X-Api-Key» معتبر بفرستند (میدل‌ویر api.key). کلیدها از
+| پنل ادمین ← «کلیدهای وب‌سرویس» خودکار ساخته می‌شوند؛ کلید داخلی
+| وب‌اپ در صفحات تزریق شده و اپ/پنل‌ها خودکار با آن صدا می‌زنند.
+|
 */
 
-Route::prefix('v1')->name('api.')->group(function () {
+Route::prefix('v1')->name('api.')->middleware(['api.key', 'api.usage'])->group(function () {
 
     Route::get('health', fn () => response()->json([
         'ok' => true,
@@ -69,6 +75,8 @@ Route::prefix('v1')->name('api.')->group(function () {
         /* پروفایل */
         Route::get('me', [ProfileController::class, 'me'])->name('me');
         Route::post('profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
+        // v42 — آواتار پروفایل (کراپ ۷۵×۷۵ + WebP اجباری)
+        Route::post('profile/avatar', [ProfileController::class, 'avatar'])->name('profile.avatar');
 
         /* کاتالوگ */
         Route::get('categories/tree', [CatalogController::class, 'categoriesTree'])->name('categories.tree');
@@ -105,6 +113,23 @@ Route::prefix('v1')->name('api.')->group(function () {
         Route::get('wallet', [WalletController::class, 'index'])->name('wallet.index');
         Route::post('wallet/charge', [WalletController::class, 'charge'])
             ->middleware('throttle:10,1')->name('wallet.charge');
+
+        /* فاز ۵۴ — داشبورد مصرف مشتری (آمار من) */
+        Route::get('me/stats', [\App\Http\Controllers\Api\V1\StatsController::class, 'stats'])
+            ->name('me.stats');
+
+        /* فاز ۶۰ — کارت «سفارش مجدد» داشبورد مشتری (تا ۴ خدمت پرتکرار خودش) */
+        Route::get('me/reorder', [\App\Http\Controllers\Api\V1\CatalogController::class, 'reorder'])
+            ->middleware('throttle:30,1')->name('me.reorder');
+
+        /* فاز ۵۳ — حساب خانواده/تیمی (زیرحساب با کیف مشترک + سقف خرج) */
+        Route::get('family', [FamilyController::class, 'index'])->name('family.index');
+        Route::post('family', [FamilyController::class, 'store'])
+            ->middleware('throttle:6,1')->name('family.store');
+        Route::patch('family/{member}', [FamilyController::class, 'update'])
+            ->whereNumber('member')->name('family.update');
+        Route::delete('family/{member}', [FamilyController::class, 'destroy'])
+            ->whereNumber('member')->name('family.destroy');
 
         /* تیکت‌های پشتیبانی (فاز ۱۰) */
         Route::get('tickets', [TicketsController::class, 'index'])->name('tickets.index');

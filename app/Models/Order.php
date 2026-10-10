@@ -4,12 +4,15 @@ namespace App\Models;
 
 use App\Enums\ContactPreference;
 use App\Enums\OrderStatus;
+use App\Observers\OrderObserver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 
+#[ObservedBy(OrderObserver::class)]
 class Order extends Model
 {
     use SoftDeletes;
@@ -21,6 +24,7 @@ class Order extends Model
         'cancel_reason', 'cancelled_by', 'paid_at', 'accepted_at',
         'broadcast_expires_at', 'broadcast_attempts', 'queued_at',
         'delivered_at', 'completed_at', 'contact_preference',
+        'sla_deadline_at',
     ];
 
     protected function casts(): array
@@ -38,6 +42,7 @@ class Order extends Model
             'queued_at' => 'datetime',
             'delivered_at' => 'datetime',
             'completed_at' => 'datetime',
+            'sla_deadline_at' => 'datetime', // فاز ۵۲ — مهلت تعهدی تحویل
             'contact_preference' => 'string', // v40 — ترکیبی «call,chat» (ContactPreference::parse)
         ];
     }
@@ -101,6 +106,24 @@ class Order extends Model
         }
 
         return max(0, (int) now()->diffInSeconds($this->broadcast_expires_at, false));
+    }
+
+    /**
+     * فاز ۵۲ — ثانیهٔ باقی‌مانده تا مهلت تعهدی تحویل (SLA).
+     * فقط برای سفارش‌های پرداخت‌شده و هنوز تحویل‌نشده معنی دارد؛
+     * بعد از تحویل/تکمیل/لغو صفر برمی‌گردد (تایمر نمایش داده نمی‌شود).
+     */
+    public function slaSecondsLeft(): int
+    {
+        if (! $this->sla_deadline_at || ! $this->paid_at) {
+            return 0;
+        }
+
+        if (in_array($this->status?->value, ['delivered', 'completed', 'cancelled', 'refunded'], true)) {
+            return 0;
+        }
+
+        return max(0, (int) now()->diffInSeconds($this->sla_deadline_at, false));
     }
 
     public function conversation(): HasOne

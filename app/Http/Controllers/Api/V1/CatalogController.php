@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\ServiceDetailResource;
 use App\Http\Resources\Api\ServiceResource;
+use App\Models\Order;
 use App\Models\Service;
 use App\Models\ServiceCategory;
+use App\Services\Catalog\ServiceVersionManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 /**
  * کاتالوگ خدمات مشتری — درخت دسته‌ها + جستجو/فیلتر + جزئیات خدمت با فرم داینامیک.
@@ -106,6 +109,16 @@ class CatalogController extends Controller
         $activeIds = $this->activeCategoryIds(ServiceCategory::query()->get());
         abort_unless(in_array($service->category_id, $activeIds), 404, 'خدمت یافت نشد.');
 
+        /* فاز ۵۸ — تضمین وجود نسخهٔ فریزشده قبل از رندر فرم:
+         * بدون نسخه، snapshot خالی است و کلاینت «این خدمت فرم ندارد» می‌دید؛
+         * اما OrderService هنگام ثبت سفارش، نسخه را از فیلدهای زنده می‌ساخت و
+         * فیلدها (مثل کدملی) را الزامی می‌شمرد → تناقض فرم/اعتبارسنجی (گزارش مالک).
+         * اینجا خودترمیم می‌کنیم تا جزئیات و ثبت همیشه از یک snapshot بخوانند. */
+        if (! $service->versions()->exists()) {
+            app(ServiceVersionManager::class)->sync($service);
+            $service->refresh();
+        }
+
         return response()->json([
             'data' => ServiceDetailResource::make($service->load([
                 'category' => fn ($q) => $q->select(['id', 'name', 'icon', 'parent_id']),
@@ -113,10 +126,75 @@ class CatalogController extends Controller
         ]);
     }
 
+    /* فاز ۶۰ — کارت «سفارش مجدد» داشبورد مشتری: GET /api/v1/me/reorder
+       تا ۴ خدمت پرتکرار خودِ مشتری بر اساس سابقهٔ پرداخت‌شده (همان وضعیت‌های
+       آمار من) با قیمت زندهٔ کاتالوگ (پایه + هزینه‌ها) و آیکون دسته —
+       فقط خدماتِ قابل سفارش (فعال + دستهٔ فعال + availabilityState=active). */
+    public function reorder(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        /* سابقهٔ مشتری: تعداد سفارش پرداخت‌شده به‌ازای هر خدمت
+           (وضعیت‌ها عین StatsController@stats تا دو گزارش هم‌روایت باشند) */
+        $rows = Order::query()
+            ->whereNull('deleted_at')
+            ->where('customer_id', $user->id)
+            ->whereIn('status', ['paid', 'broadcasting', 'accepted', 'in_progress', 'needs_info', 'delivered', 'completed'])
+            ->groupBy('orders.service_id')
+            ->orderByRaw('COUNT(*) DESC')
+            ->orderByRaw('MAX(orders.created_at) DESC')
+            ->limit(8)
+            ->selectRaw('orders.service_id, COUNT(*) AS cnt')
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return response()->json(['data' => ['items' => []]]);
+        }
+
+        /* همان قاعدهٔ کاتالوگ: فعال + دستهٔ زنجیره‌فعال + وضعیت دسترس‌پذیری */
+        $activeIds = $this->activeCategoryIds(ServiceCategory::query()->get());
+
+        $services = Service::query()
+            ->whereIn('id', $rows->pluck('service_id'))
+            ->where('is_active', true)
+            ->whereIn('category_id', $activeIds)
+            ->with([
+                'category' => fn ($q) => $q->select(['id', 'name', 'icon', 'parent_id']),
+                'costs' => fn ($q) => $q->select(['service_id', 'amount']),
+            ])
+            ->get()
+            ->filter(fn ($s) => $s->availabilityState() === 'active')
+            ->keyBy('id');
+
+        $items = [];
+
+        foreach ($rows as $row) {
+            $service = $services->get($row->service_id);
+
+            if (! $service) {
+                continue;
+            }
+
+            $items[] = [
+                'id' => (int) $service->id,
+                'name' => $service->name,
+                'icon' => $service->category?->icon ?: '📄',
+                'count' => (int) $row->cnt,
+                'total_amount' => (float) $service->base_price + (float) $service->costs->sum('amount'),
+            ];
+
+            if (count($items) >= 4) {
+                break;
+            }
+        }
+
+        return response()->json(['data' => ['items' => $items]]);
+    }
+
     /**
      * شناسه دسته‌هایی که خودشان و کل زنجیره والدشان فعال‌اند.
      *
-     * @param  \Illuminate\Support\Collection<ServiceCategory>  $all
+     * @param  Collection<ServiceCategory>  $all
      * @return int[]
      */
     protected function activeCategoryIds($all): array

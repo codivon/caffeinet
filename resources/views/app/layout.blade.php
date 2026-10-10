@@ -1,15 +1,18 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="{{ $panelLang ?? 'fa' }}" dir="{{ $panelDir ?? 'rtl' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-    <title>@yield('title', 'کافی‌نت آنلاین') | کافی‌نت آنلاین</title>
+    {{-- [Task 7] htmlTitle: از layoutData کامپوننت‌های Livewire؛ @yield برای مسیر قدیم @extends --}}
+    <title>@yield('title', $htmlTitle ?? 'کافی‌نت آنلاین') | کافی‌نت آنلاین</title>
 
     {{-- PWA: مانیفست + آیکون‌ها + ثبت Service Worker (فاز ۱۴) --}}
     @include('partials.pwa', ['panel' => 'app'])
     @include('partials.vpn-modal')
 
+    {{-- v42 — پیکربندی فشرده‌سازی آپلودها (خوانده‌شده توسط core.js/App) --}}
+    <meta name="upload-config" content='@json(\App\Support\UploadConfig::client())'>
     {{-- بوت تم شب/روز (ضد-FOUC) — قبل از استایل‌ها؛ کلید ذخیره مشترک با پنل‌ها --}}
     <script src="{{ asset('assets/js/theme-boot.js') }}"></script>
 
@@ -19,26 +22,32 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap">
 
     {{-- استایل مستقل (بدون نیاز به بیلد Node) --}}
-    <link rel="stylesheet" href="{{ asset('front/assets/css/app.css') }}?v=23">
+    <link rel="stylesheet" href="{{ asset('front/assets/css/app.css') }}?v=36">
+    {{-- v45 — لایت‌باکس تمام‌صفحهٔ تصاویر (پیوست‌های تیکت/چت) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/lightbox.css') }}?v=1">
+    {{-- پوستهٔ پویا: پالت اختصاصی اپ مشتری (بعد از استایل اصلی) --}}
+    @include('partials.appearance', ['panel' => 'app'])
     {{-- تقویم/دیت‌پیکر شمسی (CNJdp) --}}
     <link rel="stylesheet" href="{{ asset('assets/css/jalali-datepicker.css') }}?v=3">
+    {{-- Livewire [Task 2-a] — SPA (wire:navigate) --}}
+    @livewireStyles
     @stack('styles')
 </head>
 <body>
-<div class="app-shell @yield('shell-class')">
+<div class="app-shell @yield('shell-class', $shellClass ?? '')">
 
     @php
-    $chrome = trim($__env->yieldContent('no-chrome')) !== '1';
+    // [Task 7] chrome: از layoutData کامپوننت‌های Livewire؛ @yield('no-chrome') برای مسیر قدیم
+    $chrome = $chrome ?? (trim($__env->yieldContent('no-chrome')) !== '1');
 @endphp
 
     @if ($chrome)
         {{-- هدر --}}
         <header class="app-header">
-            <a class="brand" href="{{ route('app.home') }}">
+            <a class="brand" href="{{ route('app.home') }}" wire:navigate>
                 <span class="brand-mark" aria-hidden="true">
-                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
-                    </svg>
+                    {{-- v42 — آیکون برند جدید (رندر سه‌بعدی کامپیوتر) به‌جای گلوب --}}
+                    <img src="{{ asset('icons/icon-96.png') }}" alt="" width="22" height="22" style="width:22px;height:22px;object-fit:contain">
                 </span>
                 <span>
                     <span class="brand-name">کافی‌نت آنلاین</span>
@@ -47,20 +56,26 @@
             </a>
 
             <div class="actions">
+                @persist('app-header-actions')
+                {{-- فاز ۵۷ — سوئیچ زبان اپ مشتری (فقط وقتی چندزبانه روشن است) --}}
+                @if (! empty($i18nOn))
+                @include('partials.locale-switcher')
+                @endif
                 {{-- سوییچ شب/روز (CN.theme در core.js — کلید مشترک پنل‌ها) --}}
                 <button type="button" class="theme-btn" data-theme-toggle id="appThemeBtn"
                         aria-label="تغییر حالت شب و روز" title="حالت شب/روز">
                     <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
                     <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
                 </button>
-                {{-- زنگ اعلان (فاز ۱۰) --}}
+                {{-- زنگ اعلان (فاز ۱۰) — persist تا bind اسکریپت اعلان بین ناوبری‌ها زنده بماند --}}
                 <button type="button" class="bell-btn" id="appBell" aria-label="اعلان‌ها" aria-expanded="false">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
                     <span class="bell-badge" id="appBellBadge" aria-hidden="true"></span>
                 </button>
                 {{-- کیف پول: موجودی از هدر حذف شد (باعث بهم‌ریختگی هدر با مبالغ بزرگ می‌شد)؛
                      دسترسی از ناوبری پایین و صفحهٔ پروفایل --}}
-                <a class="avatar-btn" href="{{ route('app.profile') }}" id="headerAvatar" title="پروفایل">؟</a>
+                <a class="avatar-btn" href="{{ route('app.profile') }}" wire:navigate id="headerAvatar" title="پروفایل">؟</a>
+                @endpersist
             </div>
         </header>
     @endif
@@ -68,6 +83,9 @@
     {{-- محتوا --}}
     <main class="app-main" id="appMain">
         @yield('content')
+
+        {{-- [Task 2-a] سازگاری Livewire full-page ($slot) — ویوهای @extends از @yield استفاده می‌کنند --}}
+        {{ $slot ?? '' }}
     </main>
 
     @if ($chrome)
@@ -75,18 +93,22 @@
         <nav class="bottom-nav" aria-label="ناوبری اصلی">
             <div class="nav-inner">
                 @php
-                    $active = trim($__env->yieldContent('active-nav'));
+                    // [Task 7] activeNav: از layoutData کامپوننت‌های Livewire
+                    $active = $activeNav ?? trim($__env->yieldContent('active-nav'));
+                    // فاز ۵۷ — برچسب‌های ناوبری چندزبانه (chrome.php)
                     $nav = [
-                        'home' => [route('app.home'), 'خانه', '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>'],
-                        'services' => [route('app.services'), 'خدمات', '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'],
-                        'orders' => [route('app.orders'), 'سفارش‌ها', '<path d="M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M9 12h6"/><path d="M9 16h4"/>'],
-                        'support' => [route('app.support'), 'پشتیبانی', '<path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Z"/><path d="M18 11h3v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2Z"/><path d="M21 11a9 9 0 0 0-18 0"/>'],
-                        'wallet' => [route('app.wallet'), 'کیف پول', '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>'],
-                        'profile' => [route('app.profile'), 'پروفایل', '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'],
+                        'home' => [route('app.home'), __('chrome.nav.app.home'), '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>'],
+                        'services' => [route('app.services'), __('chrome.nav.app.services'), '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'],
+                        'orders' => [route('app.orders'), __('chrome.nav.app.orders'), '<path d="M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M9 12h6"/><path d="M9 16h4"/>'],
+                        'support' => [route('app.support'), __('chrome.nav.app.support'), '<path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Z"/><path d="M18 11h3v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2Z"/><path d="M21 11a9 9 0 0 0-18 0"/>'],
+                        'wallet' => [route('app.wallet'), __('chrome.nav.app.wallet'), '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>'],
+                        'profile' => [route('app.profile'), __('chrome.nav.app.profile'), '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'],
                     ];
                 @endphp
                 @foreach($nav as $key => $item)
-                    <a href="{{ $item[0] }}" class="{{ $active === $key ? 'active' : '' }}" @if($active === $key) aria-current="page" @endif>
+                    {{-- فاز ۱۴ — .hover: پیش‌بارگذاری روی hover/فوکوس؛ همراه گرم‌کردن مصنوعی در core.js
+                         تا کلیک روی منوهای پایین همان لحظه (از کش ۳۰ثانیه‌ای Livewire) سواپ شود — حس اپ بومی --}}
+                    <a href="{{ $item[0] }}" wire:navigate.hover class="{{ $active === $key ? 'active' : '' }}" @if($active === $key) aria-current="page" @endif>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $item[2] !!}</svg>
                         <span>{{ $item[1] }}</span>
                     </a>
@@ -116,17 +138,22 @@
     </div>
 </div>
 
-{{-- اسکریپت‌ها: jQuery (vendor استاتیک) + هسته مشترک + اسکریپت صفحه (فایل جدا) --}}
+{{-- اسکریپت‌ها: هسته مشترک Vanilla (بدون jQuery — [Task 9]) + اسکریپت صفحه (فایل جدا) --}}
+{{-- [Task 2-a] data-navigate-once: اسکریپت‌های مشترک در هر ناوبری wire:navigate دوباره اجرا نشوند؛
+     re-init هدر/ناوبری با CN.onNavigate --}}
 {{-- Realtime پوشر (فاز ۱۳): پیکربندی عمومی CSP-safe؛ کانال شخصی کاربر از API /realtime/config --}}
-<script src="{{ asset('assets/js/vendor/jquery.min.js') }}"></script>
-<script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1"></script>
-<script src="{{ asset('assets/js/realtime.js') }}?v=2" data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(null))'></script>
-<script src="{{ asset('front/assets/js/core.js') }}?v=5" defer></script>
+<script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1" data-navigate-once></script>
+<script src="{{ asset('assets/js/realtime.js') }}?v=8" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(null))'></script>
+<script src="{{ asset('front/assets/js/core.js') }}?v=17" data-navigate-once defer></script>
+<script src="{{ asset('assets/js/lightbox.js') }}?v=1" data-navigate-once defer></script>
 <script src="{{ asset('assets/js/jalali-datepicker.js') }}?v=3" defer></script>
 {{-- نوتیف دستگاه (v26: پیش‌فرض/پوشر/فایربیس) — پیکربندی از PushManager؛ اپ مشتری از CN.api برای ثبت استفاده می‌کند --}}
 <script src="{{ asset('assets/js/push/push-client.js') }}?v=7" defer data-push-config='@json(app(\App\Services\Push\PushManager::class)->clientConfig(auth()->user()))'></script>
-<script src="{{ asset('front/assets/js/pages/notifications.js') }}?v=4" defer></script>
-<script src="{{ asset('front/assets/js/pages/announcements.js') }}?v=15" defer></script>
+<script src="{{ asset('front/assets/js/pages/notifications.js') }}?v=9" data-navigate-once defer></script>
+<script src="{{ asset('front/assets/js/pages/announcements.js') }}?v=16" defer></script>
+
+{{-- Livewire [Task 2-a] --}}
+@livewireScripts
 @stack('page')
 </body>
 </html>

@@ -255,6 +255,6 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('back/assets/js/pages/admin/orders/index.js') }}?v=29"></script>
+<script src="{{ asset('back/assets/js/pages/admin/orders/index.js') }}?v=30"></script>
 <script src="{{ asset('back/assets/js/pages/trash.js') }}?v=2"></script>
 @endpush

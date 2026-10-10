@@ -6,7 +6,7 @@
     border: 1px solid var(--th-line);
     border-radius: 1.1rem;
     padding: 0.9rem 1rem;
-    background: var(--th-surface, #fafaf9);
+    background: var(--th-surface, #f8fafc);
     display: flex;
     flex-direction: column;
     gap: 0.55rem;
@@ -26,11 +26,11 @@
 
 html.dark .ap-role-option { background: rgba(255, 255, 255, 0.03); }
 
-.ap-role-option:hover { border-color: rgba(217, 119, 6, 0.45); }
+.ap-role-option:hover { border-color: rgba(37, 99, 235, 0.45); }
 
 .ap-role-option:has(input:checked) {
-    border-color: #d97706;
-    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .ap-role-option input { position: absolute; opacity: 0; pointer-events: none; }
@@ -49,7 +49,7 @@ html.dark .ap-role-option { background: rgba(255, 255, 255, 0.03); }
 html.dark .ap-role-radio { background: transparent; }
 
 .ap-role-option:has(input:checked) .ap-role-radio {
-    border-color: #d97706;
+    border-color: #2563eb;
 }
 
 .ap-role-option:has(input:checked) .ap-role-radio::after {
@@ -57,14 +57,14 @@ html.dark .ap-role-radio { background: transparent; }
     position: absolute;
     inset: 3px;
     border-radius: 50%;
-    background: #d97706;
+    background: #2563eb;
 }
 
 .ap-matrix {
     border: 1px solid var(--th-line);
     border-radius: 1.1rem;
     padding: 0.9rem 1rem;
-    background: var(--th-surface, #fafaf9);
+    background: var(--th-surface, #f8fafc);
 }
 
 .ap-matrix-head {
@@ -90,7 +90,7 @@ html.dark .ap-role-radio { background: transparent; }
     transition: all 0.15s ease;
 }
 
-.ap-bulk-btn:hover { border-color: #d97706; color: #b45309; }
+.ap-bulk-btn:hover { border-color: #2563eb; color: #1d4ed8; }
 
 html.dark .ap-bulk-btn { background: rgba(255, 255, 255, 0.04); }
 

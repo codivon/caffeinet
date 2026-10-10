@@ -17,7 +17,7 @@
     padding: 0.5rem 0.7rem;
     border-radius: 0.8rem;
     border: 1px solid var(--th-line);
-    background: var(--th-surface, #fafaf9);
+    background: var(--th-surface, #f8fafc);
     font-size: 0.72rem;
     font-weight: 600;
     color: var(--th-ink-faint);

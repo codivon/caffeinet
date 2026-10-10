@@ -23,6 +23,7 @@
     const msgInput = document.getElementById('tk-message');
     const fileInput = document.getElementById('tk-file');
     const fileNameEl = document.getElementById('tk-file-name');
+    const fileThumbEl = document.getElementById('tk-file-thumb');
     const internalInput = document.getElementById('tk-internal');
     const sendBtn = document.getElementById('tk-send');
 
@@ -30,6 +31,7 @@
     let messages = (PAGE.messages || []).filter(m => !m.internal_hidden);
     let sending = false;
     let lastDay = '';
+    let fileThumbUrl = ''; // پیش‌نمایش تصویر پیوست — blob URL فعلی
 
     /* ---------- ابزار ---------- */
     function esc(s) {
@@ -55,7 +57,7 @@
 
         const attach = m.file ? (
             (m.file.url && (m.file.is_image || /^image\//.test(m.file.mime || '')))
-                ? `<a href="${esc(m.file.url)}" target="_blank" rel="noopener"><img class="tk-thumb" src="${esc(m.file.url)}" alt="${esc(m.file.name || 'پیوست')}"></a>`
+                ? `<img class="tk-thumb" data-lightbox src="${esc(m.file.url)}" alt="${esc(m.file.name || 'پیوست')}">`
                 : `<a class="tk-attach" href="${esc(m.file.url || '#')}" target="_blank" rel="noopener" download>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
                         <span class="tk-file-name">${esc(m.file.name || 'پیوست')}</span>
@@ -106,12 +108,53 @@
         } catch (e) { /* پولینگ بی‌صدا */ }
     }
 
-    setInterval(poll, 10000);
+    /* v38 «پوشر کامل»: پوشر فعال و متصل → بدون پولینگ؛ پاسخ جدید تیکت
+       اعلان می‌سازد → رویداد notif.new روی کانال شخصی کاربر → پیام‌ها
+       همان لحظه تازه می‌شوند. قطع اتصال → پولینگ اضطراری. */
+    let ticketTimer = setInterval(poll, 10000);
 
-    /* ---------- ارسال پاسخ ---------- */
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) poll();
+    });
+
+    if (window.RT && RT.active() && RT.cfg.channel) {
+        RT.bindUser('notif.new', () => {
+            if (!document.hidden) poll();
+        });
+
+        if (RT.connected()) { clearInterval(ticketTimer); ticketTimer = null; }
+
+        RT.onConnection((up) => {
+            if (up) {
+                if (ticketTimer) { clearInterval(ticketTimer); ticketTimer = null; }
+                if (!document.hidden) poll();
+            } else if (!ticketTimer) {
+                ticketTimer = setInterval(poll, 10000);
+            }
+        });
+    }
+
+    /* ---------- ارسال پاسخ + پیش‌نمایش تصویر پیوست (F-3) ---------- */
+    function hideFileThumb() {
+        if (fileThumbEl) {
+            fileThumbEl.hidden = true;
+            fileThumbEl.removeAttribute('src');
+        }
+        if (fileThumbUrl) {
+            URL.revokeObjectURL(fileThumbUrl);
+            fileThumbUrl = '';
+        }
+    }
+
     fileInput?.addEventListener('change', function () {
         const f = this.files && this.files[0];
+        hideFileThumb();
         if (fileNameEl) { fileNameEl.textContent = f ? f.name : ''; }
+        if (f && fileThumbEl && f.type && f.type.startsWith('image/')) {
+            fileThumbUrl = URL.createObjectURL(f);
+            fileThumbEl.src = fileThumbUrl;
+            fileThumbEl.removeAttribute('hidden');
+        }
     });
 
     msgInput?.addEventListener('keydown', function (e) {
@@ -150,6 +193,7 @@
                 msgInput.value = '';
                 fileInput.value = '';
                 if (fileNameEl) { fileNameEl.textContent = ''; }
+                hideFileThumb();
                 if (internalInput) { internalInput.checked = false; }
                 if (data.data) {
                     messages.push(data.data);
@@ -261,4 +305,26 @@
 
     /* ---------- شروع ---------- */
     renderAll();
+
+    /* ---------- v45 — موبایل: شیت «اطلاعات و عملیات تیکت» ----------
+       در موبایل گفتگو تمام‌صفحه است؛ اطلاعات/ارجاع/اولویت/بستن داخل شیت
+       با دکمهٔ ⓘ نوار سربرگ چت باز می‌شود. در دسکتاپ بی‌اثر (دکمه مخفی). */
+    const infoToggle = document.getElementById('tk-info-toggle');
+    const infoClose = document.getElementById('tk-info-close');
+    const infoOverlay = document.getElementById('tk-info-overlay');
+
+    function setInfoSheet(open) {
+        document.body.classList.toggle('tk-info-open', open);
+        if (infoOverlay) {
+            infoOverlay.classList.toggle('show', open);
+            infoOverlay.setAttribute('aria-hidden', String(!open));
+        }
+    }
+
+    infoToggle?.addEventListener('click', () => setInfoSheet(true));
+    infoClose?.addEventListener('click', () => setInfoSheet(false));
+    infoOverlay?.addEventListener('click', () => setInfoSheet(false));
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.body.classList.contains('tk-info-open')) { setInfoSheet(false); }
+    });
 })();

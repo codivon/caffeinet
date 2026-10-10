@@ -80,11 +80,16 @@ class SettingsSeeder extends Seeder
             ['group' => 'staff', 'key' => 'staff.hiring.mode', 'value' => 'auto', 'cast' => 'string', 'label' => 'افزودن کارمند توسط مدیر کافی‌نت (auto = تایید خودکار | approval = نیازمند تایید مدیر کل)'],
 
             // Realtime — پوشر (فاز ۱۳) در کنار پولینگ
+            // Realtime — فاز ۱۲: انتخاب روش ترابورت + هاست سفارشی (Soketi/Reverb)
+            ['group' => 'realtime', 'key' => 'realtime.method', 'value' => 'polling', 'cast' => 'string', 'label' => 'روش Realtime (polling | sse | pusher)'],
             ['group' => 'realtime', 'key' => 'realtime.pusher.enabled', 'value' => '0', 'cast' => 'boolean', 'label' => 'فعال‌سازی Realtime پوشر'],
             ['group' => 'realtime', 'key' => 'realtime.pusher.app_id', 'value' => '', 'cast' => 'string', 'label' => 'Pusher App ID', 'is_sensitive' => true],
             ['group' => 'realtime', 'key' => 'realtime.pusher.app_key', 'value' => '', 'cast' => 'string', 'label' => 'Pusher App Key (عمومی)'],
             ['group' => 'realtime', 'key' => 'realtime.pusher.app_secret', 'value' => '', 'cast' => 'string', 'label' => 'Pusher App Secret', 'is_sensitive' => true],
             ['group' => 'realtime', 'key' => 'realtime.pusher.cluster', 'value' => 'mt1', 'cast' => 'string', 'label' => 'Pusher Cluster (mt1 | eu | ap2 | us2 …)'],
+            ['group' => 'realtime', 'key' => 'realtime.pusher.host', 'value' => '', 'cast' => 'string', 'label' => 'هاست سفارشی پوشر (Soketi/Reverb — خالی = pusher.com)'],
+            ['group' => 'realtime', 'key' => 'realtime.pusher.port', 'value' => '', 'cast' => 'string', 'label' => 'پورت هاست سفارشی پوشر (مثلاً 6001)'],
+            ['group' => 'realtime', 'key' => 'realtime.pusher.scheme', 'value' => 'https', 'cast' => 'string', 'label' => 'پروتکل هاست سفارشی پوشر (https | http)'],
 
             // اعلان‌ها — صدا (v25؛ فقط پنل‌ها، اپ مشتری صدا ندارد)
             ['group' => 'notifications', 'key' => 'notification.sound.enabled', 'value' => '1', 'cast' => 'boolean', 'label' => 'صدای اعلان جدید در پنل‌ها'],
@@ -150,6 +155,56 @@ class SettingsSeeder extends Seeder
             ['group' => 'finnotech', 'key' => 'finnotech.nid', 'value' => '', 'cast' => 'string', 'label' => 'کد ملی صاحب برنامهٔ فینوتک'],
             ['group' => 'finnotech', 'key' => 'finnotech.verify_profile', 'value' => '1', 'cast' => 'boolean', 'label' => 'بررسی تطبیق کد ملی با موبایل در پروفایل مشتری'],
             ['group' => 'finnotech', 'key' => 'finnotech.verify_cards', 'value' => '1', 'cast' => 'boolean', 'label' => 'بررسی تطبیق کارت بانکی با کد ملی'],
+
+            // ظاهر و رنگ‌بندی — پالت اختصاصی هر پنل (پیش‌فرض + ۱۰ پالت + شخصی‌سازی)
+            ['group' => 'appearance', 'key' => 'appearance.panel.admin', 'value' => 'default', 'cast' => 'string', 'label' => 'پالت رنگی پنل مدیریت کل'],
+            ['group' => 'appearance', 'key' => 'appearance.panel.app', 'value' => 'default', 'cast' => 'string', 'label' => 'پالت رنگی اپ مشتری'],
+            ['group' => 'appearance', 'key' => 'appearance.panel.coffeenet', 'value' => 'default', 'cast' => 'string', 'label' => 'پالت رنگی پنل کافی‌نت'],
+            ['group' => 'appearance', 'key' => 'appearance.panel.operator', 'value' => 'default', 'cast' => 'string', 'label' => 'پالت رنگی پنل اپراتور'],
+            ['group' => 'appearance', 'key' => 'appearance.panel.org', 'value' => 'default', 'cast' => 'string', 'label' => 'پالت رنگی پنل سازمان'],
+            ['group' => 'appearance', 'key' => 'appearance.panel.front', 'value' => 'default', 'cast' => 'string', 'label' => 'پالت رنگی لندینگ'],
+            ['group' => 'appearance', 'key' => 'appearance.custom.admin', 'value' => null, 'cast' => 'json', 'label' => 'توکن‌های شخصی‌سازی پنل مدیریت کل'],
+            ['group' => 'appearance', 'key' => 'appearance.custom.app', 'value' => null, 'cast' => 'json', 'label' => 'توکن‌های شخصی‌سازی اپ مشتری'],
+            ['group' => 'appearance', 'key' => 'appearance.custom.coffeenet', 'value' => null, 'cast' => 'json', 'label' => 'توکن‌های شخصی‌سازی پنل کافی‌نت'],
+            ['group' => 'appearance', 'key' => 'appearance.custom.operator', 'value' => null, 'cast' => 'json', 'label' => 'توکن‌های شخصی‌سازی پنل اپراتور'],
+            ['group' => 'appearance', 'key' => 'appearance.custom.org', 'value' => null, 'cast' => 'json', 'label' => 'توکن‌های شخصی‌سازی پنل سازمان'],
+            ['group' => 'appearance', 'key' => 'appearance.custom.front', 'value' => null, 'cast' => 'json', 'label' => 'توکن‌های شخصی‌سازی لندینگ'],
+            // دمای سرد/گرم پنل‌ها (برای پالت‌های آماده — ۰ = خنثی)
+            ['group' => 'appearance', 'key' => 'appearance.warmth.admin', 'value' => '0', 'cast' => 'string', 'label' => 'دمای سرد/گرم پنل مدیریت کل'],
+            ['group' => 'appearance', 'key' => 'appearance.warmth.app', 'value' => '0', 'cast' => 'string', 'label' => 'دمای سرد/گرم اپ مشتری'],
+            ['group' => 'appearance', 'key' => 'appearance.warmth.coffeenet', 'value' => '0', 'cast' => 'string', 'label' => 'دمای سرد/گرم پنل کافی‌نت'],
+            ['group' => 'appearance', 'key' => 'appearance.warmth.operator', 'value' => '0', 'cast' => 'string', 'label' => 'دمای سرد/گرم پنل اپراتور'],
+            ['group' => 'appearance', 'key' => 'appearance.warmth.org', 'value' => '0', 'cast' => 'string', 'label' => 'دمای سرد/گرم پنل سازمان'],
+            ['group' => 'appearance', 'key' => 'appearance.warmth.front', 'value' => '0', 'cast' => 'string', 'label' => 'دمای سرد/گرم لندینگ'],
+
+            // v42 — فشرده‌سازی آپلودها (پیش‌فرض: فعال، «بدون افت کیفیت»)
+            ['group' => 'uploads', 'key' => 'uploads.compression.enabled', 'value' => '1', 'cast' => 'boolean', 'label' => 'فشرده‌سازی آپلودها فعال باشد؟'],
+            ['group' => 'uploads', 'key' => 'uploads.compression.preset', 'value' => 'lossless', 'cast' => 'string', 'label' => 'حالت فشرده‌سازی (lossless | balanced | max | custom)'],
+            ['group' => 'uploads', 'key' => 'uploads.compression.images.max_side', 'value' => '4096', 'cast' => 'string', 'label' => 'حداکثر ضلع تصویر (پیکسل — فقط حالت سفارشی)'],
+            ['group' => 'uploads', 'key' => 'uploads.compression.images.quality', 'value' => '92', 'cast' => 'string', 'label' => 'کیفیت انکود تصویر (فقط حالت سفارشی)'],
+            ['group' => 'uploads', 'key' => 'uploads.compression.images.format', 'value' => 'keep', 'cast' => 'string', 'label' => 'فرمت تصویر (keep | auto | jpeg | webp)'],
+            ['group' => 'uploads', 'key' => 'uploads.compression.videos.enabled', 'value' => '0', 'cast' => 'boolean', 'label' => 'فشرده‌سازی ویدیو (نیازمند ffmpeg روی سرور)'],
+            ['group' => 'uploads', 'key' => 'uploads.compression.videos.crf', 'value' => '28', 'cast' => 'string', 'label' => 'سطح فشرده‌سازی ویدیو CRF (۱۸ بهترین، ۳۴ سبک‌ترین)'],
+            ['group' => 'uploads', 'key' => 'uploads.compression.server_batch', 'value' => '8', 'cast' => 'string', 'label' => 'حداکثر فایل تصویری در هر اجرای کرون (بدون فشار به سرور)'],
+
+            // فاز ۵۰ — قابلیت‌ها (سوییچ فعال/غیرفعال هر زیرسیستم از اینجا)
+            ['group' => 'features', 'key' => 'features.status_page', 'value' => '1', 'cast' => 'boolean', 'label' => 'صفحهٔ عمومی «وضعیت زندهٔ کافی‌نت‌ها» (/status)'],
+            ['group' => 'features', 'key' => 'features.smart_dispatch', 'value' => '1', 'cast' => 'boolean', 'label' => 'پخش هوشمند سفارش (امتیاز رأی + آمار پذیرش)'],
+            ['group' => 'features', 'key' => 'features.reseller', 'value' => '0', 'cast' => 'boolean', 'label' => 'حالت فروشنده/برند مشترک (سازمان‌ها)'],
+            ['group' => 'features', 'key' => 'features.family_accounts', 'value' => '0', 'cast' => 'boolean', 'label' => 'حساب خانواده/تیمی (کیف مشترک + سقف خرج)'],
+            ['group' => 'features', 'key' => 'features.webhooks', 'value' => '0', 'cast' => 'boolean', 'label' => 'وب‌هوک‌ها (اطلاع رویدادها به آدرس شما)'],
+            ['group' => 'features', 'key' => 'features.api_usage_log', 'value' => '1', 'cast' => 'boolean', 'label' => 'ثبت مصرف API (چه کسی/کدام دستگاه — برای اینسایت)'],
+            ['group' => 'features', 'key' => 'features.sla_enabled', 'value' => '0', 'cast' => 'boolean', 'label' => 'تعهد زمان تحویل (SLA) با تایمر زنده'],
+            ['group' => 'features', 'key' => 'features.sla_minutes', 'value' => '60', 'cast' => 'integer', 'label' => 'زمان تعهدی تحویل پس از پرداخت (دقیقه)'],
+            ['group' => 'features', 'key' => 'features.i18n', 'value' => '0', 'cast' => 'boolean', 'label' => 'چندزبانه (خاموش = فقط فارسی)'],
+            ['group' => 'features', 'key' => 'features.customer_stats', 'value' => '1', 'cast' => 'boolean', 'label' => 'داشبورد مصرف مشتری (آمار و نمودارها)'],
+            ['group' => 'features', 'key' => 'features.global_search', 'value' => '1', 'cast' => 'boolean', 'label' => 'جستجوی سراسری پنل ادمین (Ctrl+K)'],
+            ['group' => 'features', 'key' => 'features.health_page', 'value' => '1', 'cast' => 'boolean', 'label' => 'صفحهٔ سلامت سیستم (ادمین)'],
+            ['group' => 'features', 'key' => 'features.sms_retry', 'value' => '1', 'cast' => 'boolean', 'label' => 'ارسال دوبارهٔ خودکار پیامک ناموفق (۳ تلاش)'],
+            // فاز ۵۰ — امنیت ورود پنل‌ها
+            ['group' => 'features', 'key' => 'features.captcha_mode', 'value' => 'smart', 'cast' => 'string', 'label' => 'ربات‌گیر ورود پنل‌ها (off | smart | always)'],
+            ['group' => 'features', 'key' => 'features.captcha_after_fails', 'value' => '2', 'cast' => 'integer', 'label' => 'حالت هوشمند: کپچا بعد از چند تلاش ناموفق؟'],
+            ['group' => 'features', 'key' => 'features.two_factor', 'value' => '0', 'cast' => 'boolean', 'label' => 'ورود دومرحله‌ای پیامکی برای پنل‌ها (2FA)'],
         ];
 
         foreach ($rows as $row) {

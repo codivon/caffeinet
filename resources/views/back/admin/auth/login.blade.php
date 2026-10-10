@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- تم ذخیره‌شده قبل از رندر اعمال می‌شود (ضد-FOUC) --}}
-    <script src="{{ asset('assets/js/theme-boot.js') }}?v=1"></script>
+    <script src="{{ asset('assets/js/theme-boot.js') }}?v=4"></script>
 
     <title>ورود مدیر کل — {{ config('app.name') }}</title>
     {{-- PWA (فاز ۱۴) --}}
@@ -19,10 +19,12 @@
 
     {{-- استایل و اسکریپت — کاملاً بدون Node / بدون بیلد --}}
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v=10">
-    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=15">
-    <link rel="stylesheet" href="{{ asset('assets/css/pages/admin.css') }}?v=10">
+    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=18">
+    <link rel="stylesheet" href="{{ asset('assets/css/pages/admin.css') }}?v=24">
     {{-- سیستم تم روشن/تاریک (فاز ۱۰) — باید آخرین CSS باشد تا برنده بماند --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}?v=10">
+    <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}?v=11">
+    {{-- پوستهٔ پویا: پالت اختصاصی این پنل (بعد از theme.css) --}}
+    @include('partials.appearance', ['panel' => 'admin'])
 </head>
 <body class="font-sans antialiased selection:bg-amber-200 selection:text-amber-950">
 
@@ -36,9 +38,9 @@
 
     {{-- پس‌زمینه --}}
     <div class="pointer-events-none fixed inset-0" aria-hidden="true">
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_50%_-10%,rgba(196,127,61,0.25),transparent)]"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_35%_28%_at_10%_85%,rgba(211,156,92,0.08),transparent)]"></div>
-        <div class="absolute inset-0 opacity-[0.04] bg-[repeating-linear-gradient(135deg,transparent_0_9px,rgba(226,186,133,0.5)_9px_10px)]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_50%_-10%,rgba(37,99,235,0.25),transparent)]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_35%_28%_at_10%_85%,rgba(96,165,250,0.08),transparent)]"></div>
+        <div class="absolute inset-0 opacity-[0.04] bg-[repeating-linear-gradient(135deg,transparent_0_9px,rgba(147,197,253,0.5)_9px_10px)]"></div>
         {{-- حباب‌های شناور کیت UI --}}
         <span class="ui-blob" data-tone="amber" data-pos="1"></span>
         <span class="ui-blob" data-tone="gold" data-pos="2"></span>
@@ -49,9 +51,7 @@
 
         <div class="text-center mb-8 animate-fade-up">
             <span class="inline-grid place-items-center size-16 rounded-3xl bg-gradient-to-br from-amber-400 to-amber-700 shadow-2xl shadow-amber-950/50 mb-4">
-                <svg class="size-8 text-amber-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
-                </svg>
+                <img src="{{ asset('icons/icon-96.png') }}" alt="" width="32" height="32" loading="lazy" style="width:32px;height:32px;object-fit:contain">
             </span>
             <h1 class="text-2xl font-extrabold text-amber-50 tracking-tight">کافی‌نت آنلاین</h1>
             <p class="mt-1.5 text-sm text-amber-200/60 font-light">ورود به پنل مدیریت کل</p>
@@ -99,9 +99,8 @@
     </div>
 </main>
 
-<script src="{{ asset('assets/js/vendor/jquery.min.js') }}?v=10"></script>
-<script src="{{ asset('back/assets/js/core.js') }}?v=10"></script>
-<script src="{{ asset('back/assets/js/ui.js') }}?v=10"></script>
+<script src="{{ asset('back/assets/js/core.js') }}?v=15"></script>
+<script src="{{ asset('back/assets/js/ui.js') }}?v=13"></script>
 <script src="{{ asset('back/assets/js/pages/admin/auth/login.js') }}?v=10"></script>
 </body>
 </html>

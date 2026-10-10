@@ -43,6 +43,85 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * v42 — POST /api/v1/profile/avatar
+     *
+     * آواتار پروفایل مشتری: تصویر «کراپ‌شده» (کادر مربع ۱۵۰×۱۵۰ از کراپر
+     * لینکدین‌وار سمت کاربر) دریافت و «اجباراً» به ۷۵×۷۵ WebP بازانکودینگ
+     * می‌شود — کوچک‌ترین فرمت با سرعت خواندن بالا. سقف ورودی ۲ مگابایت.
+     */
+    public function avatar(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'avatar' => ['required', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
+        ], [
+            'avatar.required' => 'تصویر انتخاب نشده است.',
+            'avatar.image' => 'فایل باید تصویر باشد.',
+            'avatar.mimes' => 'فرمت مجاز: JPG، PNG یا WebP.',
+            'avatar.max' => 'حجم تصویر نباید بیش از ۲ مگابایت باشد.',
+        ], [
+            'avatar' => 'تصویر پروفایل',
+        ]);
+
+        if (! function_exists('imagecreatefromstring')) {
+            return response()->json(['message' => 'پردازش تصویر روی سرور فعال نیست.'], 500);
+        }
+
+        $binary = file_get_contents($request->file('avatar')->getRealPath());
+        $src = @imagecreatefromstring($binary);
+
+        if (! $src) {
+            return response()->json(['message' => 'تصویر قابل خواندن نیست.'], 422);
+        }
+
+        // برش مربع مرکزی + تغییر اندازه به ۷۵×۷۵ (اجباری — خواستهٔ مالک)
+        $w = imagesx($src);
+        $h = imagesy($src);
+        $side = min($w, $h);
+        $sx = (int) floor(($w - $side) / 2);
+        $sy = (int) floor(($h - $side) / 2);
+
+        $dst = imagecreatetruecolor(75, 75);
+        imagealphablending($dst, false);
+        imagesavealpha($dst, true);
+        imagecopyresampled($dst, $src, 0, 0, $sx, $sy, 75, 75, $side, $side);
+        imagedestroy($src);
+
+        ob_start();
+        $ok = imagewebp($dst, null, 84); // WebP — کمترین حجم، سریع‌ترین خواندن
+        imagedestroy($dst);
+
+        if (! $ok) {
+            ob_end_clean();
+
+            return response()->json(['message' => 'تبدیل تصویر ناموفق بود.'], 500);
+        }
+
+        $webp = (string) ob_get_clean();
+
+        // جایگزینی آواتار قبلی
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+        if ($user->avatar_path && $disk->exists($user->avatar_path)) {
+            $disk->delete($user->avatar_path);
+        }
+
+        $path = 'avatars/user-'.$user->id.'-'.now()->format('YmdHis').'.webp';
+        $disk->put($path, $webp);
+
+        $old = $user->only(['avatar_path']);
+        $user->avatar_path = $path;
+        $user->save();
+
+        AuditLogger::log('customer.avatar_updated', $user, $old, ['avatar_path' => $path], 'به‌روزرسانی آواتار پروفایل مشتری');
+
+        return response()->json([
+            'message' => 'آواتار شما به‌روزرسانی شد.',
+            'avatar_url' => $user->avatarUrl(),
+        ]);
+    }
+
     /** POST /api/v1/profile/complete */
     public function complete(Request $request): JsonResponse
     {

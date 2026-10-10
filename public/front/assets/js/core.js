@@ -1,9 +1,11 @@
 /* ============================================================
-   کافی‌نت آنلاین — هسته اپ مشتری (jQuery)
-   بدون وابستگی به Node/بیلد — فایل مستقل لینک‌شده به صفحات
+   کافی‌نت آنلاین — هسته اپ مشتری (Vanilla JS — بدون jQuery)
+   [Task 9] مهاجرت کامل از jQuery به DOM استاندارد:
+   • CN.api روی XMLHttpRequest (حفظ xhr.status/responseText در خطاها)
+   • همهٔ متدهای DOM اکنون عنصر خام می‌پذیرند (نه آبجکت jQuery)
+   • بدون وابستگی به Node/بیلد — فایل مستقل لینک‌شده به صفحات
    ============================================================ */
-/* global jQuery */
-window.CN = (function ($) {
+window.CN = (function () {
     'use strict';
 
     /* ---------- پیکربندی گیت‌وی پیش‌نمایش ---------- */
@@ -12,6 +14,9 @@ window.CN = (function ($) {
     try {
         port = new URLSearchParams(window.location.search).get(PORT_PARAM) || '';
     } catch (e) { port = ''; }
+
+    /* v41 — قفل ضدتکرار ۴۰۱: در هر بارگذاری صفحه فقط یک پیام/یک ریدایرکت */
+    var authRedirectPending = false;
 
     /** افزودن پارامتر گیت‌وی به مسیر داخلی */
     function withPort(url) {
@@ -75,7 +80,7 @@ window.CN = (function ($) {
         return true;
     }
 
-    /* ---------- لایه API ---------- */
+    /* ---------- لایه API (vanilla XHR — جایگزین $.ajax) ---------- */
     function extractMessage(xhr) {
         var data = null;
         try {
@@ -98,9 +103,9 @@ window.CN = (function ($) {
 
     /**
      * فراخوانی API.
-     * opts: { method, data(json), formData, success(resp), error(xhr, message), timeout, retries }
+     * opts: { method, data(json), formData, success(resp), error(xhr, message), timeout, retries, complete(xhr) }
      *
-     * v40 — سخت‌سازی مرکزی (رفع «فرم/فیلدها لود نمی‌شود و رفرش می‌خواهد»):
+     * v40 — سخت‌سازی مرکزی (حفظ عین رفتار نسخهٔ jQuery):
      *  • timeout پیش‌فرض ۲۰ ثانیه — درخواست دیگر تا ابد معلق نمی‌ماند.
      *  • تلاش مجدد خودکار روی خطاهای گذرا (شبکه/تایم‌اوت/۵xx/۴۲۹/پاسخ غیر-JSON):
      *    GET به‌طور پیش‌فرض ۱ تلاش مجدد دارد؛ متدهای دیگر (POST/…) هرگز
@@ -116,65 +121,108 @@ window.CN = (function ($) {
             ? opts.__retriesLeft
             : Math.max(0, (opts.retries !== undefined) ? Number(opts.retries) : (method === 'GET' ? 1 : 0));
 
-        var conf = {
-            url: apiUrl(path),
-            method: method,
-            headers: { 'Accept': 'application/json' },
-            dataType: 'json',
-            timeout: opts.timeout || 20000 // v40 — هیچ درخواستی بی‌مهلت نیست
-        };
+        netBusyBegin(); /* معادل ajaxStart — نگه‌داشتن state دکمهٔ busy */
 
+        var hadToken = !!token(); /* v41 — آیا این درخواست اصلاً توکن داشت؟ */
+
+        var xhr = new XMLHttpRequest();
+        xhr.open(method, apiUrl(path), true);
+        xhr.timeout = opts.timeout || 20000; /* v40 — هیچ درخواستی بی‌مهلت نیست */
+        xhr.responseType = 'text';
+        xhr.setRequestHeader('Accept', 'application/json');
+        /* فاز ۴۷ — الزام کلید وب‌سرویس: هدر «X-Api-Key» از متای صفحه
+           (partials/vpn-modal) — بدون آن API با 401 جواب می‌دهد. */
+        var apiKeyMeta = document.querySelector('meta[name="api-key"]');
+        if (apiKeyMeta && apiKeyMeta.content) {
+            xhr.setRequestHeader('X-Api-Key', apiKeyMeta.content);
+        }
         if (token()) {
-            conf.headers['Authorization'] = 'Bearer ' + token();
+            xhr.setRequestHeader('Authorization', 'Bearer ' + token());
         }
-
         if (opts.formData) {
-            conf.data = opts.formData;
-            conf.processData = false;
-            conf.contentType = false;
+            /* FormData: مرورگر خودش Content-Type چند-بخشی با boundary می‌سازد */
         } else if (typeof opts.data !== 'undefined') {
-            conf.data = JSON.stringify(opts.data);
-            conf.contentType = 'application/json';
+            xhr.setRequestHeader('Content-Type', 'application/json');
         }
 
-        conf.success = function (resp) {
-            if (opts.success) { opts.success(resp); }
-        };
+        var timedOut = false;
+        xhr.ontimeout = function () { timedOut = true; };
 
-        conf.error = function (xhr, textStatus) {
+        xhr.onload = function () {
+            var status = xhr.status;
+            var ok = status >= 200 && status < 300;
+
+            if (ok) {
+                var resp = null;
+                try { resp = JSON.parse(xhr.responseText); } catch (e) { resp = null; }
+                netBusyEnd();
+                if (opts.success) { opts.success(resp); }
+                if (opts.complete) { opts.complete(xhr); }
+                return;
+            }
+
             var message = extractMessage(xhr);
 
-            if (xhr.status === 401) {
+            /* v41 — ضد «حلقهٔ نشست منقضی»:
+               علت باگ: اسکریپت‌های مشترک لایه (مثل initRealtime اعلان‌ها) روی
+               صفحهٔ ورود هم بدون توکن /realtime/config را می‌زدند → ۴۰۱ →
+               پیام «منقضی شد» + ریدایرکت به /app/auth → همان صفحه دوباره ۴۰۱…
+               حلقهٔ بی‌نهایت رفرش تا سقف throttle سرور (≈۱ دقیقه).
+               حالا: ۴۰۱ِ بی‌توکن یا ۴۰۱ روی خود صفحهٔ ورود بی‌صدا است و از
+               بین چند ۴۰۱ همزمان فقط اولی پیام/ریدایرکت می‌سازد. */
+            if (status === 401) {
+                netBusyEnd();
                 clearSession();
-                toast('نشست شما منقضی شده؛ دوباره وارد شوید.', 'error');
-                window.setTimeout(function () {
-                    window.location.replace(withPort('/app/auth'));
-                }, 1100);
+                var onAuthPage = /^\/app\/auth\b/.test(window.location.pathname);
+                if (!authRedirectPending && hadToken && !onAuthPage) {
+                    authRedirectPending = true;
+                    toast('نشست شما منقضی شده؛ دوباره وارد شوید.', 'error');
+                    window.setTimeout(function () {
+                        window.location.replace(withPort('/app/auth'));
+                    }, 1100);
+                }
+                if (opts.complete) { opts.complete(xhr); }
                 return;
             }
 
             /* v40 — خطای گذرا و تلاش مجدد باقی است؟ پس از مکث کوتاه دوباره می‌زنیم */
-            if (retriesLeft > 0 && isTransientFailure(xhr, textStatus)) {
-                var retryOpts = $.extend({}, opts, { __retriesLeft: retriesLeft - 1 });
+            if (retriesLeft > 0 && isTransientFailure(xhr, timedOut ? 'timeout' : '')) {
+                netBusyEnd();
+                var retryOpts = Object.assign({}, opts, { __retriesLeft: retriesLeft - 1 });
                 window.setTimeout(function () { api(path, retryOpts); }, 900);
                 return;
             }
 
+            netBusyEnd();
             if (opts.error) {
                 opts.error(xhr, message);
             } else if (message) {
                 toast(message, 'error');
             }
+            if (opts.complete) {
+                if (status === 401 && opts.error === undefined) { return; }
+                opts.complete(xhr);
+            }
         };
 
-        if (opts.complete) {
-            conf.complete = function (xhr) {
-                if (xhr && xhr.status === 401 && opts.error === undefined) { return; }
-                opts.complete(xhr);
-            };
-        }
+        xhr.onerror = function () {
+            var message = extractMessage(xhr);
+            netBusyEnd();
+            if (opts.error) {
+                opts.error(xhr, message);
+            } else if (message) {
+                toast(message, 'error');
+            }
+            if (opts.complete) { opts.complete(xhr); }
+        };
 
-        $.ajax(conf);
+        if (opts.formData) {
+            xhr.send(opts.formData);
+        } else if (typeof opts.data !== 'undefined') {
+            xhr.send(JSON.stringify(opts.data));
+        } else {
+            xhr.send();
+        }
     }
 
     /** آیا خطای فعلی گذرا است و ارزش تلاش مجدد دارد؟ (v40) */
@@ -245,61 +293,74 @@ window.CN = (function ($) {
         type = type || 'info';
         duration = duration || 3600;
 
-        var $wrap = $('#toastWrap');
-        if (!$wrap.length) { return; }
+        var wrap = document.getElementById('toastWrap');
+        if (!wrap) { return; }
 
-        var $t = $('<div class="toast toast-' + type + '" role="status"><span class="t-icon">' + (ICONS[type] || 'ℹ') + '</span><span></span></div>');
-        $t.find('span:last').text(message);
-        $wrap.append($t);
+        var t = document.createElement('div');
+        t.className = 'toast toast-' + type;
+        t.setAttribute('role', 'status');
+        t.innerHTML = '<span class="t-icon">' + (ICONS[type] || 'ℹ') + '</span><span></span>';
+        t.lastElementChild.textContent = message;
+        wrap.appendChild(t);
 
         window.setTimeout(function () {
-            $t.addClass('out');
-            window.setTimeout(function () { $t.remove(); }, 350);
+            t.classList.add('out');
+            window.setTimeout(function () { t.remove(); }, 350);
         }, duration);
     }
 
-    /* ---------- دکمه در حال بارگذاری ---------- */
-    function btnLoading($btn, loading, loadingText) {
-        if (!$btn || !$btn.length) { return; }
+    /* ---------- دکمه در حال بارگذاری (عنصر خام) ---------- */
+    function btnLoading(btn, loading, loadingText) {
+        if (!btn) { return; }
         if (loading) {
-            if (!$btn.data('cn-html')) { $btn.data('cn-html', $btn.html()); }
-            $btn.prop('disabled', true).css('opacity', 0.65);
-            $btn.html('<span class="spinner"></span>' + (loadingText ? ' ' + esc(loadingText) : ''));
+            if (!btn.__cnHtml) { btn.__cnHtml = btn.innerHTML; }
+            btn.disabled = true;
+            btn.style.opacity = '0.65';
+            btn.innerHTML = '<span class="spinner"></span>' + (loadingText ? ' ' + esc(loadingText) : '');
         } else {
-            $btn.prop('disabled', false).css('opacity', '');
-            var original = $btn.data('cn-html');
-            if (original) { $btn.html(original); }
+            btn.disabled = false;
+            btn.style.opacity = '';
+            if (btn.__cnHtml) { btn.innerHTML = btn.__cnHtml; }
         }
     }
 
     /* ---------- خطای فیلد ---------- */
     /** یافتن عنصر خطای متناظر: #err_name / #ferr_name / #nameError / #name */
     function errorEl(name) {
-        var selectors = ['#err_' + name, '#ferr_' + name, '#' + name + 'Error', '#' + name];
+        var selectors = ['err_' + name, 'ferr_' + name, name + 'Error', name];
         for (var i = 0; i < selectors.length; i++) {
-            var $el = $(selectors[i]);
-            if ($el.length && $el.hasClass('field-error')) { return $el; }
+            var el = document.getElementById(selectors[i]);
+            if (el && el.classList.contains('field-error')) { return el; }
         }
         return null;
     }
 
     function fieldError(name, message) {
-        var $err = errorEl(name);
-        if ($err) {
-            $err.text(message || '').addClass('show');
-            var $input = $err.closest('.form-group').find('.field, .check-row, .check-grid');
-            $input.addClass('invalid');
+        var err = errorEl(name);
+        if (err) {
+            err.textContent = message || '';
+            err.classList.add('show');
+            var group = err.closest('.form-group');
+            if (group) {
+                var input = group.querySelector('.field, .check-row, .check-grid');
+                if (input) { input.classList.add('invalid'); }
+            }
         }
     }
 
     function clearFieldErrors(scope) {
-        var $root = scope ? $(scope) : $(document);
-        $root.find('.field-error').removeClass('show').text('');
-        $root.find('.field').removeClass('invalid');
+        var root = (scope instanceof Element) ? scope : document;
+        Array.prototype.forEach.call(root.querySelectorAll('.field-error'), function (el) {
+            el.classList.remove('show');
+            el.textContent = '';
+        });
+        Array.prototype.forEach.call(root.querySelectorAll('.field'), function (el) {
+            el.classList.remove('invalid');
+        });
     }
 
     /** نگاشت خطاهای سرور (کلید = نام فنی فیلد) روی فرم */
-    function applyErrors(errors, $scope) {
+    function applyErrors(errors, scope) {
         errors = errors || {};
         Object.keys(errors).forEach(function (key) {
             var list = errors[key];
@@ -332,23 +393,28 @@ window.CN = (function ($) {
      */
     function confirm(opts, onOk) {
         opts = opts || {};
-        var $modal = $(modalHtml);
-        $modal.find('.m-icon').text(opts.icon || '⚠');
-        $modal.find('.m-title').text(opts.title || 'تأیید عملیات');
-        $modal.find('.m-desc').text(opts.desc || '');
-        $modal.find('.m-ok').text(opts.okText || 'تأیید');
-        if (opts.danger) {
-            $modal.find('.m-ok').removeClass('btn-primary').addClass('btn-danger');
-        }
-        $('body').append($modal);
+        var tmp = document.createElement('div');
+        tmp.innerHTML = modalHtml;
+        var modal = tmp.firstElementChild;
 
-        $modal.find('.m-cancel').on('click', function () { $modal.remove(); });
-        $modal.find('.m-ok').on('click', function () {
-            $modal.remove();
+        modal.querySelector('.m-icon').textContent = opts.icon || '⚠';
+        modal.querySelector('.m-title').textContent = opts.title || 'تأیید عملیات';
+        modal.querySelector('.m-desc').textContent = opts.desc || '';
+        var okBtn = modal.querySelector('.m-ok');
+        okBtn.textContent = opts.okText || 'تأیید';
+        if (opts.danger) {
+            okBtn.classList.remove('btn-primary');
+            okBtn.classList.add('btn-danger');
+        }
+        document.body.appendChild(modal);
+
+        modal.querySelector('.m-cancel').addEventListener('click', function () { modal.remove(); });
+        okBtn.addEventListener('click', function () {
+            modal.remove();
             if (onOk) { onOk(); }
         });
-        $modal.on('click', function (e) {
-            if (e.target === $modal[0]) { $modal.remove(); }
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) { modal.remove(); }
         });
     }
 
@@ -357,16 +423,34 @@ window.CN = (function ($) {
        کیف پول از ناوبری پایین و صفحهٔ پروفایل در دسترس است. */
 
     function updateAvatar(u) {
-        var $a = $('#headerAvatar, #profileAvatar');
-        if (!$a.length || !u) { return; }
+        var targets = document.querySelectorAll('#headerAvatar, #profileAvatar');
+        if (!targets.length || !u) { return; }
+
+        /* v42 — آواتار تصویری (کراپ ۷۵×۷۵ WebP) مقدار دارد → نمایش تصویر */
+        if (u.avatar_url) {
+            Array.prototype.forEach.call(targets, function (a) {
+                a.textContent = '';
+                a.classList.add('is-avatar');
+                a.style.backgroundImage = 'url("' + u.avatar_url + '")';
+                a.style.backgroundSize = 'cover';
+                a.style.backgroundPosition = 'center';
+                if (a.getAttribute('title') !== null) { a.setAttribute('title', u.full_name || ''); }
+            });
+            return;
+        }
+
         var initials;
         if (u.name && u.family) {
             initials = (u.name.trim().charAt(0) || '؟') + (u.family.trim().charAt(0) || '');
         } else {
             initials = '؟';
         }
-        $a.text(initials);
-        if ($a.attr('title') !== undefined) { $a.attr('title', u.full_name || ''); }
+        Array.prototype.forEach.call(targets, function (a) {
+            a.classList.remove('is-avatar');
+            a.style.backgroundImage = '';
+            a.textContent = initials;
+            if (a.getAttribute('title') !== null) { a.setAttribute('title', u.full_name || ''); }
+        });
     }
 
     /** بروزرسانی هدر: آواتار */
@@ -376,19 +460,19 @@ window.CN = (function ($) {
         if (u) { updateAvatar(u); }
     }
 
-    /* ---------- شمارش معکوس ---------- */
-    function countdown($target, $btn, seconds, onEnd) {
+    /* ---------- شمارش معکوس (عناصر خام) ---------- */
+    function countdown(target, btn, seconds, onEnd) {
         var remain = seconds;
-        $btn.prop('disabled', true);
+        if (btn) { btn.disabled = true; }
 
         function tick() {
             if (remain <= 0) {
-                $target.text('');
-                $btn.prop('disabled', false);
+                if (target) { target.textContent = ''; }
+                if (btn) { btn.disabled = false; }
                 if (onEnd) { onEnd(); }
                 return;
             }
-            $target.text('ارسال مجدد تا ' + toFaDigits(remain) + ' ثانیه…');
+            if (target) { target.textContent = 'ارسال مجدد تا ' + toFaDigits(remain) + ' ثانیه…'; }
             remain--;
             window.setTimeout(tick, 1000);
         }
@@ -438,37 +522,43 @@ window.CN = (function ($) {
 
     function syncThemeButtons() {
         var mode = currentTheme();
-        $('[data-theme-toggle]').each(function () {
-            this.setAttribute('aria-pressed', mode === 'dark' ? 'true' : 'false');
-            this.setAttribute('title', mode === 'dark' ? 'حالت روز' : 'حالت شب');
+        Array.prototype.forEach.call(document.querySelectorAll('[data-theme-toggle]'), function (el) {
+            el.setAttribute('aria-pressed', mode === 'dark' ? 'true' : 'false');
+            el.setAttribute('title', mode === 'dark' ? 'حالت روز' : 'حالت شب');
         });
-        /* نمودارها/کامپوننت‌های سراسری از این رویداد باخبر شوند */
-        $(document).trigger('ui:theme', mode);
+        /* نمودارها/کامپوننت‌های سراسری از این رویداد باخبر شوند
+           [Task 9] vanilla: شنونده با e.detail به حالت دسترسی دارد */
+        document.dispatchEvent(new CustomEvent('ui:theme', { detail: mode }));
     }
 
     function setTheme(mode, options) {
         options = options || {};
-        var $html = $(document.documentElement);
+        var html = document.documentElement;
         var isDark = mode === 'dark';
-        if (isDark === $html.hasClass('dark')) { syncThemeButtons(); return; }
+        if (isDark === html.classList.contains('dark')) { syncThemeButtons(); return; }
 
         /* انیمیشن نرم فقط هنگام تعویض (نه لود اولیه) */
         if (options.animate !== false) {
-            $html.addClass('theme-anim');
+            html.classList.add('theme-anim');
             window.clearTimeout(themeAnimTimer);
-            themeAnimTimer = window.setTimeout(function () { $html.removeClass('theme-anim'); }, 480);
+            themeAnimTimer = window.setTimeout(function () { html.classList.remove('theme-anim'); }, 480);
         }
 
-        $html.toggleClass('dark', isDark);
+        html.classList.toggle('dark', isDark);
         if (options.persist !== false) {
             try { window.localStorage.setItem(THEME_KEY, mode); } catch (e) { /* noop */ }
         }
+        /* v42 — کوکی تم برای مانیفست PWA (رنگ اسپلش روشن/تاریک) */
+        if (window.CNThemeCookie) { window.CNThemeCookie(isDark ? 'dark' : 'light'); }
         syncThemeButtons();
     }
 
     /* اتصال دکمه‌های سوییچ (delegate — برای محتوای داینامیک هم کار می‌کند) */
-    $(document).on('click', '[data-theme-toggle]', function () {
-        setTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+    document.addEventListener('click', function (e) {
+        var el = e.target.closest ? e.target.closest('[data-theme-toggle]') : null;
+        if (el) {
+            setTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+        }
     });
 
     /* ---------- خروج ---------- */
@@ -482,11 +572,541 @@ window.CN = (function ($) {
         });
     }
 
-    /* ---------- عمومی ---------- */
-    $(function () {
-        refreshChrome();
+    /* ---------- [Task 2-a] پل init برای ناوبری SPA (wire:navigate) ----------
+       مثل App.onNavigate در پنل‌ها: هم بار اول، هم بعد از هر ناوبری؛
+       با گارد «حداکثر یک اجرا در هر نسل صفحه». */
+    var navQueue = [];
+    var navEpoch = 0;
+    var firstNavigatedSeen = false;
+    var fnEpoch = [];
+
+    function runOnNavigate(fn) {
+        var idx = navQueue.indexOf(fn);
+        if (idx !== -1 && fnEpoch[idx] === navEpoch) { return; }
+        if (idx === -1) { idx = navQueue.push(fn) - 1; }
+        fnEpoch[idx] = navEpoch;
+        try { fn(); } catch (e) {
+            if (window.console && console.error) { console.error('[CN.onNavigate]', e); }
+        }
+    }
+
+    function onNavigate(fn) {
+        if (typeof fn !== 'function') { return; }
+        navQueue.push(fn);
+        runOnNavigate(fn);
+    }
+
+    window.addEventListener('livewire:navigated', function () {
+        if (firstNavigatedSeen) { navEpoch++; }
+        firstNavigatedSeen = true;
+        navQueue.forEach(function (fn) { runOnNavigate(fn); });
+    });
+
+    /* ---------- v43 — لودر اپ (نوار عبوری + اسکلتون) ----------
+       ۱) نوار برند بالای صفحه از لحظهٔ کلیک تا جایگذینی — با «حداقل زمان دید»
+          تا حتی وقتی صفحه از کش می‌آید، عبور نوار دیده شود (حس اینستاگرام).
+       ۲) اعمال دوبارهٔ تم — Livewire در هر ناوبری attributeهای <html> را با
+          نسخهٔ سرور-رندر (بدون کلاس dark) جایگزین می‌کند؛ (theme-boot با
+          MutationObserver همان لحظه برمی‌گرداند — بدون فریم سفید). */
+    var spaBar = null, spaHideTimer = null, spaShownAt = 0, spaMinMs = 350;
+
+    function spaProgressStart(minMs) {
+        if (!spaBar) {
+            spaBar = document.createElement('div');
+            spaBar.className = 'spa-progress';
+            spaBar.setAttribute('aria-hidden', 'true');
+            /* v43 — به <html> می‌چسبد نه <body>: لایووایر در هر ناوبری کل body را
+               سواپ می‌کند و عنصر نابود می‌شد (به همین دلیل کاربر لودر نمی‌دید!) */
+            (document.documentElement || document.body).appendChild(spaBar);
+        }
+        window.clearTimeout(spaHideTimer);
+        spaMinMs = Number(minMs) > 0 ? Number(minMs) : 350;
+        spaShownAt = Date.now();
+        spaBar.classList.remove('spa-progress--done', 'spa-progress--active');
+        void spaBar.offsetWidth; /* ری‌استارت انیمیشن */
+        spaBar.classList.add('spa-progress--active');
+    }
+
+    function spaProgressDone(force) {
+        if (!spaBar || !spaBar.classList.contains('spa-progress--active')) { return; }
+        /* حداقل زمان دید — کلیک کاربر باید «عبور نوار» را ببیند */
+        var wait = force === true ? 0 : Math.max(0, spaMinMs - (Date.now() - spaShownAt));
+        window.clearTimeout(spaHideTimer);
+        spaHideTimer = window.setTimeout(function () {
+            if (!spaBar) { return; }
+            spaBar.classList.add('spa-progress--done');
+            window.setTimeout(function () {
+                if (spaBar) { spaBar.classList.remove('spa-progress--active', 'spa-progress--done'); }
+            }, 420);
+        }, wait);
+    }
+
+    window.addEventListener('livewire:navigate', function () { spaProgressStart(550); });
+    window.addEventListener('alpine:navigate', function () { spaProgressStart(550); });
+    /* بدون force — «حداقل زمان دید» رعایت می‌شود تا عبور نوار دیده شود؛
+       ناوبری‌های کند چون از min عبور کرده‌اند بلافاصله تمام می‌شوند */
+    window.addEventListener('livewire:navigated', function () { spaProgressDone(); });
+
+    /* v43 — لود «داده در جای خود» (تب/فیلتر/اکشن Livewire بدون تعویض صفحه):
+       هر commit که بیش از ۲۸۰ms طول بکشد نوار را نشان می‌دهد؛ سریع‌ها بدون
+       چشمک همان‌جا تمام می‌شوند. hook سراسری Livewire — یک‌بار bind می‌شود. */
+    (function initCommitBar() {
+        if (window.__cnCommitBarBound) { return; }
+        window.__cnCommitBarBound = true;
+        var api = function () {
+            if (!window.Livewire || typeof window.Livewire.hook !== 'function') { return false; }
+            var pending = 0, slowTimer = null;
+            try {
+                window.Livewire.hook('commit', function () {
+                    pending++;
+                    window.clearTimeout(slowTimer);
+                    slowTimer = window.setTimeout(function () {
+                        if (pending > 0) { spaProgressStart(300); }
+                    }, 280);
+                    return {
+                        succeed: function () { commitSettled(); },
+                        fail: function () { commitSettled(); }
+                    };
+                });
+            } catch (e) { return false; }
+            function commitSettled() {
+                pending = Math.max(0, pending - 1);
+                if (pending === 0) {
+                    window.clearTimeout(slowTimer);
+                    spaProgressDone();
+                }
+            }
+            return true;
+        };
+        if (!api()) {
+            /* Livewire هنوز لود نشده — بعد از init دوباره */
+            window.addEventListener('livewire:initialized', api, { once: true });
+        }
+    })();
+
+    /* v43 — قفل اسکرول بدنه برای صفحات fit (تیکت/چت) — fallback بدون :has() */
+    function syncShellLock() {
+        var shell = document.querySelector('.app-shell');
+        var lock = !!(shell && (shell.classList.contains('tk-shell') ||
+            shell.classList.contains('ticket-shell') || shell.classList.contains('chat-shell')));
+        document.body.classList.toggle('cn-shell-lock', lock);
+    }
+    window.addEventListener('livewire:navigated', syncShellLock);
+
+    /* ---------- فاز ۱۴ — پیش‌بارگذاری منوهای پایین (حس اپ بومی) ----------
+       لینک‌های ناوبری پایین با «wire:navigate.hover» شنوندهٔ hover Livewire را
+       دارند؛ اینجا بعد از هر ناوبری (و هر ۲۰ ثانیه در تبِ باز و بعد از هر
+       بازگشت به اپ) به‌صورت مصنوعی mouseenter/mouseleave می‌فرستیم تا Livewire
+       HTML صفحه‌های منو را در کشِ ۳۰ ثانیه‌ای خودش پیش‌بارگذاری کند → کلیک روی
+       منو همان لحظه از کش سواپ می‌شود (بدون انتظار برای پاسخ سرور) —
+       محتوای ثابت (عنوان/وضعیت) فوری دیده می‌شود و فقط دیتا با حله لود می‌شود.
+       v45 — گرم‌کردن اولیه هنگام لود + بعد از هر بازگشت به اپ (PWA) +
+       گرم‌کردن فوری لینک با pointerdown (قبل از کلیک، سرآغاز ناوبری سرد). */
+    var navWarmTimer = null;
+    var navWarmInterval = null;
+    var NAV_WARM_IDLE_MS = 900;
+    var NAV_WARM_EVERY_MS = 20000;
+
+    function warmBottomNav() {
+        try {
+            if (document.hidden || (navigator.onLine === false)) { return; }
+            var links = document.querySelectorAll('.bottom-nav a[href]');
+            if (!links.length) { return; }
+            Array.prototype.forEach.call(links, function (el) {
+                if (el.getAttribute('aria-current') === 'page') { return; }
+                el.dispatchEvent(new MouseEvent('mouseenter'));
+                window.setTimeout(function () {
+                    el.dispatchEvent(new MouseEvent('mouseleave'));
+                }, 220);
+            });
+        } catch (e) { /* هرگز گرم‌کردن، صفحه را نشکند */ }
+    }
+
+    function scheduleNavWarmup() {
+        window.clearTimeout(navWarmTimer);
+        navWarmTimer = window.setTimeout(warmBottomNav, NAV_WARM_IDLE_MS);
+        if (!navWarmInterval) {
+            navWarmInterval = window.setInterval(warmBottomNav, NAV_WARM_EVERY_MS);
+        }
+    }
+    window.addEventListener('livewire:navigated', scheduleNavWarmup);
+    window.addEventListener('visibilitychange', function () {
+        if (!document.hidden) { scheduleNavWarmup(); }
+    });
+    /* v45 — لمس/کلیک روی منو → همان لینک فوراً گرم می‌شود (قبل از event کلیک) */
+    document.addEventListener('pointerdown', function (e) {
+        try {
+            var a = e.target && e.target.closest ? e.target.closest('.bottom-nav a[href]') : null;
+            if (!a || a.getAttribute('aria-current') === 'page') { return; }
+            a.dispatchEvent(new MouseEvent('mouseenter'));
+            window.setTimeout(function () { a.dispatchEvent(new MouseEvent('mouseleave')); }, 400);
+        } catch (err) { /* noop */ }
+    }, { passive: true });
+    /* اولین لود هم گرم شود (livewire:navigated در بعضی مسیرها دیر می‌آید) */
+    scheduleNavWarmup();
+
+    function reapplyThemeAfterNavigation() {
+        var stored = null;
+        try { stored = window.localStorage.getItem(THEME_KEY); } catch (e) { /* noop */ }
+        var dark = stored === 'dark' || (!stored && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.toggle('dark', dark);
+    }
+
+    window.addEventListener('livewire:navigated', function () {
+        reapplyThemeAfterNavigation();
         syncThemeButtons();
     });
+
+    /* ---------- [Task 9] شمارندهٔ درخواست فعال (جایگزین ajaxStart/ajaxStop) ---------- */
+    var netBusyCount = 0;
+
+    function netBusyBegin() {
+        netBusyCount++;
+        window.clearTimeout(busyTimer);
+    }
+
+    function netBusyEnd() {
+        netBusyCount = Math.max(0, netBusyCount - 1);
+        if (netBusyCount === 0 && busyBtn) { busyRelease(); }
+    }
+
+    /* ---------- [Task 8] لودینگ روی دکمه‌ها تا پایان پردازش ----------
+       هر دکمهٔ کلیک‌شده کلاس is-busy می‌گیرد:
+       • اگر درخواست شبکه واقعی (CN.api) شروع شود تا پایان آن می‌ماند
+       • اگر اکشن فوری باشد (بازکردن مودال/تب) بعد از ۳۵۰ms آزاد می‌شود تا چشمک زنده نگیرد
+       • لینک‌های wire:navigate و سوییچ‌های فوری (تم/زنگ/چیپ) مستثنا هستند */
+    var busyBtn = null, busyTimer = null;
+
+    function busyRelease() {
+        window.clearTimeout(busyTimer);
+        if (busyBtn) {
+            busyBtn.classList.remove('is-busy');
+            busyBtn.removeAttribute('aria-busy');
+            busyBtn = null;
+        }
+    }
+
+    document.addEventListener('click', function (e) {
+        var el = e.target.closest ? e.target.closest('button, [role="button"], .btn, a[class*="btn-"]') : null;
+        if (!el || el.disabled) { return; }
+        if (el.hasAttribute('data-no-loading') || el.hasAttribute('data-theme-toggle') || el.id === 'appBell') { return; }
+        if (el.classList.contains('chip') || el.classList.contains('ns-item') || el.classList.contains('ns-markall')) { return; }
+        if (el.tagName === 'A' && el.getAttribute('wire:navigate') !== null) { return; }
+        if (el.classList.contains('is-busy')) { return; }
+        busyRelease();
+        busyBtn = el;
+        el.classList.add('is-busy');
+        el.setAttribute('aria-busy', 'true');
+        window.clearTimeout(busyTimer);
+        busyTimer = window.setTimeout(function () {
+            if (netBusyCount === 0) { busyRelease(); } /* اکشن فوری — بدون درخواست شبکه */
+        }, 350);
+    });
+
+    /* [Task 2-a] آیتم فعال ناوبری پایین بعد از هر ناوبری تازه شود
+       (bottom-nav با @persist حفظ می‌شود و کلاس active سروری کهنه می‌ماند) */
+    function refreshBottomNavActive() {
+        var nav = document.querySelector('.bottom-nav');
+        if (!nav) { return; }
+        var path = window.location.pathname.replace(/\/+$/, '') || '/';
+        var best = null, bestLen = -1;
+        var links = nav.querySelectorAll('a[href]');
+        Array.prototype.forEach.call(links, function (a) {
+            a.classList.remove('active');
+            a.removeAttribute('aria-current');
+        });
+        Array.prototype.forEach.call(links, function (a) {
+            var href;
+            try { href = new URL(a.href, window.location.origin).pathname.replace(/\/+$/, '') || '/'; } catch (e) { return; }
+            if (href !== path && path.indexOf(href + '/') !== 0) { return; }
+            if (href.length > bestLen) { best = a; bestLen = href.length; }
+        });
+        if (best) {
+            best.classList.add('active');
+            best.setAttribute('aria-current', 'page');
+        }
+    }
+
+    /* ---------- عمومی ----------
+       [Task 2-a] با wire:navigate هدر اپ در هر ناوبری DOM تازه دارد؛
+       refreshChrome/syncThemeButtons باید بعد از هر ناوبری هم اجرا شوند. */
+    onNavigate(function () {
+        refreshChrome();
+        syncThemeButtons();
+        refreshBottomNavActive();
+    });
+
+    /* v42 — ذخیرهٔ پوستهٔ پالت (ظاهر و رنگ‌بندی) برای صفحهٔ آفلاین:
+       offline.js همین CSS را از localStorage تزریق می‌کند تا صفحهٔ
+       «اتصال قطع» هم دقیقاً هم‌رنگ پالت انتخابی باشد. */
+    try {
+        var apEl = document.getElementById('appearance-css');
+        if (apEl) { window.localStorage.setItem('cn-appearance-css:app', apEl.textContent); }
+    } catch (e) { /* حافظه در دسترس نیست */ }
+
+    /* ---------- [F-4] فشرده‌سازی تصویر در سمت کاربر ----------
+       ورودی: File تصویر (jpeg/png/webp) — خروجی: Promise که «همیشه» resolve می‌شود
+       (هیچ‌وقت reject نمی‌شود تا آپلود هرگز مسدود نشود؛ در هر خطا فایل اصلی برمی‌گردد).
+       opts: { maxSide: 2048, quality: 0.85 }
+       قواعد: زیر ۳۵۰KB دست‌نخورده؛ هرگز بزرگ‌نمایی نمی‌کند؛ PNG کوچک/شفاف PNG می‌ماند؛
+       PNG بزرگ بدون شفافیت → JPEG (پس‌زمینه سفید + پسوند .jpg)؛ WebP → WebP؛
+       اگر خروجی کوچک‌تر نشد فایل اصلی برگردانده می‌شود؛ ObjectURL همیشه آزاد می‌شود. */
+    var COMPRESS_MIN_BYTES = 350 * 1024;        /* زیر این حجم دست نمی‌زنیم */
+    var COMPRESS_PNG_KEEP_BYTES = 1536 * 1024;  /* PNG زیر ۱.۵MB همان PNG می‌ماند */
+    var COMPRESS_DEFAULT_SIDE = 2048;           /* بزرگ‌ترین ضلع مجاز (پیش‌فرض) */
+    var COMPRESS_DEFAULT_QUALITY = 0.85;
+
+    /* ---------- فاز ۱۴ — شناسایی نوع فایل (فیکس «پیش‌نمایش تصویر در گوشی») ----------
+       خیلی از مرورگرهای موبایل (گالری اندروید/برخی iOS) برای فایل انتخابی
+       file.type خالی می‌دهند → کد قبلی فایل تصویری را «file» می‌دانست؛ نه
+       پیش‌نمایش تصویر می‌آمد و نه فشرده‌سازی انجام می‌شد. اینجا ابتدا MIME و
+       اگر خالی بود پسوند نام فایل ملاک است. خروجی: image|video|audio|file */
+    var FTYPE_EXT_MAP = [
+        ['image', /\.(jpe?g|png|webp|gif|bmp|heic|heif|avif|tiff?|svg)$/i],
+        ['video', /\.(mp4|m4v|mov|webm|avi|mkv|3gp|wmv|flv)$/i],
+        ['audio', /\.(mp3|wav|ogg|oga|m4a|aac|opus|flac)$/i]
+    ];
+
+    function detectFileType(file) {
+        var type = String((file && file.type) || '').toLowerCase();
+        if (type.indexOf('image/') === 0) { return 'image'; }
+        if (type.indexOf('video/') === 0) { return 'video'; }
+        if (type.indexOf('audio/') === 0) { return 'audio'; }
+        /* نوع خالی/ناشناخته → قضاوت از پسوند نام فایل (رایج در گالری موبایل) */
+        if (!type || type === 'application/octet-stream') {
+            var name = String((file && file.name) || '');
+            for (var i = 0; i < FTYPE_EXT_MAP.length; i++) {
+                if (FTYPE_EXT_MAP[i][1].test(name)) { return FTYPE_EXT_MAP[i][0]; }
+            }
+            /* iOS: نام فایل گاهی «image.jpg» یا «IMG_0001.HEIC» است — پوشش شد؛
+               عدم تطابق → file (کاشی عمومی با بج پسوند) */
+            return 'file';
+        }
+        return 'file';
+    }
+
+    /* v43 — پیکربندی فشرده‌سازی از <meta name="upload-config">
+       (تنظیمات ← آپلود و فشرده‌سازی). هر بار تازه خوانده می‌شود تا تغییر
+       مدیر بلافاصله روی همهٔ صفحات SPA اعمال شود. [قبل از این فیکس این
+       تابع وجود نداشت و compressImage بی‌صدا فایل اصل را برمی‌گرداند!] */
+    function uploadCfg() {
+        try {
+            var m = document.querySelector('meta[name="upload-config"]');
+            if (m && m.content) {
+                var d = JSON.parse(m.content);
+                return {
+                    enabled: d.enabled !== false,
+                    max_side: Number(d.max_side) || 0,
+                    quality: Number(d.quality) || 0,
+                    format: String(d.format || 'auto').toLowerCase()
+                };
+            }
+        } catch (e) { /* noop */ }
+        return { enabled: true, max_side: 0, quality: 0, format: 'auto' };
+    }
+
+    function compressImage(file, opts) {
+        return new Promise(function (resolve) {
+            function keep() { resolve(file); }
+
+            var url = null;
+            function safeRevoke() {
+                if (url) {
+                    try { window.URL.revokeObjectURL(url); } catch (e) { /* noop */ }
+                    url = null;
+                }
+            }
+
+            function finish(blob, outType, outName) {
+                safeRevoke();
+                try {
+                    if (!blob || blob.size >= file.size) { return keep(); }        /* کوچک‌تر نشد */
+                    if (blob.type && String(blob.type).toLowerCase() !== outType) { return keep(); } /* انکودر نوع خواسته‌شده را نداشت */
+                    resolve(new window.File([blob], outName, { type: outType, lastModified: Date.now() }));
+                } catch (err) { keep(); }
+            }
+
+            /* نمونه‌گیری ارزان شفافیت: ۴ گوشه + مرکز */
+            function alphaSeen(ctx, w, h) {
+                var pts = [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1], [w >> 1, h >> 1]];
+                try {
+                    for (var i = 0; i < pts.length; i++) {
+                        if (ctx.getImageData(pts[i][0], pts[i][1], 1, 1).data[3] < 255) { return true; }
+                    }
+                } catch (e) { return true; } /* خواندن پیکسل ممکن نشد → محافظه‌کار: PNG بماند */
+                return false;
+            }
+
+            function swapExtName(name, ext) {
+                name = String(name || 'image');
+                if (/\.(png|jpe?g|webp|avif|gif)$/i.test(name)) { return name.replace(/\.(png|jpe?g|webp|avif|gif)$/i, '.' + ext); }
+                return name + '.' + ext;
+            }
+
+            try {
+                opts = opts || {};
+                if (!file || typeof file !== 'object' || typeof file.size !== 'number' ||
+                    !window.URL || typeof window.URL.createObjectURL !== 'function' ||
+                    typeof window.File !== 'function') { return keep(); }
+
+                var type = String(file.type || '').toLowerCase();
+                if (type !== 'image/jpeg' && type !== 'image/png' && type !== 'image/webp') { return keep(); }
+                if (file.size <= COMPRESS_MIN_BYTES) { return keep(); }
+
+                /* v42 — پیکربندی مدیر: خاموش = اصل فایل؛ وگرنه حداکثر ضلع/کیفیت/فرمت */
+                var uc = uploadCfg();
+                if (uc.enabled === false) { return keep(); }
+
+                var maxSide = Number(opts.maxSide) > 0 ? Number(opts.maxSide)
+                    : (Number(uc.max_side) > 0 ? Number(uc.max_side) : COMPRESS_DEFAULT_SIDE);
+                var quality = (typeof opts.quality === 'number' && opts.quality > 0 && opts.quality <= 1) ? opts.quality
+                    : (Number(uc.quality) > 0 ? Math.min(1, Number(uc.quality) / 100) : COMPRESS_DEFAULT_QUALITY);
+
+                /* v43 — فرمت پیش‌فرض مدیر: keep|auto|jpeg|png|webp|gif|avif
+                   (کانواس GIF انکود نمی‌کند → PNG با حفظ شفافیت) */
+                var fmt = String(uc.format || 'auto').toLowerCase();
+                if (fmt === 'gif') { fmt = 'png'; }
+
+                url = window.URL.createObjectURL(file);
+                var img = new Image();
+
+                img.onload = function () {
+                    var w = img.naturalWidth || 0;
+                    var h = img.naturalHeight || 0;
+                    if (!w || !h) { safeRevoke(); return keep(); }
+                    try {
+                        var scale = Math.min(1, maxSide / Math.max(w, h)); /* هرگز بزرگ‌نمایی نمی‌کنیم */
+                        var cw = Math.max(1, Math.round(w * scale));
+                        var ch = Math.max(1, Math.round(h * scale));
+
+                        var canvas = document.createElement('canvas');
+                        canvas.width = cw;
+                        canvas.height = ch;
+                        var ctx = canvas.getContext('2d');
+                        if (!ctx || typeof canvas.toBlob !== 'function') { safeRevoke(); return keep(); }
+
+                        ctx.drawImage(img, 0, 0, cw, ch);
+                        /* شفافیت واقعی منبع (فقط png/webp ممکن است آلفا داشته باشند) */
+                        var alpha = (type !== 'image/jpeg') && alphaSeen(ctx, cw, ch);
+
+                        /* انکود PNG — شفافیت حفظ می‌شود */
+                        function outPng() {
+                            canvas.toBlob(function (blob) { finish(blob, 'image/png', file.name); }, 'image/png');
+                        }
+                        /* انکود JPEG — پس‌زمینهٔ سفید (آلفا از قبل رد شده است) */
+                        function outJpeg() {
+                            ctx.clearRect(0, 0, cw, ch);
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(0, 0, cw, ch);
+                            ctx.drawImage(img, 0, 0, cw, ch);
+                            canvas.toBlob(function (blob) { finish(blob, 'image/jpeg', swapExtName(file.name, 'jpg')); }, 'image/jpeg', quality);
+                        }
+                        /* انکود typed (webp/avif) با fallback زنجیره‌ای اگر انکودر نبود */
+                        function outTyped(mime, ext, fallbackFn) {
+                            canvas.toBlob(function (blob) {
+                                if (blob && blob.type === mime) {
+                                    finish(blob, mime, swapExtName(file.name, ext));
+                                } else if (typeof fallbackFn === 'function') {
+                                    fallbackFn();
+                                } else {
+                                    keep();
+                                }
+                            }, mime, quality);
+                        }
+
+                        /* تصمیم فرمت مقصد طبق تنظیمات مدیر */
+                        var target;
+                        if (fmt === 'keep') { target = type; }
+                        else if (fmt === 'jpeg') { target = alpha ? 'auto' : 'image/jpeg'; } /* آلفا نمی‌تواند سمت کلاینت JPEG شود */
+                        else if (fmt === 'png') { target = 'image/png'; }
+                        else if (fmt === 'webp') { target = 'image/webp'; }
+                        else if (fmt === 'avif') { target = 'image/avif'; }
+                        else { /* auto — هوشمند: شفاف → webp/png، بدون شفاف → jpeg */
+                            target = alpha ? 'image/webp' : 'image/jpeg';
+                        }
+
+                        if (target === 'auto') { target = alpha ? 'image/webp' : 'image/jpeg'; }
+
+                        if (target === 'image/avif') {
+                            /* avif → webp → (شفاف؟ png : jpeg) */
+                            outTyped('image/avif', 'avif', function () {
+                                outTyped('image/webp', 'webp', function () {
+                                    if (alpha) { outPng(); } else { outJpeg(); }
+                                });
+                            });
+                            return;
+                        }
+                        if (target === 'image/webp') {
+                            outTyped('image/webp', 'webp', function () {
+                                if (alpha) { outPng(); } else { outJpeg(); }
+                            });
+                            return;
+                        }
+                        if (target === 'image/png') { outPng(); return; }
+                        outJpeg();
+                    } catch (err) {
+                        safeRevoke();
+                        keep();
+                    }
+                };
+                img.onerror = function () {
+                    safeRevoke();
+                    keep();
+                };
+                img.src = url;
+            } catch (err) {
+                safeRevoke();
+                keep();
+            }
+        });
+    }
+
+    /* ---------- v41 — ارتفاع واقعی پوسته (--app-vh) ----------
+       در برخی گوشی‌ها در «حالت نصب‌شده» (PWA standalone) مقدار 100dvh
+       بزرگ‌تر از پنجرهٔ واقعی گزارش می‌شود → پوسته بلندتر از صفحه می‌شود و
+       محتوای پایین (ناوبری/دکمه‌ها) زیر لبهٔ صفحه می‌رود.
+       متغیر --app-vh با innerHeight/visualViewport به‌روز می‌شود تا همهٔ
+       صفحات (نه فقط چت) ارتفاع دقیق داشته باشند؛ CSS با fallback
+       var(--app-vh, 100dvh) از آن استفاده می‌کند. */
+    (function fitShellHeight() {
+        function apply() {
+            var h = window.innerHeight;
+            var vv = window.visualViewport;
+            if (vv && Math.abs(vv.scale - 1) < 0.02) {
+                h = Math.min(h, Math.round(vv.height));
+            }
+            if (h > 0) {
+                document.documentElement.style.setProperty('--app-vh', Math.round(h) + 'px');
+            }
+        }
+        apply();
+        window.addEventListener('resize', apply);
+        window.addEventListener('orientationchange', function () { setTimeout(apply, 250); });
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', apply);
+        }
+    })();
+
+    /* ---------- v42→v45 — حذف پوستهٔ اسکلتون تمام‌صفحهٔ ناوبری ----------
+       درخواست مالک: «موارد ثابت صفحه (عنوان/وضعیت) نباید هر بار لود شوند —
+       فقط دیتا با لودر حله‌ای بارگذاری شود.»
+       پس از این نسخه:
+       • هیچ اسکلتون تمام‌صفحه‌ای روی ناوبری نمایش داده نمی‌شود؛ محتوای ثابت
+         صفحهٔ مقصد (سربرگ/تب‌ها/چیپ‌های وضعیت) همان لحظهٔ سواپ دیده می‌شود —
+         با کشِ ۳۰ ثانیه‌ای Livewire + گرم‌کردن منوهای پایین، سواپ فوری است.
+       • فقط ناحیهٔ دیتای هر صفحه (کلاس sk-zone + اسکلتون‌های درون‌صفحه‌ای)
+         تا رسیدن دیتا حلهٔ نور دارد.                                    */
+    (function initNavSkeleton() {
+        /* ورود ملایم محتوای صفحه بعد از تعویض (حس اپ بومی) — تنها بقای این ماژول */
+        document.addEventListener('livewire:navigated', function () {
+            var main = document.getElementById('appMain');
+            if (main) {
+                main.classList.remove('page-enter');
+                void main.offsetWidth;
+                main.classList.add('page-enter');
+            }
+        });
+    })();
 
     return {
         withPort: withPort,
@@ -509,6 +1129,8 @@ window.CN = (function ($) {
         countdown: countdown,
         debounce: debounce,
         statusBadge: statusBadge,
+        onNavigate: onNavigate,
+        refreshBottomNavActive: refreshBottomNavActive,
         theme: {
             get: currentTheme,
             set: setTheme,
@@ -520,6 +1142,8 @@ window.CN = (function ($) {
         toFaDigits: toFaDigits,
         toEnDigits: toEnDigits,
         esc: esc,
+        compressImage: compressImage,
+        detectFileType: detectFileType,
         normalizeMobile: normalizeMobile
     };
-})(jQuery);
+})();

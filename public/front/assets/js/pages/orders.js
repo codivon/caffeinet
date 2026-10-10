@@ -1,20 +1,43 @@
 /* اپ مشتری — فهرست سفارش‌ها */
-/* global CN, jQuery */
-(function ($) {
+/* [Task 9] Vanilla JS — بدون جی‌کوئری */
+/* global CN */
+(function () {
     'use strict';
 
     if (!CN.requireCompleteProfile()) { return; }
 
     var state = { status: '', page: 1, hasMore: false, loading: false };
 
+    /* فاز ۱۳ — لیست زنده: با رویداد order.changed (تغییر وضعیت/پرداخت سفارش خودم)
+       فهرست همان لحظه تازه می‌شود — بدون پولینگ. چند تلاش نرم برای bind
+       چون کانال شخصی بعد از RT.setup نوتیفیکیشن‌ها آماده می‌شود. */
+    var rtBound = false;
+
+    function bindRealtime() {
+        if (rtBound || !window.RT || !RT.active() || !RT.cfg.channel) { return; }
+        var ok = RT.bindUser('order.changed', function () {
+            if (document.hidden) { return; }
+            state.page = 1;
+            load();
+        });
+        if (ok) { rtBound = true; }
+    }
+    bindRealtime();
+    setTimeout(bindRealtime, 1500);
+    setTimeout(bindRealtime, 4000);
+
     function load() {
         if (state.loading) { return; }
         state.loading = true;
 
         if (state.page === 1) {
-            $('#ordersList').html('<div class="skeleton svc"></div><div class="skeleton svc"></div>');
+            var listEl = document.getElementById('ordersList');
+            if (listEl) {
+                listEl.innerHTML = '<div class="skeleton svc"></div><div class="skeleton svc"></div>';
+            }
         } else {
-            $('#ordersMoreLoader').removeClass('hidden');
+            var moreEl = document.getElementById('ordersMoreLoader');
+            if (moreEl) { moreEl.classList.remove('hidden'); }
         }
 
         var params = '?page=' + state.page;
@@ -24,23 +47,29 @@
             success: function (resp) {
                 state.loading = false;
 
-                if (state.page === 1) { $('#ordersList').empty(); }
-                $('#ordersMoreLoader').addClass('hidden');
+                var list = document.getElementById('ordersList');
+                if (state.page === 1 && list) { list.innerHTML = ''; }
+
+                var moreLoader = document.getElementById('ordersMoreLoader');
+                if (moreLoader) { moreLoader.classList.add('hidden'); }
 
                 (resp.data || []).forEach(function (o) {
-                    $('#ordersList').append(orderCard(o));
+                    if (list) { list.insertAdjacentHTML('beforeend', orderCard(o)); }
                 });
 
                 state.hasMore = !!resp.next_page_url;
-                $('#ordersLoadMore').toggleClass('hidden', !state.hasMore);
+                var loadMore = document.getElementById('ordersLoadMore');
+                if (loadMore) { loadMore.classList.toggle('hidden', !state.hasMore); }
 
                 var empty = !(resp.data || []).length;
-                $('#ordersEmpty').toggleClass('hidden', !empty || state.page > 1);
-                $('#ordersList').toggleClass('hidden', empty);
+                var emptyState = document.getElementById('ordersEmpty');
+                if (emptyState) { emptyState.classList.toggle('hidden', !empty || state.page > 1); }
+                if (list) { list.classList.toggle('hidden', empty); }
             },
             error: function () {
                 state.loading = false;
-                $('#ordersMoreLoader').addClass('hidden');
+                var moreLoader = document.getElementById('ordersMoreLoader');
+                if (moreLoader) { moreLoader.classList.add('hidden'); }
             }
         });
     }
@@ -86,20 +115,31 @@
             '</a>';
     }
 
-    /* فیلتر وضعیت */
-    $('#statusChips').on('click', '.chip', function () {
-        $('#statusChips .chip').removeClass('active');
-        $(this).addClass('active');
-        state.status = $(this).data('status') || '';
-        state.page = 1;
-        load();
-    });
+    /* فیلتر وضعیت — [Task 9] delegate روی #statusChips (جایگزین اتصال کلاسیک روی چیپ‌ها) */
+    var statusChips = document.getElementById('statusChips');
+    if (statusChips) {
+        statusChips.addEventListener('click', function (e) {
+            var chip = e.target.closest ? e.target.closest('.chip') : null;
+            if (!chip || !statusChips.contains(chip)) { return; }
 
-    $('#ordersLoadMore').on('click', function () {
-        if (!state.hasMore || state.loading) { return; }
-        state.page++;
-        load();
-    });
+            Array.prototype.forEach.call(statusChips.querySelectorAll('.chip'), function (c) {
+                c.classList.remove('active');
+            });
+            chip.classList.add('active');
+            state.status = chip.dataset.status || '';
+            state.page = 1;
+            load();
+        });
+    }
+
+    var ordersLoadMore = document.getElementById('ordersLoadMore');
+    if (ordersLoadMore) {
+        ordersLoadMore.addEventListener('click', function () {
+            if (!state.hasMore || state.loading) { return; }
+            state.page++;
+            load();
+        });
+    }
 
     load();
-})(jQuery);
+})();

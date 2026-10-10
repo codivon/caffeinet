@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- تم ذخیره‌شده قبل از رندر اعمال می‌شود (ضد-FOUC) --}}
-    <script src="{{ asset('assets/js/theme-boot.js') }}?v=1"></script>
+    <script src="{{ asset('assets/js/theme-boot.js') }}?v=4"></script>
 
     <title>انتخاب سازمان — {{ config('app.name') }}</title>
 
@@ -16,10 +16,12 @@
 
     {{-- استایل و اسکریپت — کاملاً بدون Node / بدون بیلد --}}
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v=10">
-    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=15">
-    <link rel="stylesheet" href="{{ asset('assets/css/pages/net-org.css') }}?v=10">
+    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=18">
+    <link rel="stylesheet" href="{{ asset('assets/css/pages/net-org.css') }}?v=11">
     {{-- سیستم تم روشن/تاریک (فاز ۱۰) — باید آخرین CSS باشد تا برنده بماند --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}?v=10">
+    <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}?v=11">
+    {{-- پوستهٔ پویا: پالت اختصاصی این پنل (بعد از theme.css) --}}
+    @include('partials.appearance', ['panel' => 'org'])
 </head>
 <body class="font-sans antialiased selection:bg-amber-200 selection:text-amber-950">
 
@@ -74,9 +76,8 @@
     </div>
 </main>
 
-<script src="{{ asset('assets/js/vendor/jquery.min.js') }}?v=10"></script>
-<script src="{{ asset('back/assets/js/core.js') }}?v=10"></script>
-<script src="{{ asset('back/assets/js/ui.js') }}?v=10"></script>
+<script src="{{ asset('back/assets/js/core.js') }}?v=15"></script>
+<script src="{{ asset('back/assets/js/ui.js') }}?v=13"></script>
 <script src="{{ asset('back/assets/js/pages/org/auth/choose.js') }}?v=10"></script>
 </body>
 </html>

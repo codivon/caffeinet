@@ -62,6 +62,8 @@ class SettingsController extends Controller
             'payment.sep.terminal_id', 'payment.sepehr.terminal_id',
         ],
         'staff' => ['staff.hiring.mode'],
+        // فاز ۶۰ — صفحهٔ عمومی «درباره/اعتماد» (/about): متن معرفی + سوالات متداول
+        'about' => ['about.intro', 'about.faq'],
         // v40 — سرویس استعلام فینوتک (شاهکار + کارت)
         'finnotech' => [
             'finnotech.enabled',
@@ -73,9 +75,12 @@ class SettingsController extends Controller
             'finnotech.verify_cards',
         ],
         'realtime' => [
+            // فاز ۱۲ — روش ترابورت: polling | sse | pusher (+ هاست سفارشی سازگار با پروتکل پوشر)
+            'realtime.method',
             'realtime.pusher.enabled', 'realtime.pusher.app_id',
             'realtime.pusher.app_key', 'realtime.pusher.app_secret',
             'realtime.pusher.cluster',
+            'realtime.pusher.host', 'realtime.pusher.port', 'realtime.pusher.scheme',
         ],
         'notifications' => [
             'notification.sound.enabled',
@@ -94,6 +99,36 @@ class SettingsController extends Controller
             'notification.push.beams.instance_id',
             'notification.push.beams.primary_key',
         ],
+        // v42 — فشرده‌سازی آپلودها (تصویر/ویدیو/همهٔ فایل‌ها)
+        'uploads' => [
+            'uploads.compression.enabled',
+            'uploads.compression.preset',
+            'uploads.compression.images.max_side',
+            'uploads.compression.images.quality',
+            'uploads.compression.images.format',
+            'uploads.compression.videos.enabled',
+            'uploads.compression.videos.crf',
+            'uploads.compression.server_batch',
+        ],
+        // فاز ۵۰ — قابلیت‌ها + امنیت ورود (سوییچ فعال/غیرفعال زیرسیستم‌ها)
+        'features' => [
+            'features.status_page',
+            'features.smart_dispatch',
+            'features.reseller',
+            'features.family_accounts',
+            'features.webhooks',
+            'features.api_usage_log',
+            'features.sla_enabled',
+            'features.sla_minutes',
+            'features.i18n',
+            'features.customer_stats',
+            'features.global_search',
+            'features.health_page',
+            'features.sms_retry',
+            'features.captcha_mode',
+            'features.captcha_after_fails',
+            'features.two_factor',
+        ],
     ];
 
     public function edit(): View
@@ -107,12 +142,18 @@ class SettingsController extends Controller
             && trim((string) $settings->get('realtime.pusher.app_secret')) !== ''
             && trim((string) $settings->get('realtime.pusher.app_id')) !== '';
 
+        // فاز ۱۲ — روش فعلی ترابورت Realtime (polling | sse | pusher)
+        $rtMethod = \App\Services\Realtime\PusherService::isValidMethod((string) $settings->get('realtime.method', ''))
+            ? (string) $settings->get('realtime.method', '')
+            : ($pusherOn ? 'pusher' : 'polling');
+
         return view('back.admin.settings.index', [
             'settings' => $settings,
             'providers' => SmsManager::providers(),
             'referral' => \App\Models\ReferralSetting::current(),
             'pusherOn' => $pusherOn,
             'pusherReady' => $pusherReady,
+            'rtMethod' => $rtMethod,
             'notificationStats' => $this->notificationStats($settings),
             // v33 — خلاصهٔ وضعیت پخش هوشمند (برای hint زندهٔ تب نظرسنجی)
             'ratingSummary' => app(\App\Services\Orders\RatingDistributionService::class)->summary(),
@@ -268,13 +309,24 @@ class SettingsController extends Controller
             && ! in_array($pairs['ratings.routing_mode'], ['filter', 'priority', 'hybrid'], true)) {
             return response()->json(['message' => 'سیاست پخش هوشمند معتبر نیست.'], 422);
         }
-
         if (isset($pairs['ratings.routing_min_rating'])) {
             $pairs['ratings.routing_min_rating'] = (string) max(1, min(5, (int) $pairs['ratings.routing_min_rating']));
         }
 
         if (isset($pairs['ratings.routing_min_votes'])) {
             $pairs['ratings.routing_min_votes'] = (string) max(1, min(1000, (int) $pairs['ratings.routing_min_votes']));
+        }
+
+        // فاز ۵۰ — اعتبارسنجی گروه قابلیت‌ها
+        if (isset($pairs['features.captcha_mode'])
+            && ! in_array($pairs['features.captcha_mode'], ['off', 'smart', 'always'], true)) {
+            return response()->json(['message' => 'حالت ربات‌گیر معتبر نیست (خاموش / هوشمند / همیشه).'], 422);
+        }
+        if (isset($pairs['features.captcha_after_fails'])) {
+            $pairs['features.captcha_after_fails'] = (string) max(1, min(10, (int) $pairs['features.captcha_after_fails']));
+        }
+        if (isset($pairs['features.sla_minutes'])) {
+            $pairs['features.sla_minutes'] = (string) max(5, min(1440, (int) $pairs['features.sla_minutes']));
         }
 
         if (isset($pairs['ratings.routing_unrated_policy'])
@@ -312,9 +364,101 @@ class SettingsController extends Controller
             }
         }
 
+        /* v42 — اعتبارسنجی گروه فشرده‌سازی آپلودها */
+        if ($data['group'] === 'uploads') {
+            if (isset($pairs['uploads.compression.preset'])
+                && ! in_array($pairs['uploads.compression.preset'], ['lossless', 'balanced', 'max', 'custom'], true)) {
+                return response()->json(['message' => 'حالت فشرده‌سازی معتبر نیست.'], 422);
+            }
+
+            if (isset($pairs['uploads.compression.images.format'])
+                && ! in_array($pairs['uploads.compression.images.format'], \App\Support\UploadConfig::FORMATS, true)) {
+                return response()->json(['message' => 'فرمت تصویر معتبر نیست.'], 422);
+            }
+
+            if (isset($pairs['uploads.compression.images.max_side']) && $pairs['uploads.compression.images.max_side'] !== '') {
+                $pairs['uploads.compression.images.max_side'] = (string) max(400, min(8000, (int) $pairs['uploads.compression.images.max_side']));
+            }
+
+            if (isset($pairs['uploads.compression.images.quality']) && $pairs['uploads.compression.images.quality'] !== '') {
+                $pairs['uploads.compression.images.quality'] = (string) max(50, min(100, (int) $pairs['uploads.compression.images.quality']));
+            }
+
+            if (isset($pairs['uploads.compression.videos.crf']) && $pairs['uploads.compression.videos.crf'] !== '') {
+                $pairs['uploads.compression.videos.crf'] = (string) max(18, min(34, (int) $pairs['uploads.compression.videos.crf']));
+            }
+
+            if (isset($pairs['uploads.compression.server_batch']) && $pairs['uploads.compression.server_batch'] !== '') {
+                $pairs['uploads.compression.server_batch'] = (string) max(1, min(50, (int) $pairs['uploads.compression.server_batch']));
+            }
+        }
+
+        /* فاز ۱۲ — اعتبارسنجی روش Realtime + همگام‌سازی کلید قدیمی پوشر
+           (PusherService برای سازگاری هنوز realtime.pusher.enabled را هم می‌خواند) */
+        if (isset($pairs['realtime.method'])) {
+            if (! \App\Services\Realtime\PusherService::isValidMethod((string) $pairs['realtime.method'])) {
+                return response()->json(['message' => 'روش Realtime معتبر نیست.'], 422);
+            }
+
+            // هاست/پورت سفارشی فقط وقتی معنا دارد که روش، پوشر باشد
+            if ($pairs['realtime.method'] !== 'pusher') {
+                unset($pairs['realtime.pusher.host'], $pairs['realtime.pusher.port'], $pairs['realtime.pusher.scheme']);
+            }
+        }
+
+        /* فاز ۶۰ — گروه about: متن معرفی (سقف کاراکتر) + تبدیل FAQ از فرمت
+           سادهٔ textarea (هر خط «سوال | جواب») به آرایهٔ {q,a} — مقدار json
+           در settings ذخیره می‌شود و صفحهٔ /about مستقیم از همان می‌خواند.
+           ⚠ نکته: ConvertEmptyStringsToNull مقدار خالی را null می‌کند و فیلتر
+           پایین آن را می‌اندازد؛ اما برای این گروه «خالی کردن فیلد» معنا دارد
+           (بازگشت به پیش‌فرض کد) → دو کلید مستقیماً از ورودی خام خوانده می‌شود. */
+        if ($data['group'] === 'about') {
+            if (array_key_exists('about.intro', $data['values'])) {
+                $pairs['about.intro'] = trim((string) $data['values']['about.intro']);
+
+                if (mb_strlen($pairs['about.intro']) > 2000) {
+                    return response()->json(['message' => 'متن معرفی حداکثر ۲۰۰۰ کاراکتر است.'], 422);
+                }
+            }
+
+            if (array_key_exists('about.faq', $data['values'])) {
+                $faqItems = [];
+
+                foreach (preg_split('/\r\n|\r|\n/', (string) $data['values']['about.faq']) as $line) {
+                    $line = trim($line);
+                    if ($line === '') {
+                        continue;
+                    }
+
+                    $sep = mb_strpos($line, '|');
+                    $q = trim($sep === false ? $line : mb_substr($line, 0, $sep));
+                    $a = $sep === false ? '' : trim(mb_substr($line, $sep + 1));
+
+                    // خط بدون «|» یا بدون جواب ناقص است → رد می‌شود (نه خطا)
+                    if ($q === '' || $a === '') {
+                        continue;
+                    }
+
+                    $faqItems[] = ['q' => mb_substr($q, 0, 200), 'a' => mb_substr($a, 0, 1500)];
+                }
+
+                if (count($faqItems) > 30) {
+                    return response()->json(['message' => 'حداکثر ۳۰ سوال متداول مجاز است.'], 422);
+                }
+
+                // آرایهٔ تمیز: SettingsService::set برای cast=json خودش json_encode می‌کند؛
+                // خالی → [] ذخیره می‌شود و صفحهٔ about به پیش‌فرض کد برمی‌گردد.
+                $pairs['about.faq'] = $faqItems;
+            }
+        }
+
         $old = collect($settings->all())->only(array_keys($pairs))->all();
 
         $count = $settings->updateMany($pairs);
+
+        if (isset($pairs['realtime.method'])) {
+            $settings->set('realtime.pusher.enabled', $pairs['realtime.method'] === 'pusher' ? '1' : '');
+        }
 
         // v26 — سرویس پیش‌فرض: کلیدهای VAPID خودکار ساخته می‌شوند
         $webpushGenerated = false;
@@ -376,18 +520,19 @@ class SettingsController extends Controller
         ]);
     }
 
-    /** تست اتصال پوشر (AJAX — اعتبارسنجی اعتبارنامه‌ها + رویداد آزمایشی) */
+    /** تست اتصال Realtime (AJAX — ترابورت فعال: SSE یا پوشر + رویداد آزمایشی) */
     public function testPusher(Request $request, \App\Services\Realtime\PusherService $pusher): JsonResponse
     {
-        $result = $pusher->test();
+        // فاز ۱۲ — تست ترابورتِ «فعال»: SSE → سلامت جدول رویدادها؛ پوشر → REST پوشر
+        $result = $pusher->testActiveTransport();
 
-        if ($result['ok']) {
+        if ($result['ok'] && ! $pusher->sse->enabled()) {
             $event = $pusher->sendTestEvent();
             $result['message'] .= ' · '.$event['message'];
         }
 
         AuditLogger::log('settings.pusher_test', null, null, ['ok' => $result['ok']],
-            'تست اتصال Pusher از پنل تنظیمات — '.($result['ok'] ? 'موفق' : 'ناموفق'));
+            'تست اتصال Realtime از پنل تنظیمات — '.($result['ok'] ? 'موفق' : 'ناموفق'));
 
         return response()->json([
             'ok' => $result['ok'],
@@ -634,5 +779,95 @@ class SettingsController extends Controller
             'ok' => $result['ok'],
             'message' => $result['message'],
         ], $result['ok'] ? 200 : 422);
+    }
+
+    /* ═══════════ ظاهر و رنگ‌بندی (Appearance) ═══════════ */
+
+    /**
+     * ذخیرهٔ پالت رنگی یک پنل (PUT settings/appearance — AJAX).
+     * body: { panel, palette, custom? } — custom فقط برای پالت «شخصی‌سازی».
+     */
+    public function saveAppearance(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'panel'   => ['required', 'string', 'in:'.implode(',', array_keys(\App\Support\Appearance::PANELS))],
+            'palette' => ['required', 'string', 'in:'.implode(',', \App\Support\Appearance::paletteKeys())],
+            'custom'  => ['nullable', 'array'],
+            // دمای سرد/گرم — برای «همهٔ» پالت‌ها (فقط شخصی‌سازی از توکن داخلی خودش استفاده می‌کند)
+            'warmth'  => ['nullable', 'integer', 'min:-40', 'max:40'],
+        ]);
+
+        \App\Support\Appearance::save($data['panel'], $data['palette'], $data['custom'] ?? null, $data['warmth'] ?? null);
+
+        $paletteName = \App\Support\Appearance::palettes()[$data['palette']]['name'] ?? $data['palette'];
+
+        AuditLogger::log('settings.updated', null, null,
+            [
+                'appearance.panel.'.$data['panel']    => $data['palette'],
+                'appearance.custom.'.$data['panel']   => isset($data['custom']) ? 'set' : null,
+                'appearance.warmth.'.$data['panel']   => $data['warmth'] ?? null,
+            ],
+            'تغییر پوستهٔ «'.$paletteName.'» برای '.\App\Support\Appearance::PANELS[$data['panel']]);
+
+        return response()->json([
+            'ok'      => true,
+            'message' => 'پوستهٔ «'.$paletteName.'» برای '
+                .\App\Support\Appearance::PANELS[$data['panel']].' ذخیره شد.',
+        ]);
+    }
+
+    /**
+     * CSS پوسته برای پیش‌نمایش زندهٔ صفحهٔ تنظیمات (GET settings/appearance-css).
+     * پارامترها: panel + (palette | custom=json) + warmth — خروجی text/css کش‌نشونده.
+     */
+    public function appearanceCss(Request $request)
+    {
+        $panel = (string) $request->query('panel', 'admin');
+        if (! isset(\App\Support\Appearance::PANELS[$panel])) {
+            $panel = 'admin';
+        }
+
+        $palette = (string) $request->query('palette', '');
+        $customJson = (string) $request->query('custom', '');
+        $warmth = (int) $request->query('warmth', '0');
+        $warmth = max(-40, min(40, $warmth));
+
+        if ($customJson !== '') {
+            // پیش‌نمایش توکن‌های شخصی (قبل از ذخیره)
+            $custom = json_decode($customJson, true);
+            $base = \App\Support\Appearance::tokensFor($panel);
+            $tokens = array_merge($base, is_array($custom) ? \App\Support\Appearance::sanitizeCustom($custom) : []);
+        } elseif ($palette !== '' && in_array($palette, \App\Support\Appearance::paletteKeys(), true)) {
+            // پیش‌نمایش یک پالت آماده (قبل از ذخیره)
+            if ($palette === 'custom') {
+                $tokens = \App\Support\Appearance::tokensFor($panel);
+            } else {
+                $def = \App\Support\Appearance::palettes()[$palette];
+                $tokens = [
+                    'ramp' => $def['ramp'],
+                    'page_bg' => $def['page_bg'] ?? $def['ramp']['100'],
+                    'sidebar' => $def['sidebar'] ?? \App\Support\Appearance::deriveSidebar($def['ramp']),
+                    'sidebar_text' => $def['sidebar_text'] ?? $def['ramp']['100'],
+                ];
+            }
+        } else {
+            // وضعیت فعلی ذخیره‌شدهٔ پنل
+            $tokens = \App\Support\Appearance::tokensFor($panel);
+        }
+
+        // دمای سرد/گرم انتخابی — برای پالت‌های آماده (شخصی‌سازی دمای خودش را در توکن دارد)
+        if ($warmth !== 0 && ($customJson === '' && ($palette === '' || $palette !== 'custom'))) {
+            $tokens = \App\Support\Appearance::warmTokens($tokens, $warmth);
+        }
+
+        $template = match ($panel) {
+            'app' => 'app',
+            'front' => 'front',
+            default => 'back',
+        };
+
+        return response(\App\Support\Appearance::buildCss($tokens, $template))
+            ->header('Content-Type', 'text/css; charset=utf-8')
+            ->header('Cache-Control', 'no-store');
     }
 }
