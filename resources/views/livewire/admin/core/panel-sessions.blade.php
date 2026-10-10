@@ -1,72 +1,116 @@
 {{-- نشست‌های فعال (فاز ۵۰) — دستگاه‌های واردشده با همین حساب + خروج ریموت
-     از «تنظیمات ← نشست‌های فعال» باز می‌شود. --}}
+     از «تنظیمات ← نشست‌های فعال» باز می‌شود.
+     فاز ۵۷ — بازطراحی مدرن کامل: هیروی تیرهٔ گرادیانی با چیپ‌های آمار زنده،
+     کارت‌های دستگاه با آیکون رنگی نوع دستگاه، بج ضربان‌دار «این دستگاه»،
+     IP مونواسپیس، دارک‌مود و ریسپانسیو — CSS خودکفا: pages/panel-sessions.css
+     (رفع چسبیدن هدر به کارت‌ها: قبلاً کلاس sc-stack بدون CSSِ لودشده فاصله نداشت). --}}
 <div x-data>
-<style>[x-cloak]{display:none!important}</style>
-<div class="sc-stack">
+<div class="ps-stack">
 
-    {{-- ================== هدر ================== --}}
-    <div class="card ui-lift animate-fade-up overflow-hidden">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-5">
-            <span class="grid place-items-center size-14 rounded-2xl bg-gradient-to-br from-stone-800 to-stone-900 text-sky-200 shadow-lg shadow-stone-900/20 shrink-0" aria-hidden="true">
-                <svg class="size-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="8" x="5" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 18h.01"/><path d="M10 18h.01"/></svg>
+    {{-- ================== هیرو ================== --}}
+    <section class="ps-hero animate-fade-up" aria-labelledby="ps-title">
+        <div class="ps-hero-body">
+            <span class="ps-hero-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
             </span>
-            <div class="flex-1 min-w-0">
-                <h1 class="text-lg sm:text-xl font-extrabold text-stone-800 dark:text-stone-100">نشست‌های فعال</h1>
-                <p class="mt-1 text-xs sm:text-sm leading-6 text-stone-500 dark:text-stone-400">
+            <div class="ps-hero-text">
+                <h1 class="ps-hero-title" id="ps-title">نشست‌های فعال</h1>
+                <p class="ps-hero-desc">
                     همهٔ دستگاه‌ها و مرورگرهایی که الان با حساب شما وارد پنل شده‌اند.
-                    اگر دستگاهی آشنا نیست، از همهٔ دستگاه‌های دیگر خارج شوید و رمز را عوض کنید.
+                    اگر دستگاهی آشنا نیست، <b>از همهٔ دستگاه‌های دیگر خارج شوید و رمز را عوض کنید</b>.
                 </p>
             </div>
-            <div class="shrink-0">
-                <button type="button" wire:click="logoutOthers"
-                        @click="window.PanelUI ? PanelUI.confirm({ title: 'خروج از سایر دستگاه‌ها؟', desc: 'نشست همین دستگاه حفظ می‌شود و بقیه در اولین کلیک لاگ‌اوت می‌شوند.', okText: 'بله، خارج شوند', cancelText: 'انصراف', danger: true, icon: 'warn' }, () => $wire.logoutOthers()) : $wire.logoutOthers()"
-                        class="btn-ghost !py-2.5 !px-4 !text-xs text-rose-600 hover:!bg-rose-50 dark:text-rose-400 dark:hover:!bg-rose-900/20 ui-press whitespace-nowrap">
-                    <svg class="inline-block size-4" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
-                    خروج از سایر دستگاه‌ها
-                </button>
-            </div>
+            <button type="button" wire:click="logoutOthers"
+                    @click="window.PanelUI ? PanelUI.confirm({ title: 'خروج از سایر دستگاه‌ها؟', desc: 'نشست همین دستگاه حفظ می‌شود و بقیه در اولین کلیک لاگ‌اوت می‌شوند.', okText: 'بله، خارج شوند', cancelText: 'انصراف', danger: true, icon: 'warn' }, () => $wire.logoutOthers()) : $wire.logoutOthers()"
+                    class="ps-logout-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+                خروج از سایر دستگاه‌ها
+            </button>
         </div>
-    </div>
+
+        {{-- چیپ‌های آمار زنده --}}
+        <div class="ps-hero-chips" role="list" aria-label="خلاصهٔ نشست‌ها">
+            <span class="ps-chip" role="listitem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+                دستگاه‌های واردشده: <b>{{ fa_number($sessions->count()) }}</b>
+            </span>
+            <span class="ps-chip ps-chip--live" role="listitem">
+                <span class="ps-pulse" aria-hidden="true"></span>
+                همین دستگاه الان فعال است
+            </span>
+            @php($latest = $sessions->first())
+            @if ($latest)
+                <span class="ps-chip" role="listitem">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    آخرین فعالیت: <bdi dir="ltr">{{ $latest->last }}</bdi>
+                </span>
+            @endif
+        </div>
+    </section>
 
     {{-- پیام موفقیت --}}
     @if (session('ps-ok'))
-        <div class="card p-3 sm:p-4 border border-emerald-200 bg-emerald-50 text-emerald-700 text-sm font-bold animate-fade-up dark:!bg-emerald-900/30 dark:!border-emerald-800 dark:!text-emerald-300" role="status">{{ session('ps-ok') }}</div>
+        <div class="ps-ok animate-fade-up" role="status">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>
+            {{ session('ps-ok') }}
+        </div>
     @endif
 
     {{-- ================== فهرست دستگاه‌ها ================== --}}
-    <div class="card p-5 animate-fade-up" style="animation-delay:.05s">
-        <h2 class="text-sm font-extrabold text-stone-800 dark:text-stone-100 mb-4">دستگاه‌ها ({{ fa_number($sessions->count()) }})</h2>
+    <section class="ps-section animate-fade-up" style="animation-delay:.06s" aria-label="دستگاه‌های واردشده">
+        <div class="ps-section-head">
+            <h2 class="ps-section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="8" x="5" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 18h.01"/><path d="M10 18h.01"/></svg>
+                دستگاه‌ها
+                <span class="ps-count-badge">{{ fa_number($sessions->count()) }}</span>
+            </h2>
+            <span class="ps-section-hint">نشست‌های بیش از ۲۴ ساعت بی‌فعالیت در این فهرست نمی‌آیند</span>
+        </div>
 
-        <div class="flex flex-col gap-3">
+        <div class="ps-devices">
             @forelse ($sessions as $s)
-                <div class="flex items-center gap-3 rounded-2xl border border-stone-200 dark:border-stone-700/70 bg-white dark:bg-stone-800/40 p-4 {{ $s->is_current ? 'ring-2 ring-emerald-400/60' : '' }}" wire:key="ps-{{ $s->id }}">
-                    <span class="grid place-items-center size-9 rounded-xl shrink-0 bg-stone-100 dark:bg-stone-700/60 text-stone-500 dark:text-stone-300" aria-hidden="true">
-                        @if (str_contains($s->device, 'موبایل') || str_contains($s->device, 'آیفون'))
-                            <svg class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                @php($isMobile = str_contains($s->device, 'موبایل') || str_contains($s->device, 'آیفون'))
+                <div class="ps-device {{ $s->is_current ? 'ps-device--current' : '' }} {{ $isMobile ? 'ps-device--mobile' : '' }}" wire:key="ps-{{ $s->id }}">
+                    <span class="ps-device-icon" aria-hidden="true">
+                        @if ($isMobile)
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
                         @else
-                            <svg class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
                         @endif
                     </span>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="font-extrabold text-sm text-stone-800 dark:text-stone-100">{{ $s->device }}</span>
-                            <span class="text-[11px] font-bold text-stone-400">{{ $s->browser }}</span>
+                    <div class="ps-device-body">
+                        <div class="ps-device-name-row">
+                            <span class="ps-device-name">{{ $s->device }}</span>
+                            <span class="ps-browser-chip">{{ $s->browser }}</span>
                             @if ($s->is_current)
-                                <span class="badge bg-emerald-100 text-emerald-700 dark:!bg-emerald-900/40 dark:!text-emerald-300">این دستگاه</span>
+                                <span class="ps-current-badge"><span class="ps-pulse" aria-hidden="true"></span> این دستگاه</span>
                             @endif
                         </div>
-                        <p class="mt-0.5 text-[11px] text-stone-400 font-medium">
-                            آخرین فعالیت: <bdi dir="ltr">{{ $s->last }}</bdi>
-                            <span class="mx-1">·</span>
-                            IP: <bdi dir="ltr">{{ $s->ip }}</bdi>
-                        </p>
+                        <div class="ps-device-meta">
+                            <span class="ps-meta-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                                آخرین فعالیت: <bdi dir="ltr">{{ $s->last }}</bdi>
+                            </span>
+                            <span class="ps-meta-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                                IP: <bdi dir="ltr">{{ $s->ip }}</bdi>
+                            </span>
+                        </div>
                     </div>
                 </div>
             @empty
-                <p class="text-center text-sm text-stone-400 py-6 font-bold">نشستی یافت نشد.</p>
+                <div class="ps-empty">
+                    <div class="ps-empty-icon" aria-hidden="true">🖥️</div>
+                    <div class="ps-empty-title">نشستی یافت نشد</div>
+                    <div class="ps-empty-desc">فعالیت اخیری برای حساب شما ثبت نشده است.</div>
+                </div>
             @endforelse
         </div>
-    </div>
+    </section>
 
 </div>
 </div>
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/css/pages/panel-sessions.css') }}?v=1">
+@endpush

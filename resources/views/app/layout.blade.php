@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="{{ $panelLang ?? 'fa' }}" dir="{{ $panelDir ?? 'rtl' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap">
 
     {{-- استایل مستقل (بدون نیاز به بیلد Node) --}}
-    <link rel="stylesheet" href="{{ asset('front/assets/css/app.css') }}?v=35">
+    <link rel="stylesheet" href="{{ asset('front/assets/css/app.css') }}?v=36">
     {{-- v45 — لایت‌باکس تمام‌صفحهٔ تصاویر (پیوست‌های تیکت/چت) --}}
     <link rel="stylesheet" href="{{ asset('assets/css/lightbox.css') }}?v=1">
     {{-- پوستهٔ پویا: پالت اختصاصی اپ مشتری (بعد از استایل اصلی) --}}
@@ -57,6 +57,10 @@
 
             <div class="actions">
                 @persist('app-header-actions')
+                {{-- فاز ۵۷ — سوئیچ زبان اپ مشتری (فقط وقتی چندزبانه روشن است) --}}
+                @if (! empty($i18nOn))
+                @include('partials.locale-switcher')
+                @endif
                 {{-- سوییچ شب/روز (CN.theme در core.js — کلید مشترک پنل‌ها) --}}
                 <button type="button" class="theme-btn" data-theme-toggle id="appThemeBtn"
                         aria-label="تغییر حالت شب و روز" title="حالت شب/روز">
@@ -91,13 +95,14 @@
                 @php
                     // [Task 7] activeNav: از layoutData کامپوننت‌های Livewire
                     $active = $activeNav ?? trim($__env->yieldContent('active-nav'));
+                    // فاز ۵۷ — برچسب‌های ناوبری چندزبانه (chrome.php)
                     $nav = [
-                        'home' => [route('app.home'), 'خانه', '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>'],
-                        'services' => [route('app.services'), 'خدمات', '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'],
-                        'orders' => [route('app.orders'), 'سفارش‌ها', '<path d="M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M9 12h6"/><path d="M9 16h4"/>'],
-                        'support' => [route('app.support'), 'پشتیبانی', '<path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Z"/><path d="M18 11h3v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2Z"/><path d="M21 11a9 9 0 0 0-18 0"/>'],
-                        'wallet' => [route('app.wallet'), 'کیف پول', '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>'],
-                        'profile' => [route('app.profile'), 'پروفایل', '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'],
+                        'home' => [route('app.home'), __('chrome.nav.app.home'), '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>'],
+                        'services' => [route('app.services'), __('chrome.nav.app.services'), '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'],
+                        'orders' => [route('app.orders'), __('chrome.nav.app.orders'), '<path d="M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M9 12h6"/><path d="M9 16h4"/>'],
+                        'support' => [route('app.support'), __('chrome.nav.app.support'), '<path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Z"/><path d="M18 11h3v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2Z"/><path d="M21 11a9 9 0 0 0-18 0"/>'],
+                        'wallet' => [route('app.wallet'), __('chrome.nav.app.wallet'), '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>'],
+                        'profile' => [route('app.profile'), __('chrome.nav.app.profile'), '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'],
                     ];
                 @endphp
                 @foreach($nav as $key => $item)

@@ -56,6 +56,6 @@
 
 @push('page')
 <script src="{{ asset('assets/js/vendor/chart.umd.min.js') }}" defer data-navigate-once></script>
-<script src="front/assets/js/pages/stats.js?v=1" defer></script>
+<script src="{{ asset('front/assets/js/pages/stats.js') }}?v=2" defer></script>
 @endpush
 </div>

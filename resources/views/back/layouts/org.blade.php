@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="{{ $panelLang ?? 'fa' }}" dir="{{ $panelDir ?? 'rtl' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -22,7 +22,7 @@
 
     {{-- استایل و اسکریپت — کاملاً بدون Node / بدون بیلد --}}
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v=14">
-    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=18">
+    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=19">
     <link rel="stylesheet" href="{{ asset('assets/css/pages/net-org.css') }}?v=11">
     {{-- زنگ اعلان (فاز ۱۰) — قبل از theme --}}
     <link rel="stylesheet" href="{{ asset('assets/css/notifications.css') }}?v=14">
@@ -65,12 +65,12 @@
         <nav class="no-nav flex-1 overflow-y-auto px-3 py-4 space-y-1" data-tone="org" aria-label="ناوبری پنل سازمان">
             @php
                 $nav = [
-                    ['route' => 'org.dashboard', 'label' => 'داشبورد', 'icon' => 'grid', 'active' => request()->routeIs('org.dashboard')],
-                    ['route' => 'org.wallet.index', 'label' => 'کیف پول', 'icon' => 'wallet', 'active' => request()->routeIs('org.wallet.*')],
-                    ['route' => 'org.withdrawals.index', 'label' => 'برداشت‌ها', 'icon' => 'withdraw', 'active' => request()->routeIs('org.withdrawals.*')],
-                    ['route' => 'org.bank-cards.index', 'label' => 'کارت‌های بانکی', 'icon' => 'bankcard', 'active' => request()->routeIs('org.bank-cards.*')],
-                    ['route' => 'org.coffeenets.index', 'label' => 'کافی‌نت‌های من', 'icon' => 'store', 'active' => request()->routeIs('org.coffeenets.*')],
-                    ['route' => 'org.guide.index', 'label' => 'راهنمای پنل', 'icon' => 'guide', 'active' => request()->routeIs('org.guide.*')],
+                    ['route' => 'org.dashboard', 'label' => __('chrome.nav.org.dashboard'), 'icon' => 'grid', 'active' => request()->routeIs('org.dashboard')],
+                    ['route' => 'org.wallet.index', 'label' => __('chrome.nav.org.wallet'), 'icon' => 'wallet', 'active' => request()->routeIs('org.wallet.*')],
+                    ['route' => 'org.withdrawals.index', 'label' => __('chrome.nav.org.withdrawals'), 'icon' => 'withdraw', 'active' => request()->routeIs('org.withdrawals.*')],
+                    ['route' => 'org.bank-cards.index', 'label' => __('chrome.nav.org.bank_cards'), 'icon' => 'bankcard', 'active' => request()->routeIs('org.bank-cards.*')],
+                    ['route' => 'org.coffeenets.index', 'label' => __('chrome.nav.org.my_coffeenets'), 'icon' => 'store', 'active' => request()->routeIs('org.coffeenets.*')],
+                    ['route' => 'org.guide.index', 'label' => __('chrome.nav.org.guide'), 'icon' => 'guide', 'active' => request()->routeIs('org.guide.*')],
                 ];
             @endphp
 
@@ -134,6 +134,10 @@
                     @persist('header-actions')
                     {{-- زنگ اعلان (فاز ۱۰) — persist تا bind اسکریپت اعلان زنده بماند --}}
                     @include('back.partials.notif-bell')
+                    {{-- فاز ۵۷ — سوئیچ زبان (فقط وقتی چندزبانه روشن است) --}}
+                    @if (! empty())
+                    @include('partials.locale-switcher')
+                    @endif
                     {{-- سوییچ تم روشن/تاریک --}}
                     <button type="button" class="theme-toggle" data-theme-toggle aria-label="تغییر تم روشن/تاریک" title="حالت روشن/تاریک">
                         <svg class="tt-icon tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>

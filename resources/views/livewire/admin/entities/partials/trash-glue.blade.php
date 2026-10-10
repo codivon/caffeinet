@@ -23,7 +23,10 @@
     const badge = document.getElementById('trash-count-{{ $trashSection }}');
 
     function esc(s) {
-        return String(s === null || s === undefined ? '')
+        /* [فاز ۵۷ رفع] سه‌تایی ناقص بود: `? ''` بدون `: s` — خطای سینتکس
+           «Unexpected token ')' Expected ':' in ternary operator» می‌داد که
+           کل اسکریپت چسب حذف را می‌کُشت (همان ارور کنسول صفحهٔ کافی‌نت‌ها). */
+        return String(s === null || s === undefined ? '' : s)
             .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }

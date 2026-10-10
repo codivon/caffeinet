@@ -1,5 +1,9 @@
-/* اپ مشتری — آمار من (فاز ۵۴) */
+/* اپ مشتری — آمار من (فاز ۵۴، رفع فاز ۵۷) */
 /* Vanilla JS — CN.api → /api/v1/me/stats + Chart.js */
+/* رفع فاز ۵۷: قبلاً load فقط با DOMContentLoaded اجرا می‌شد که در ناوبری
+   SPA (wire:navigate) دیگر fire نمی‌شود → «خدمات پرتکرار» برای همیشه در
+   لودینگ می‌ماند. اکنون مثل بقیهٔ صفحات، بلافاصله boot می‌شود (اسکریپت defer
+   بعد از پارس DOM اجرا می‌شود) + خطای API هم به‌جای لودینگ ابدی، حالت خالی/خطا نشان می‌دهد. */
 /* global CN, Chart */
 (function () {
     'use strict';
@@ -34,8 +38,35 @@
             },
             error: function (xhr, msg) {
                 CN.toast(msg || 'خطا در دریافت آمار', 'error');
+
+                /* فاز ۵۷ — لودینگ ابدی ممنوع: خطا در هر بخش = حالت مشخص */
+                showTopError(msg || 'خطا در دریافت آمار');
+                var canvas = $('stChart');
+                var empty = $('stChartEmpty');
+                if (canvas && canvas.parentNode) { canvas.parentNode.style.display = 'none'; }
+                if (empty) { empty.classList.remove('hidden'); }
             }
         });
+    }
+
+    /* فاز ۵۷ — حالت خطا برای «خدمات پرتکرار شما» (به‌جای اسکلتون ابدی) */
+    function showTopError(msg) {
+        var box = $('stTop');
+        if (!box) { return; }
+        box.innerHTML =
+            '<div style="text-align:center;padding:18px 10px">' +
+                '<div style="font-size:22px;line-height:1">⚠️</div>' +
+                '<div style="font-size:12.5px;font-weight:800;color:var(--ink);margin-top:6px">دریافت آمار ناموفق بود</div>' +
+                '<div class="text-faint" style="font-size:11px;margin-top:2px">' + CN.esc(msg) + '</div>' +
+                '<button type="button" id="stRetry" class="btn btn-outline" style="margin-top:10px;padding:8px 18px;font-size:12px">↻ تلاش مجدد</button>' +
+            '</div>';
+        var retry = $('stRetry');
+        if (retry) {
+            retry.addEventListener('click', function () {
+                box.innerHTML = '<div class="skeleton" style="height:52px"></div><div class="skeleton" style="height:52px"></div>';
+                load();
+            });
+        }
     }
 
     function renderChart(months) {
@@ -139,5 +170,8 @@
         });
     }
 
-    document.addEventListener('DOMContentLoaded', load);
+    /* فاز ۵۷ — boot فوری (الگوی بقیهٔ صفحات اپ):
+       اسکریپت defer است، پس DOM آماده است؛ در ناوبری SPA هم همین تابع
+       دوباره اجرا می‌شود و دیتا تازه می‌شود — بدون انتظار برای رویدادی که fire نمی‌شود. */
+    load();
 })();

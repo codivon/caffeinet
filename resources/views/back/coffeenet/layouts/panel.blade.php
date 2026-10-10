@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="{{ $panelLang ?? 'fa' }}" dir="{{ $panelDir ?? 'rtl' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -23,7 +23,7 @@
 
     {{-- استایل و اسکریپت — کاملاً بدون Node / بدون بیلد --}}
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v=14">
-    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=18">
+    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=19">
     <link rel="stylesheet" href="{{ asset('assets/css/pages/net-org.css') }}?v=11">
     {{-- زنگ اعلان (فاز ۱۰) — باید قبل از theme باشد --}}
     <link rel="stylesheet" href="{{ asset('assets/css/notifications.css') }}?v=14">
@@ -68,18 +68,18 @@
         @php
             $base = ['coffeenet' => $coffeenet->id];
             $nav = [
-                ['route' => 'coffeenet.dashboard', 'params' => $base, 'label' => 'داشبورد', 'icon' => 'grid', 'match' => 'coffeenet.dashboard'],
-                ['route' => 'coffeenet.orders.index', 'params' => $base, 'label' => 'سفارش‌ها', 'icon' => 'orders', 'match' => 'coffeenet.orders.index|coffeenet.orders.data|coffeenet.orders.broadcast.data|coffeenet.orders.accept|coffeenet.orders.operators|coffeenet.orders.operator'],
-                ['route' => 'coffeenet.chats.index', 'params' => $base, 'label' => 'گفتگوها', 'icon' => 'chat', 'match' => 'coffeenet.chats.*|coffeenet.orders.chat*'],
-                ['route' => 'coffeenet.ratings.index', 'params' => $base, 'label' => 'نظرسنجی‌ها', 'icon' => 'star', 'match' => 'coffeenet.ratings.*'],
-                ['route' => 'coffeenet.staff.index', 'params' => $base, 'label' => 'کارمندان', 'icon' => 'users', 'match' => 'coffeenet.staff.*'],
-                ['route' => 'coffeenet.salaries.index', 'params' => $base, 'label' => 'حقوق و دستمزد', 'icon' => 'coins', 'match' => 'coffeenet.salaries.*'],
-                ['route' => 'coffeenet.wallet.index', 'params' => $base, 'label' => 'کیف پول', 'icon' => 'wallet', 'match' => 'coffeenet.wallet.*'],
-                ['route' => 'coffeenet.withdrawals.index', 'params' => $base, 'label' => 'برداشت‌ها', 'icon' => 'withdraw', 'match' => 'coffeenet.withdrawals.*'],
-                ['route' => 'coffeenet.bank-cards.index', 'params' => $base, 'label' => 'کارت‌های بانکی', 'icon' => 'bankcard', 'match' => 'coffeenet.bank-cards.*'],
-                ['route' => 'coffeenet.tickets.index', 'params' => $base, 'label' => 'تیکت‌های پشتیبانی', 'icon' => 'tickets', 'match' => 'coffeenet.tickets.*'],
-                ['route' => 'coffeenet.settings.index', 'params' => $base, 'label' => 'تنظیمات', 'icon' => 'cog', 'match' => 'coffeenet.settings.*'],
-                ['route' => 'coffeenet.guide.index', 'params' => $base, 'label' => 'راهنمای پنل', 'icon' => 'guide', 'match' => 'coffeenet.guide.*'],
+                ['route' => 'coffeenet.dashboard', 'params' => $base, 'label' => __('chrome.nav.cn.dashboard'), 'icon' => 'grid', 'match' => 'coffeenet.dashboard'],
+                ['route' => 'coffeenet.orders.index', 'params' => $base, 'label' => __('chrome.nav.cn.orders'), 'icon' => 'orders', 'match' => 'coffeenet.orders.index|coffeenet.orders.data|coffeenet.orders.broadcast.data|coffeenet.orders.accept|coffeenet.orders.operators|coffeenet.orders.operator'],
+                ['route' => 'coffeenet.chats.index', 'params' => $base, 'label' => __('chrome.nav.cn.chats'), 'icon' => 'chat', 'match' => 'coffeenet.chats.*|coffeenet.orders.chat*'],
+                ['route' => 'coffeenet.ratings.index', 'params' => $base, 'label' => __('chrome.nav.cn.ratings'), 'icon' => 'star', 'match' => 'coffeenet.ratings.*'],
+                ['route' => 'coffeenet.staff.index', 'params' => $base, 'label' => __('chrome.nav.cn.staff'), 'icon' => 'users', 'match' => 'coffeenet.staff.*'],
+                ['route' => 'coffeenet.salaries.index', 'params' => $base, 'label' => __('chrome.nav.cn.salaries'), 'icon' => 'coins', 'match' => 'coffeenet.salaries.*'],
+                ['route' => 'coffeenet.wallet.index', 'params' => $base, 'label' => __('chrome.nav.cn.wallet'), 'icon' => 'wallet', 'match' => 'coffeenet.wallet.*'],
+                ['route' => 'coffeenet.withdrawals.index', 'params' => $base, 'label' => __('chrome.nav.cn.withdrawals'), 'icon' => 'withdraw', 'match' => 'coffeenet.withdrawals.*'],
+                ['route' => 'coffeenet.bank-cards.index', 'params' => $base, 'label' => __('chrome.nav.cn.bank_cards'), 'icon' => 'bankcard', 'match' => 'coffeenet.bank-cards.*'],
+                ['route' => 'coffeenet.tickets.index', 'params' => $base, 'label' => __('chrome.nav.cn.tickets'), 'icon' => 'tickets', 'match' => 'coffeenet.tickets.*'],
+                ['route' => 'coffeenet.settings.index', 'params' => $base, 'label' => __('chrome.nav.cn.settings'), 'icon' => 'cog', 'match' => 'coffeenet.settings.*'],
+                ['route' => 'coffeenet.guide.index', 'params' => $base, 'label' => __('chrome.nav.cn.guide'), 'icon' => 'guide', 'match' => 'coffeenet.guide.*'],
             ];
         @endphp
 
@@ -157,6 +157,10 @@
                     @persist('header-actions')
                     {{-- زنگ اعلان (فاز ۱۰) — persist تا bind اسکریپت اعلان زنده بماند --}}
                     @include('back.partials.notif-bell')
+                    {{-- فاز ۵۷ — سوئیچ زبان (فقط وقتی چندزبانه روشن است) --}}
+                    @if (! empty())
+                    @include('partials.locale-switcher')
+                    @endif
                     {{-- سوییچ تم روشن/تاریک --}}
                     <button type="button" class="theme-toggle" data-theme-toggle aria-label="تغییر تم روشن/تاریک" title="حالت روشن/تاریک">
                         <svg class="tt-icon tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>

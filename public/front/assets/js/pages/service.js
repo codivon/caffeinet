@@ -258,6 +258,74 @@
     var detailAttempts = 0;
     var DETAIL_MAX_TRIES = 3; // ۱ تلاش اول + ۲ تلاش مجدد
 
+    /* ---------- فاز ۵۷ — گیت لودینگ سفارش (درخواست مالک) ----------
+       «اگر فرم لود نشده، صفحه هم لود نشود (به‌جز موارد ثابت)»:
+       تا وقتی دیتای خدمت نرسیده، کارت هزینه + کارت فرم مخفی‌اند و فقط
+       قهرمان ثابت (svcHero) + یک کارت گیت لودینگ دیده می‌شود.
+       هر شکستی (شبکه/۴xx/۵xx/خطای رندر/انتظار طولانی) = کارت خطا با تلاش مجدد —
+       هیچ‌وقت صفحهٔ نصفه/اسکلتون ابدی. */
+    var GATE_WATCHDOG_MS = 20000;
+    var gateWatchdog = null;
+
+    function setGate(state, msg) {
+        var costCard = document.getElementById('costCard');
+        var formCard = document.getElementById('formCard');
+        var gate = document.getElementById('svcGate');
+
+        if (!gate) {
+            gate = document.createElement('div');
+            gate.id = 'svcGate';
+            gate.className = 'card fade-up d1';
+            var anchor = document.getElementById('costCard');
+            if (anchor && anchor.parentNode) { anchor.parentNode.insertBefore(gate, anchor); }
+            else if (formCard && formCard.parentNode) { formCard.parentNode.insertBefore(gate, formCard); }
+        }
+
+        var showMain = state === 'ready';
+        if (costCard) { costCard.classList.toggle('hidden', !showMain); }
+        if (formCard) { formCard.classList.toggle('hidden', !showMain); }
+
+        if (state === 'loading') {
+            gate.classList.remove('hidden');
+            gate.innerHTML =
+                '<div style="display:flex;align-items:center;gap:10px;padding:6px 2px">' +
+                    '<span class="spinner" style="width:18px;height:18px;border-color:var(--line);border-top-color:var(--brand-600)"></span>' +
+                    '<div style="min-width:0">' +
+                        '<b style="font-size:13px;color:var(--ink)">در حال آماده‌سازی فرم سفارش…</b>' +
+                        '<div class="text-faint" style="font-size:11px;margin-top:2px">دریافت جزئیات هزینه و فرم این خدمت</div>' +
+                    '</div>' +
+                '</div>';
+        } else if (state === 'error') {
+            gate.classList.remove('hidden');
+            gate.innerHTML =
+                '<div style="text-align:center;padding:10px 4px">' +
+                    '<div style="width:44px;height:44px;margin:0 auto;border-radius:14px;background:var(--brand-50,var(--surface));display:grid;place-items:center;font-size:20px">⚠️</div>' +
+                    '<b style="display:block;font-size:13.5px;color:var(--ink);margin-top:8px">فرم این خدمت بارگذاری نشد</b>' +
+                    '<div class="text-faint" style="font-size:11.5px;margin-top:3px">' + CN.esc(msg || 'ارتباط با سرور برقرار نشد.') + '</div>' +
+                    '<button type="button" id="svcGateRetry" class="btn btn-primary" style="margin-top:12px;padding:9px 22px;font-size:12.5px">↻ تلاش مجدد</button>' +
+                '</div>';
+            var retry = document.getElementById('svcGateRetry');
+            if (retry) {
+                retry.addEventListener('click', function () {
+                    detailAttempts = 0;
+                    setGate('loading');
+                    armGateWatchdog();
+                    loadDetail();
+                });
+            }
+        } else {
+            gate.classList.add('hidden');
+        }
+    }
+
+    function armGateWatchdog() {
+        if (gateWatchdog) { window.clearTimeout(gateWatchdog); }
+        gateWatchdog = window.setTimeout(function () {
+            /* اگر بعد از ۲۰ ثانیه هنوز دیتا نرسیده = هر چیزی که مانده را رها کن و خطا نشان بده */
+            if (!detail) { setGate('error', 'پاسخی از سرور دریافت نشد؛ لطفاً دوباره تلاش کنید.'); }
+        }, GATE_WATCHDOG_MS);
+    }
+
     function isTransientXhr(xhr) {
         if (!xhr) { return true; }
         if (!xhr.status || xhr.status === 0) { return true; } // شبکه/قطع/آبورت
@@ -273,11 +341,21 @@
         var svcDescEl = document.getElementById('svcDesc');
         if (svcDescEl) { svcDescEl.textContent = ''; }
 
+        /* فاز ۵۷ — گیت لودینگ: کارت‌های هزینه/فرم مخفی تا دیتا برسد */
+        setGate('loading');
+
         CN.api('/services/' + serviceId, {
             timeout: 15000,
             success: function (resp) {
                 detail = resp.data;
-                renderDetail();
+                try {
+                    renderDetail();
+                } catch (err) {
+                    /* فاز ۵۷ — خطای رندر (فرم بدشکل/فیلد ناشناخته) هرگز بی‌صدا نماند */
+                    detail = null;
+                    if (window.console && console.error) { console.error('[service] render failed:', err); }
+                    setGate('error', 'نمایش فرم این خدمت با خطا مواجه شد؛ دوباره تلاش کنید.');
+                }
             },
             error: function (xhr, message) {
                 detailAttempts += 1;
@@ -296,10 +374,8 @@
                     if (svcName404) { svcName404.textContent = 'خدمت یافت نشد'; }
                     var svcDesc404 = document.getElementById('svcDesc');
                     if (svcDesc404) { svcDesc404.textContent = message; }
-                    var dynFields404 = document.getElementById('dynamicFields');
-                    if (dynFields404) { dynFields404.innerHTML = '<p class="text-faint tiny">این خدمت وجود ندارد یا غیرفعال شده است.</p>'; }
-                    var costRows404 = document.getElementById('costRows');
-                    if (costRows404) { costRows404.innerHTML = ''; }
+                    /* فاز ۵۷ — به‌جای نوشتن در فرمِ مخفی، گیت خطا نشان می‌دهد (بدون تلاش مجدد) */
+                    setGateFinal404();
                     return;
                 }
 
@@ -308,50 +384,54 @@
         });
     }
 
+    /* فاز ۵۷ — حالت «خدمت وجود ندارد»: گیت پیام + دکمهٔ بازگشت (بدون تلاش مجدد بی‌فایده) */
+    function setGateFinal404() {
+        if (gateWatchdog) { window.clearTimeout(gateWatchdog); }
+        setGate('error', 'این خدمت وجود ندارد یا غیرفعال شده است.');
+        var retry = document.getElementById('svcGateRetry');
+        if (retry) {
+            retry.textContent = 'بازگشت به خدمات';
+            retry.id = 'svcGateBack';
+            retry.addEventListener('click', function () {
+                window.location.href = CN.withPort ? CN.withPort('/app/services') : '/app/services';
+            });
+        }
+    }
+
     function renderDetailError(message) {
         var svcNameEl = document.getElementById('svcName');
         if (svcNameEl) { svcNameEl.textContent = 'خطا در دریافت خدمت'; }
         var svcDescEl = document.getElementById('svcDesc');
         if (svcDescEl) { svcDescEl.textContent = message || 'ارتباط با سرور برقرار نشد.'; }
 
-        var costRowsEl = document.getElementById('costRows');
-        if (costRowsEl) { costRowsEl.innerHTML = ''; }
-        var totalAmountEl = document.getElementById('totalAmount');
-        if (totalAmountEl) { totalAmountEl.textContent = '—'; }
-        var submitBtnErr = document.getElementById('submitOrderBtn');
-        if (submitBtnErr) { submitBtnErr.disabled = true; }
-
-        var dynamicFieldsEl = document.getElementById('dynamicFields');
-        if (dynamicFieldsEl) {
-            dynamicFieldsEl.innerHTML =
-                '<div class="form-group" style="text-align:center">' +
-                '<p class="help-text" style="font-size:13px">دریافت فرم این خدمت با خطا مواجه شد؛ اتصال اینترنت خود را بررسی کنید و دوباره تلاش کنید.</p>' +
-                '<button type="button" class="btn btn-outline" id="retryDetailBtn" style="margin-top:8px">' +
-                '↻ تلاش مجدد' +
-                '</button>' +
-                '</div>';
-        }
-
-        var retryBtn = document.getElementById('retryDetailBtn');
-        if (retryBtn) {
-            retryBtn.addEventListener('click', function () {
-                detailAttempts = 0;
-                var dynEl = document.getElementById('dynamicFields');
-                if (dynEl) { dynEl.innerHTML = '<div class="skeleton" style="height:56px"></div><div class="skeleton" style="height:56px"></div>'; }
-                loadDetail();
-            });
-        }
+        /* فاز ۵۷ — خطای نهایی = گیت خطا (کارت‌های هزینه/فرم مخفی می‌مانند) */
+        setGate('error', message || 'ارتباط با سرور برقرار نشد.');
     }
 
     /* بازگشت از bfcache (دکمهٔ back) با فرم ناقص → دریافت مجدد */
     window.addEventListener('pageshow', function (e) {
         if (e.persisted && !detail) {
             detailAttempts = 0;
+            armGateWatchdog();
             loadDetail();
         }
     });
 
-    loadDetail();
+    /* ---------- فاز ۵۷ — boot مقاوم ----------
+       ۱) اگر در ناوبری SPA فرم هنوز سواپ نشده باشد (#dynamicFields نیست)،
+          تا ۲ ثانیه با مهربانی منتظر می‌مانیم — نه مرگ بی‌صدای اسکریپت.
+       ۲) سگ‌بان ۲۰ ثانیه‌ای: هر چیزی که جلوی لود را بگیرد، در نهایت کارت
+          خطا با «تلاش مجدد» نشان داده می‌شود — صفحهٔ نیمه‌لود ممنوع. */
+    function bootServicePage() {
+        armGateWatchdog();
+        loadDetail();
+    }
+
+    (function waitDomThenBoot(tries) {
+        var fieldsReady = document.getElementById('dynamicFields');
+        if (fieldsReady || tries >= 40) { bootServicePage(); return; }
+        window.setTimeout(function () { waitDomThenBoot(tries + 1); }, 50);
+    })(0);
 
     /* ---------- فاز ۱۵: وضعیت ساعت کاری (برای گارد ثبت) ---------- */
     var workHours = null;
@@ -466,6 +546,9 @@
 
     function renderDetail() {
         var d = detail;
+
+        /* فاز ۵۷ — دیتا رسید: گیت باز و کارت‌های هزینه/فرم نمایش داده شوند */
+        setGate('ready');
 
         /* قهرمان */
         var svcIconEl = document.getElementById('svcIcon');

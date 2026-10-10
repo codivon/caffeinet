@@ -4136,3 +4136,54 @@ html.dark .sk-zone:has(.skeleton)::after {
     white-space: nowrap;
 }
 .tx-bal b { font-weight: 700; color: var(--ink-soft, #475569); }
+
+/* ==========================================================================
+   سوئیچ زبان (فاز ۵۷ — i18n) — هدر اپ مشتری
+   ========================================================================== */
+.loc-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 30px;
+    padding: 0 3px;
+    border-radius: 10px;
+    background: var(--surface, #fff);
+    border: 1px solid var(--line, #e2e8f0);
+}
+
+.loc-globe {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    margin-inline-start: 3px;
+    color: var(--ink-faint, #94a3b8);
+}
+
+.loc-globe svg { width: 12px; height: 12px; }
+
+.loc-opt {
+    height: 22px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 10.5px;
+    font-weight: 800;
+    color: var(--ink-faint, #94a3b8);
+    transition: background .15s ease, color .15s ease;
+}
+
+.loc-opt:hover { color: var(--ink, #1e293b); background: rgba(15, 23, 42, .05); }
+
+.loc-opt.is-active {
+    color: #fff;
+    background: linear-gradient(135deg, var(--brand-500, #3b82f6), var(--brand-700, #1d4ed8));
+    box-shadow: 0 3px 8px -3px rgba(37, 99, 235, .5);
+}
+
+html.dark .loc-switch { background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .12); }
+html.dark .loc-opt { color: #94a3b8; }
+html.dark .loc-opt:hover { color: #f1f5f9; background: rgba(255, 255, 255, .08); }

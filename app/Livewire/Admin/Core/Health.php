@@ -28,6 +28,44 @@ class Health extends Component
         }
     }
 
+    /**
+     * فاز ۵۷ — فضای دیسک بدون شکستن صفحه.
+     *
+     * روی خیلی از هاست‌های اشتراکی تابع disk_free_space در disable_functions است
+     * (Call to undefined function) — پس اول وجود تابع را چک می‌کنیم و هر خطایی
+     * را هم می‌بلعیم. روی VPS/دedicados که تابع آزاد است، عدد واقعی برمی‌گردد.
+     *
+     * @return array{bytes: ?float, label: string, ok: bool, note: ?string}
+     */
+    public static function diskFree(string $path): array
+    {
+        $path = (string) $path;
+
+        // تابع روی این هاست غیرفعال/غیرموجود است (disable_functions هاست اشتراکی)
+        if (! function_exists('disk_free_space')) {
+            return ['bytes' => null, 'label' => '—', 'ok' => true, 'note' => 'روی این هاست در دسترس نیست'];
+        }
+
+        try {
+            $bytes = @disk_free_space($path);
+
+            if ($bytes === false || $bytes === null) {
+                return ['bytes' => null, 'label' => '—', 'ok' => true, 'note' => 'اندازه‌گیری ناموفق'];
+            }
+
+            $gb = round((float) $bytes / 1073741824, 1);
+
+            return [
+                'bytes' => (float) $bytes,
+                'label' => fa_number($gb).' گیگابایت',
+                'ok' => $bytes > 1073741824, // کمتر از ۱ گیگابایت = هشدار
+                'note' => null,
+            ];
+        } catch (\Throwable) {
+            return ['bytes' => null, 'label' => '—', 'ok' => true, 'note' => 'اندازه‌گیری ناموفق'];
+        }
+    }
+
     public function render()
     {
         $dbPath = config('database.connections.sqlite.database');
@@ -38,6 +76,8 @@ class Health extends Component
 
         $cleanupLast = app(SettingsService::class)->get('system.cleanup.last');
 
+        $disk = self::diskFree(storage_path());
+
         $checks = [
             [
                 'group' => 'بستر اجرا',
@@ -46,7 +86,7 @@ class Health extends Component
                     ['label' => 'نسخهٔ Laravel', 'value' => app()->version(), 'ok' => true],
                     ['label' => 'دیتابیس', 'value' => $isSqlite ? 'SQLite (توسعه)' : 'MySQL', 'ok' => true],
                     ['label' => 'حجم دیتابیس', 'value' => $isSqlite && is_file($dbPath) ? fa_number(round(filesize($dbPath) / 1048576, 1)).' مگابایت' : '—', 'ok' => true],
-                    ['label' => 'فضای آزاد دیسک', 'value' => fa_number(round((float) disk_free_space(storage_path()) / 1073741824, 1)).' گیگابایت', 'ok' => disk_free_space(storage_path()) > 1073741824],
+                    ['label' => 'فضای آزاد دیسک', 'value' => $disk['note'] ? $disk['label'].' ('.$disk['note'].')' : $disk['label'], 'ok' => $disk['ok']],
                     ['label' => 'کش نوشتنی', 'value' => is_writable(storage_path('framework/cache')) ? 'سالم' : 'غیرقابل نوشتن!', 'ok' => is_writable(storage_path('framework/cache'))],
                 ],
             ],

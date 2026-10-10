@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="{{ $panelLang ?? 'fa' }}" dir="{{ $panelDir ?? 'rtl' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -22,7 +22,7 @@
 
     {{-- استایل و اسکریپت — کاملاً بدون Node / بدون بیلد --}}
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v=14">
-    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=18">
+    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=19">
     <link rel="stylesheet" href="{{ asset('assets/css/pages/operator.css') }}?v=21">
     {{-- زنگ اعلان (فاز ۱۰) — قبل از theme --}}
     <link rel="stylesheet" href="{{ asset('assets/css/notifications.css') }}?v=14">
@@ -76,14 +76,14 @@
 
         @php
             $operatorNav = [
-                ['route' => 'operator.dashboard', 'label' => 'داشبورد', 'icon' => 'grid', 'match' => 'operator.dashboard', 'show' => true],
-                ['route' => 'operator.requests.index', 'label' => 'درخواست‌های مشتری', 'icon' => 'inbox', 'match' => 'operator.requests.*', 'show' => $canAccept],
-                ['route' => 'operator.orders.index', 'label' => $canAll ? 'سفارش‌های کافی‌نت' : 'سفارش‌های من', 'icon' => 'orders', 'match' => 'operator.orders.*', 'show' => $canViewOrders],
-                ['route' => 'operator.chat.index', 'label' => 'گفتگوها', 'icon' => 'chat', 'match' => 'operator.chat.*,operator.orders.chat', 'show' => $canViewOrders, 'badge' => true],
-                ['route' => 'operator.earnings.index', 'label' => 'درآمد و کیف پول', 'icon' => 'wallet', 'match' => 'operator.earnings.*', 'show' => true],
-                ['route' => 'operator.bank-cards.index', 'label' => 'کارت‌های بانکی', 'icon' => 'bankcard', 'match' => 'operator.bank-cards.*', 'show' => true],
-                ['route' => 'operator.tickets.index', 'label' => 'تیکت‌های پشتیبانی', 'icon' => 'tickets', 'match' => 'operator.tickets.*', 'show' => $ticketsAllowed],
-                ['route' => 'operator.guide.index', 'label' => 'راهنمای پنل', 'icon' => 'guide', 'match' => 'operator.guide.*', 'show' => true],
+                ['route' => 'operator.dashboard', 'label' => __('chrome.nav.op.dashboard'), 'icon' => 'grid', 'match' => 'operator.dashboard', 'show' => true],
+                ['route' => 'operator.requests.index', 'label' => __('chrome.nav.op.requests'), 'icon' => 'inbox', 'match' => 'operator.requests.*', 'show' => $canAccept],
+                ['route' => 'operator.orders.index', 'label' => $canAll ? __('chrome.nav.op.orders_all') : __('chrome.nav.op.orders_my'), 'icon' => 'orders', 'match' => 'operator.orders.*', 'show' => $canViewOrders],
+                ['route' => 'operator.chat.index', 'label' => __('chrome.nav.op.chats'), 'icon' => 'chat', 'match' => 'operator.chat.*,operator.orders.chat', 'show' => $canViewOrders, 'badge' => true],
+                ['route' => 'operator.earnings.index', 'label' => __('chrome.nav.op.earnings'), 'icon' => 'wallet', 'match' => 'operator.earnings.*', 'show' => true],
+                ['route' => 'operator.bank-cards.index', 'label' => __('chrome.nav.op.bank_cards'), 'icon' => 'bankcard', 'match' => 'operator.bank-cards.*', 'show' => true],
+                ['route' => 'operator.tickets.index', 'label' => __('chrome.nav.op.tickets'), 'icon' => 'tickets', 'match' => 'operator.tickets.*', 'show' => $ticketsAllowed],
+                ['route' => 'operator.guide.index', 'label' => __('chrome.nav.op.guide'), 'icon' => 'guide', 'match' => 'operator.guide.*', 'show' => true],
             ];
         @endphp
 
@@ -163,6 +163,10 @@
                     @persist('header-actions')
                     {{-- زنگ اعلان (فاز ۱۰) — persist تا bind اسکریپت اعلان زنده بماند --}}
                     @include('back.partials.notif-bell')
+                    {{-- فاز ۵۷ — سوئیچ زبان (فقط وقتی چندزبانه روشن است) --}}
+                    @if (! empty())
+                    @include('partials.locale-switcher')
+                    @endif
                     {{-- سوییچ تم روشن/تاریک --}}
                     <button type="button" class="theme-toggle" data-theme-toggle aria-label="تغییر تم روشن/تاریک" title="حالت روشن/تاریک">
                         <svg class="tt-icon tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>

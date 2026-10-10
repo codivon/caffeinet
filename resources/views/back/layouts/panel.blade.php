@@ -22,7 +22,7 @@
 
     {{-- استایل و اسکریپت — کاملاً بدون Node / بدون بیلد --}}
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v=14">
-    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=18">
+    <link rel="stylesheet" href="{{ asset('assets/css/panel-ui.css') }}?v=19">
     <link rel="stylesheet" href="{{ asset('assets/css/pages/admin.css') }}?v=24">
     {{-- زنگ اعلان (فاز ۱۰) — قبل از theme --}}
     <link rel="stylesheet" href="{{ asset('assets/css/notifications.css') }}?v=14">
@@ -199,7 +199,7 @@
                     @if ((bool) app(\App\Services\Settings\SettingsService::class)->get('features.global_search', true))
                     <button type="button" id="gk-open" class="hidden md:flex items-center gap-2 h-9 rounded-xl border border-stone-200 bg-stone-50 px-3 text-[11px] font-bold text-stone-400 hover:bg-white hover:border-stone-300 transition-colors" title="جستجوی سراسری (Ctrl+K)">
                         <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                        جستجو…
+                        {{ __('chrome.common.search_placeholder') }}
                         <kbd class="gk-kbd">Ctrl K</kbd>
                     </button>
                     <button type="button" id="gk-open-m" class="md:hidden grid place-items-center size-10 rounded-xl border border-stone-200 text-stone-500 hover:bg-stone-50" aria-label="جستجو">
@@ -208,16 +208,9 @@
                     @endif
                     {{-- زنگ اعلان (فاز ۱۰) — persist تا bind اسکریپت اعلان بین ناوبری‌ها زنده بماند --}}
                     @include('back.partials.notif-bell')
-                    {{-- فاز ۵۴ — سوئیچ زبان (فقط وقتی چندزبانه روشن است) --}}
+                    {{-- فاز ۵۴ — سوئیچ زبان (فقط وقتی چندزبانه روشن است) — فاز ۵۷: بازطراحی + رفع باگ چندکلیک --}}
                     @if (! empty($i18nOn))
-                    <div class="flex items-center rounded-xl border border-stone-200 overflow-hidden" role="group" aria-label="زبان">
-                        <a href="{{ route('admin.dashboard') }}" wire:navigate
-                           onclick="document.cookie='cn_locale=fa;path=/;max-age=31536000'"
-                           class="px-2.5 h-9 grid place-items-center text-[11px] font-extrabold {{ ($panelLang ?? 'fa') === 'fa' ? 'bg-stone-800 text-white' : 'text-stone-400 hover:bg-stone-50' }}">فا</a>
-                        <a href="{{ route('admin.dashboard') }}" wire:navigate
-                           onclick="document.cookie='cn_locale=en;path=/;max-age=31536000'"
-                           class="px-2.5 h-9 grid place-items-center text-[11px] font-extrabold {{ ($panelLang ?? 'fa') === 'en' ? 'bg-stone-800 text-white' : 'text-stone-400 hover:bg-stone-50' }}">EN</a>
-                    </div>
+                    @include('partials.locale-switcher')
                     @endif
                     {{-- سوییچ تم روشن/تاریک --}}
                     <button type="button" class="theme-toggle" data-theme-toggle aria-label="تغییر تم روشن/تاریک" title="حالت روشن/تاریک">
@@ -226,8 +219,7 @@
                     </button>
                     <span class="hidden sm:inline-flex items-center gap-2 badge bg-emerald-50 text-emerald-700 border border-emerald-200">
                         <span class="relative flex size-2"><span class="absolute inline-flex size-full rounded-full bg-emerald-400 opacity-60 animate-ping"></span><span class="relative inline-flex size-2 rounded-full bg-emerald-400"></span></span>
-                        سیستم آنلاین
-                    </span>
+                        {{ __("chrome.common.system_online") }}</span>
                     @endpersist
                 </div>
             </div>

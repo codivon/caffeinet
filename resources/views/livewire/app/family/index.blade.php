@@ -82,6 +82,6 @@
 </div>
 
 @push('page')
-<script src="front/assets/js/pages/family.js?v=1" defer></script>
+<script src="{{ asset('front/assets/js/pages/family.js') }}?v=2" defer></script>
 @endpush
 </div>

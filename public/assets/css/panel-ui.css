@@ -748,3 +748,69 @@ html.dark .presence-seen { color: #2563eb; }
     box-shadow: 0 8px 22px var(--ui-ring), inset 0 1px 0 rgba(255, 255, 255, .2);
 }
 .brand-btn:hover { box-shadow: 0 12px 28px rgba(59, 99, 246, .4), inset 0 1px 0 rgba(255, 255, 255, .2); }
+
+/* ==========================================================================
+   سوئیچ زبان (فاز ۵۷ — i18n) — همهٔ پنل‌ها
+   قرص شیشه‌ای با آیکون کرهٔ زمین + دو گزینهٔ فا/EN
+   سازگار با دارک‌مود (html.dark) و جهت RTL/LTR
+   ========================================================================== */
+.loc-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 36px;
+    padding: 0 4px 0 3px;
+    border-radius: 11px;
+    background: var(--ui-surface, #fff);
+    border: 1px solid var(--ui-line, #e7e5e4);
+    box-shadow: 0 1px 2px rgba(28, 25, 23, .05);
+}
+
+.loc-globe {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    margin-inline-start: 4px;
+    color: var(--ui-icon, #a8a29e);
+}
+
+.loc-globe svg { width: 14px; height: 14px; }
+
+.loc-opt {
+    height: 26px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .01em;
+    color: var(--ui-icon, #a8a29e);
+    transition: background .15s ease, color .15s ease;
+}
+
+.loc-opt:hover { color: var(--ui-ink, #44403c); background: var(--ui-hover, rgba(28, 25, 23, .05)); }
+
+.loc-opt.is-active {
+    color: #fff;
+    background: var(--ui-brand-grad, linear-gradient(135deg, #f59e0b, #d97706));
+    box-shadow: 0 3px 10px -3px rgba(217, 119, 6, .55);
+}
+
+.loc-opt:focus-visible {
+    outline: 2px solid var(--ui-ring, rgba(217, 119, 6, .45));
+    outline-offset: 1px;
+}
+
+html.dark .loc-switch {
+    background: #292524;
+    border-color: #44403c;
+    box-shadow: none;
+}
+
+html.dark .loc-globe { color: #78716c; }
+html.dark .loc-opt { color: #a8a29e; }
+html.dark .loc-opt:hover { color: #fafaf9; background: rgba(255, 255, 255, .06); }

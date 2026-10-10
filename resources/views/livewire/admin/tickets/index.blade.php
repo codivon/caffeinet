@@ -133,20 +133,29 @@
     </section>
 
     {{-- ماژول حذف نرم/دائم مشترک — delegation سطح document (با گارد دوباره‌سوییچ SPA) --}}
+    {{-- [فاز ۵۷ رفع] trash.js باید همین‌جا لود شود؛ قبلاً به بازدید قبلی از
+        صفحات مشتریان/سفارش‌ها اتکا داشت و در ورود مستقیم به تیکت‌ها
+        window.AdminTrash وجود نداشت (هیچ اروری، ولی قابلیت حذف مرده بود). --}}
+    <script src="{{ asset('back/assets/js/pages/trash.js') }}?v=2"></script>
     <script>
         (function () {
             // [Task 3-e] در نسخهٔ Livewire صفحه با wire:navigate سواپ می‌شود؛
             // شنوندهٔ delegation یک‌بار (اولین mount) نصب می‌ماند و برای جلوگیری از
             // دیالوگ دوبله، confirmAndDelete با گارد زمانی کوتاه پوشانده می‌شود.
-            if (!window.AdminTrash) { return; }
+            // [فاز ۵۷ رفع] window.AdminTrash یک «نمونهٔ ساخته‌شده» است نه کلاس
+            // (trash.js: window.AdminTrash = new AdminTrash()) — پس prototype ندارد و
+            // دسترسی به AdminTrash.prototype.confirmAndDelete خطای
+            // «Cannot read properties of undefined (reading 'confirmAndDelete')» می‌داد؛
+            // اکنون متد خودِ نمونه wrap می‌شود (بدون شکستن mount بعدی).
+            if (!window.AdminTrash || typeof window.AdminTrash.confirmAndDelete !== 'function') { return; }
 
             if (!window.__tk3eTrashWrapped) {
-                const orig = window.AdminTrash.prototype.confirmAndDelete;
-                window.AdminTrash.prototype.confirmAndDelete = function (base, id, label) {
+                const orig = window.AdminTrash.confirmAndDelete.bind(window.AdminTrash);
+                window.AdminTrash.confirmAndDelete = function (base, id, label) {
                     if (window.__tk3eTrashBusy) { return; }
                     window.__tk3eTrashBusy = true;
                     setTimeout(() => { window.__tk3eTrashBusy = false; }, 1500);
-                    return orig.call(this, base, id, label);
+                    return orig(base, id, label);
                 };
                 window.__tk3eTrashWrapped = true;
             }
