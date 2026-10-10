@@ -1,0 +1,827 @@
+/* ============================================================
+   کافی‌نت آنلاین — کلیدهای وب‌سرویس (فاز ۴۹ — بازطراحی مدرن)
+   پنل مدیریت کل — طراحی خودکفا (بدون وابستگی به یوتیلیتی‌های تیلویند)
+   بخش‌ها: هیرو گرادیانی + آمار شیشه‌ای، کارت کلید با کی‌باکس
+   ترمینالی، پنجرهٔ کد تب‌دار (cURL/JS/PHP)، نکات امنیتی، مودال‌ها
+   ============================================================ */
+
+/* ---------- پشتهٔ عمودی صفحه ---------- */
+.ak-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* ---------- انیمیشن ورود ---------- */
+@keyframes ak-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: none; }
+}
+.ak-in { animation: ak-in .5s cubic-bezier(.22,1,.36,1) both; animation-delay: var(--d, 0s); }
+
+/* ============================================================
+   هیرو — بنر تیره با درخشش کهربایی و الگوی نقطه‌ای
+   ============================================================ */
+.ak-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    padding: 1.35rem 1.4rem 1.25rem;
+    background: linear-gradient(140deg, #12100e 0%, #1c1917 55%, #2b2420 100%);
+    color: #fafaf9;
+    box-shadow: 0 14px 40px -18px rgba(28, 25, 23, .55);
+}
+/* درخشش کهربایی */
+.ak-hero::before {
+    content: "";
+    position: absolute;
+    inset: -40% -20% auto auto;
+    width: 24rem;
+    height: 24rem;
+    background: radial-gradient(circle, rgba(245, 158, 11, .22) 0%, rgba(245, 158, 11, .07) 42%, transparent 68%);
+    pointer-events: none;
+}
+/* الگوی نقطه‌ای ظریف */
+.ak-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, .055) 1px, transparent 1px);
+    background-size: 18px 18px;
+    -webkit-mask-image: linear-gradient(120deg, transparent 30%, #000 100%);
+    mask-image: linear-gradient(120deg, transparent 30%, #000 100%);
+    pointer-events: none;
+}
+.ak-hero > * { position: relative; z-index: 1; }
+
+.ak-hero-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.ak-hero-icon {
+    display: grid;
+    place-items: center;
+    width: 3.4rem;
+    height: 3.4rem;
+    border-radius: 1.15rem;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 45%, #b45309 100%);
+    color: #fffbeb;
+    box-shadow: 0 10px 26px -8px rgba(245, 158, 11, .55), inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+.ak-hero-icon svg { width: 1.7rem; height: 1.7rem; }
+
+.ak-hero-text { flex: 1 1 16rem; min-width: 0; }
+.ak-hero-text h1 {
+    margin: 0;
+    font-size: 1.22rem;
+    font-weight: 800;
+    letter-spacing: -.01em;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+.ak-hero-chip {
+    font-size: .62rem;
+    font-weight: 800;
+    padding: .18rem .55rem;
+    border-radius: 999px;
+    background: rgba(251, 191, 36, .16);
+    border: 1px solid rgba(251, 191, 36, .35);
+    color: #fcd34d;
+    letter-spacing: .02em;
+}
+.ak-hero-text p {
+    margin: .45rem 0 0;
+    font-size: .78rem;
+    line-height: 1.9;
+    color: #d6d3d1;
+    max-width: 46rem;
+}
+.ak-hero-text code {
+    direction: ltr;
+    display: inline-block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .7rem;
+    background: rgba(255, 255, 255, .1);
+    border: 1px solid rgba(255, 255, 255, .14);
+    border-radius: .45rem;
+    padding: 0 .4rem;
+    color: #fcd34d;
+}
+
+.ak-hero-actions {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    flex-shrink: 0;
+    margin-inline-start: auto;
+}
+.ak-btn-docs,
+.ak-btn-new {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    padding: .62rem 1rem;
+    border-radius: .85rem;
+    font-size: .76rem;
+    font-weight: 800;
+    line-height: 1;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform .16s ease, filter .2s ease, background .2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.ak-btn-docs:active, .ak-btn-new:active { transform: scale(.96); }
+.ak-btn-docs {
+    background: rgba(255, 255, 255, .08);
+    border-color: rgba(255, 255, 255, .16);
+    color: #f5f5f4;
+    backdrop-filter: blur(6px);
+}
+.ak-btn-docs:hover { background: rgba(255, 255, 255, .14); }
+.ak-btn-docs svg, .ak-btn-new svg { width: 1rem; height: 1rem; flex-shrink: 0; }
+.ak-btn-new {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 55%, #d97706 100%);
+    color: #451a03;
+    box-shadow: 0 8px 22px -8px rgba(245, 158, 11, .65), inset 0 1px 0 rgba(255, 255, 255, .4);
+}
+.ak-btn-new:hover { filter: brightness(1.07); }
+
+/* ---------- آمار شیشه‌ای ---------- */
+.ak-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .6rem;
+    margin-top: 1.15rem;
+}
+.ak-stat {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    padding: .6rem .75rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, .06);
+    border: 1px solid rgba(255, 255, 255, .12);
+    backdrop-filter: blur(6px);
+    min-width: 0;
+}
+.ak-stat-icon {
+    display: grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: .75rem;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .1);
+    color: #fcd34d;
+}
+.ak-stat-icon svg { width: 1.05rem; height: 1.05rem; }
+.ak-stat-icon.is-green { color: #6ee7b7; }
+.ak-stat-icon.is-blue { color: #93c5fd; }
+.ak-stat-info { min-width: 0; }
+.ak-stat-label {
+    display: block;
+    font-size: .63rem;
+    font-weight: 700;
+    color: #a8a29e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ak-stat-value {
+    display: block;
+    margin-top: .1rem;
+    font-size: .95rem;
+    font-weight: 800;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ============================================================
+   نوار اطلاع‌رسانی هدر الزامی
+   ============================================================ */
+.ak-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: .6rem;
+    padding: .75rem .95rem;
+    border-radius: 1.1rem;
+    background: linear-gradient(0deg, rgba(255, 251, 235, .75), rgba(255, 251, 235, .75));
+    border: 1px solid #fde68a;
+    color: #92400e;
+    font-size: .76rem;
+    line-height: 1.9;
+    font-weight: 600;
+}
+.ak-notice > svg { width: 1.05rem; height: 1.05rem; flex-shrink: 0; margin-top: .25rem; color: #d97706; }
+.ak-notice code.ak-mono-pill {
+    direction: ltr;
+    display: inline-block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .7rem;
+    font-weight: 800;
+    background: rgba(180, 83, 9, .1);
+    border: 1px solid rgba(180, 83, 9, .3);
+    border-radius: .5rem;
+    padding: .05rem .45rem;
+    color: #92400e;
+}
+.ak-notice-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    margin-inline-start: .4rem;
+    padding: .12rem .5rem;
+    border-radius: .55rem;
+    border: 1px dashed rgba(180, 83, 9, .4);
+    background: transparent;
+    color: #b45309;
+    font-size: .64rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background .15s ease;
+    vertical-align: middle;
+}
+.ak-notice-copy:hover { background: rgba(180, 83, 9, .08); }
+.ak-notice-copy svg { width: .78rem; height: .78rem; }
+.ak-notice-copy.is-copied { color: #047857; border-color: rgba(5, 150, 105, .45); }
+
+/* ============================================================
+   کارت‌های عمومی صفحه
+   ============================================================ */
+.ak-card {
+    background: #fff;
+    border: 1px solid #e7e5e4;
+    border-radius: 1.3rem;
+    padding: 1.15rem 1.2rem;
+    box-shadow: 0 1px 2px rgba(28, 25, 23, .04);
+}
+.ak-section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: .6rem;
+    flex-wrap: wrap;
+    margin-bottom: .95rem;
+}
+.ak-section-head h2 {
+    margin: 0;
+    font-size: .88rem;
+    font-weight: 800;
+    color: #292524;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.ak-section-head h2 svg { width: 1.05rem; height: 1.05rem; color: #d97706; }
+.ak-section-hint { font-size: .68rem; font-weight: 600; color: #a8a29e; }
+
+/* ============================================================
+   پیام‌های فلش
+   ============================================================ */
+.ak-flash {
+    display: flex;
+    align-items: flex-start;
+    gap: .55rem;
+    padding: .8rem 1rem;
+    border-radius: 1.1rem;
+    font-size: .78rem;
+    font-weight: 700;
+    line-height: 1.8;
+    border: 1px solid transparent;
+}
+.ak-flash svg { width: 1.05rem; height: 1.05rem; flex-shrink: 0; margin-top: .2rem; }
+.ak-flash--ok { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+.ak-flash--ok svg { color: #059669; }
+.ak-flash--err { background: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+.ak-flash--err svg { color: #e11d48; }
+
+/* ============================================================
+   کارت کلید
+   ============================================================ */
+.ak-key {
+    position: relative;
+    border: 1px solid #e7e5e4;
+    border-radius: 1.15rem;
+    padding: 1rem 1.05rem;
+    background: linear-gradient(180deg, #fafaf9 0%, #fff 100%);
+    transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+.ak-key:hover {
+    border-color: #d6d3d1;
+    box-shadow: 0 10px 26px -14px rgba(28, 25, 23, .25);
+    transform: translateY(-1px);
+}
+/* کلید داخلی — حلقهٔ طلایی */
+.ak-key--internal {
+    border-color: rgba(245, 158, 11, .45);
+    background: linear-gradient(180deg, #fffbeb 0%, #fff 70%);
+}
+.ak-key--internal:hover { border-color: rgba(245, 158, 11, .7); box-shadow: 0 10px 26px -14px rgba(180, 83, 9, .35); }
+
+.ak-key-top {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+}
+.ak-key-avatar {
+    display: grid;
+    place-items: center;
+    width: 2.55rem;
+    height: 2.55rem;
+    border-radius: .9rem;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #57534e 0%, #292524 100%);
+    color: #e7e5e4;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15);
+}
+.ak-key-avatar svg { width: 1.15rem; height: 1.15rem; }
+.ak-key--internal .ak-key-avatar {
+    background: linear-gradient(135deg, #fbbf24 0%, #b45309 100%);
+    color: #fffbeb;
+    box-shadow: 0 6px 16px -6px rgba(245, 158, 11, .6), inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+.ak-key-id { flex: 1; min-width: 0; }
+.ak-key-titlerow {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+.ak-key-titlerow h3 {
+    margin: 0;
+    font-size: .84rem;
+    font-weight: 800;
+    color: #292524;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+.ak-key-badge {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    font-size: .6rem;
+    font-weight: 800;
+    padding: .16rem .5rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #fbbf24, #d97706);
+    color: #451a03;
+    box-shadow: 0 3px 8px -3px rgba(245, 158, 11, .5);
+}
+.ak-key-badge svg { width: .72rem; height: .72rem; }
+.ak-key-meta {
+    margin: .2rem 0 0;
+    font-size: .67rem;
+    font-weight: 600;
+    color: #a8a29e;
+}
+.ak-btn-del {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .45rem .75rem;
+    border-radius: .75rem;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #e11d48;
+    font-size: .7rem;
+    font-weight: 800;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background .15s ease, transform .16s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.ak-btn-del:active { transform: scale(.95); }
+.ak-btn-del:hover { background: #fff1f2; border-color: #fecdd3; }
+.ak-btn-del svg { width: .9rem; height: .9rem; }
+.ak-btn-del[disabled] { opacity: .5; cursor: wait; }
+
+/* ---------- کی‌باکس ترمینالی ---------- */
+.ak-keybox {
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+    margin-top: .8rem;
+    padding: .28rem .35rem .28rem .8rem;
+    border-radius: .95rem;
+    background: #0c0a09;
+    border: 1px solid rgba(255, 255, 255, .09);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .45);
+}
+.ak-keybox code {
+    flex: 1;
+    min-width: 0;
+    direction: ltr;
+    text-align: left;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .72rem;
+    line-height: 1.7;
+    letter-spacing: .015em;
+    color: #6ee7b7;
+    white-space: nowrap;
+    overflow-x: auto;
+    padding: .3rem .25rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, .18) transparent;
+}
+.ak-keybox code::-webkit-scrollbar { height: 4px; }
+.ak-keybox code::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .18); border-radius: 99px; }
+.ak-keybox code .ak-masked { opacity: .55; }
+.ak-keybox-btn {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: .65rem;
+    border: none;
+    background: transparent;
+    color: #a8a29e;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background .15s ease, color .15s ease, transform .16s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.ak-keybox-btn:active { transform: scale(.9); }
+.ak-keybox-btn:hover { background: rgba(255, 255, 255, .09); color: #fff; }
+.ak-keybox-btn svg { width: .95rem; height: .95rem; }
+.ak-keybox-btn.is-copied { color: #34d399; }
+
+/* ---------- چیپ‌های متادیتا ---------- */
+.ak-chips {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    flex-wrap: wrap;
+    margin-top: .75rem;
+}
+.ak-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .38rem;
+    padding: .3rem .62rem;
+    border-radius: .65rem;
+    background: #f5f5f4;
+    border: 1px solid #e7e5e4;
+    color: #78716c;
+    font-size: .66rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.ak-chip svg { width: .82rem; height: .82rem; color: #a8a29e; }
+.ak-chip-note {
+    font-size: .66rem;
+    font-weight: 600;
+    color: #b45309;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+}
+.ak-chip-note svg { width: .82rem; height: .82rem; }
+
+/* ============================================================
+   حالت خالی
+   ============================================================ */
+.ak-empty {
+    text-align: center;
+    padding: 2.6rem 1rem 2.4rem;
+    border: 2px dashed #e7e5e4;
+    border-radius: 1.3rem;
+}
+.ak-empty-icon {
+    display: grid;
+    place-items: center;
+    width: 3.6rem;
+    height: 3.6rem;
+    margin: 0 auto;
+    border-radius: 1.2rem;
+    background: linear-gradient(135deg, #fafaf9, #f5f5f4);
+    border: 1px solid #e7e5e4;
+    color: #d6d3d1;
+}
+.ak-empty-icon svg { width: 1.8rem; height: 1.8rem; }
+.ak-empty h3 { margin: .9rem 0 0; font-size: .88rem; font-weight: 800; color: #44403c; }
+.ak-empty p { margin: .35rem auto 0; font-size: .74rem; line-height: 1.9; color: #a8a29e; max-width: 24rem; }
+.ak-empty .ak-btn-new { margin-top: 1rem; }
+
+/* ============================================================
+   پنجرهٔ کد تب‌دار (cURL / JavaScript / PHP)
+   ============================================================ */
+.ak-window {
+    border-radius: 1.1rem;
+    overflow: hidden;
+    background: #0c0a09;
+    border: 1px solid rgba(255, 255, 255, .09);
+    box-shadow: 0 14px 34px -18px rgba(28, 25, 23, .5);
+}
+.ak-window-head {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .5rem .8rem;
+    background: rgba(255, 255, 255, .045);
+    border-bottom: 1px solid rgba(255, 255, 255, .07);
+}
+.ak-dots { display: inline-flex; gap: .32rem; flex-shrink: 0; }
+.ak-dots i { width: .62rem; height: .62rem; border-radius: 999px; display: block; }
+.ak-dots i:nth-child(1) { background: #f87171; }
+.ak-dots i:nth-child(2) { background: #fbbf24; }
+.ak-dots i:nth-child(3) { background: #34d399; }
+
+.ak-tabs {
+    display: flex;
+    align-items: center;
+    gap: .2rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.ak-tabs::-webkit-scrollbar { display: none; }
+.ak-tab {
+    border: none;
+    background: transparent;
+    color: #a8a29e;
+    font-size: .68rem;
+    font-weight: 800;
+    font-family: inherit;
+    padding: .32rem .7rem;
+    border-radius: .55rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s ease, color .15s ease;
+}
+.ak-tab:hover { color: #e7e5e4; }
+.ak-tab.is-active { background: rgba(251, 191, 36, .16); color: #fbbf24; }
+
+.ak-window-copy {
+    margin-inline-start: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    border: 1px solid rgba(255, 255, 255, .14);
+    background: rgba(255, 255, 255, .06);
+    color: #d6d3d1;
+    font-size: .64rem;
+    font-weight: 800;
+    font-family: inherit;
+    padding: .3rem .6rem;
+    border-radius: .6rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background .15s ease, color .15s ease;
+}
+.ak-window-copy:hover { background: rgba(255, 255, 255, .12); color: #fff; }
+.ak-window-copy svg { width: .8rem; height: .8rem; }
+.ak-window-copy.is-copied { color: #34d399; border-color: rgba(52, 211, 153, .4); }
+
+.ak-window-body {
+    margin: 0;
+    direction: ltr;
+    text-align: left;
+    padding: 1rem 1.15rem 1.1rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .74rem;
+    line-height: 2;
+    color: #d6d3d1;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, .18) transparent;
+}
+.ak-window-body::-webkit-scrollbar { height: 5px; }
+.ak-window-body::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .18); border-radius: 99px; }
+/* رنگ‌های سینتکس */
+.ak-c-cmd { color: #6ee7b7; }
+.ak-c-flag { color: #93c5fd; }
+.ak-c-str { color: #fbbf24; }
+.ak-c-com { color: #71717a; font-style: italic; }
+.ak-c-var { color: #f0abfc; }
+
+/* ---------- یادداشت‌های زیر پنجره ---------- */
+.ak-notes {
+    margin: .9rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: .45rem;
+}
+.ak-notes li {
+    display: flex;
+    align-items: flex-start;
+    gap: .5rem;
+    font-size: .72rem;
+    font-weight: 600;
+    line-height: 1.9;
+    color: #78716c;
+}
+.ak-notes li > svg { width: .95rem; height: .95rem; flex-shrink: 0; margin-top: .3rem; color: #d97706; }
+.ak-notes code.ak-mono-pill {
+    direction: ltr;
+    display: inline-block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .66rem;
+    font-weight: 800;
+    background: #f5f5f4;
+    border: 1px solid #e7e5e4;
+    border-radius: .45rem;
+    padding: 0 .35rem;
+    color: #57534e;
+}
+.ak-notes a { color: #292524; font-weight: 800; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
+
+/* ============================================================
+   نکات امنیتی
+   ============================================================ */
+.ak-tips {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .75rem;
+}
+@media (min-width: 640px) {
+    .ak-tips { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.ak-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: .7rem;
+    padding: .95rem 1rem;
+    border-radius: 1.15rem;
+    background: #fff;
+    border: 1px solid #e7e5e4;
+    box-shadow: 0 1px 2px rgba(28, 25, 23, .04);
+}
+.ak-tip-icon {
+    display: grid;
+    place-items: center;
+    width: 2.3rem;
+    height: 2.3rem;
+    border-radius: .8rem;
+    flex-shrink: 0;
+}
+.ak-tip-icon svg { width: 1.05rem; height: 1.05rem; }
+.ak-tip-icon.t-amber { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+.ak-tip-icon.t-rose { background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; }
+.ak-tip-icon.t-green { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+.ak-tip h4 { margin: 0; font-size: .76rem; font-weight: 800; color: #292524; }
+.ak-tip p { margin: .25rem 0 0; font-size: .69rem; line-height: 1.85; color: #78716c; }
+
+/* ============================================================
+   مودال «کلید جدید» — بدنهٔ سفارشی
+   ============================================================ */
+.ak-modal-glyph {
+    display: grid;
+    place-items: center;
+    width: 3.1rem;
+    height: 3.1rem;
+    margin: .2rem auto 0;
+    border-radius: 999px;
+}
+.ak-modal-glyph svg { width: 1.45rem; height: 1.45rem; }
+.ak-modal-glyph.g-info { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+.ak-modal-glyph.g-success { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+
+.ak-key-reveal {
+    margin-top: .9rem;
+    padding: .85rem .9rem;
+    border-radius: 1rem;
+    background: #0c0a09;
+    border: 1.5px dashed rgba(52, 211, 153, .55);
+    text-align: center;
+}
+.ak-key-reveal code {
+    direction: ltr;
+    display: block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .76rem;
+    line-height: 1.9;
+    color: #6ee7b7;
+    word-break: break-all;
+    unicode-bidi: plaintext;
+}
+
+.ak-copy-big {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    width: 100%;
+    margin-top: .7rem;
+    padding: .68rem 1rem;
+    border: none;
+    border-radius: .85rem;
+    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+    color: #fff;
+    font-size: .76rem;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 8px 20px -8px rgba(5, 150, 105, .6);
+    transition: filter .2s ease, transform .16s ease;
+}
+.ak-copy-big:active { transform: scale(.97); }
+.ak-copy-big:hover { filter: brightness(1.08); }
+.ak-copy-big svg { width: .95rem; height: .95rem; }
+
+.ak-warn {
+    display: flex;
+    align-items: flex-start;
+    gap: .5rem;
+    margin-top: .75rem;
+    padding: .6rem .75rem;
+    border-radius: .85rem;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    font-size: .68rem;
+    font-weight: 700;
+    line-height: 1.85;
+}
+.ak-warn svg { width: .95rem; height: .95rem; flex-shrink: 0; margin-top: .25rem; color: #d97706; }
+
+/* ============================================================
+   دارک‌مود
+   ============================================================ */
+html.dark .ak-card {
+    background: var(--th-surface, #26264a);
+    border-color: rgba(58, 58, 92, .85);
+    box-shadow: none;
+}
+html.dark .ak-section-head h2 { color: #e2e8f0; }
+html.dark .ak-section-hint { color: #7c7ca3; }
+html.dark .ak-key {
+    background: linear-gradient(180deg, rgba(255, 255, 255, .025), rgba(255, 255, 255, 0)) , var(--th-surface, #26264a);
+    border-color: rgba(58, 58, 92, .9);
+}
+html.dark .ak-key:hover { border-color: #52527a; box-shadow: 0 10px 26px -14px rgba(0, 0, 0, .5); }
+html.dark .ak-key--internal {
+    border-color: rgba(245, 158, 11, .4);
+    background: linear-gradient(180deg, rgba(245, 158, 11, .07), rgba(245, 158, 11, .02)) , var(--th-surface, #26264a);
+}
+html.dark .ak-key-titlerow h3 { color: #e2e8f0; }
+html.dark .ak-key-meta { color: #7c7ca3; }
+html.dark .ak-btn-del:hover { background: rgba(225, 29, 72, .12); border-color: rgba(225, 29, 72, .3); }
+html.dark .ak-chip { background: rgba(255, 255, 255, .045); border-color: rgba(255, 255, 255, .08); color: #a5a5c6; }
+html.dark .ak-chip svg { color: #7c7ca3; }
+html.dark .ak-chip-note { color: #fbbf24; }
+html.dark .ak-notice {
+    background: rgba(245, 158, 11, .08);
+    border-color: rgba(245, 158, 11, .3);
+    color: #fcd34d;
+}
+html.dark .ak-notice > svg { color: #fbbf24; }
+html.dark .ak-notice code.ak-mono-pill { background: rgba(251, 191, 36, .12); border-color: rgba(251, 191, 36, .35); color: #fcd34d; }
+html.dark .ak-notice-copy { color: #fbbf24; border-color: rgba(251, 191, 36, .4); }
+html.dark .ak-notice-copy:hover { background: rgba(251, 191, 36, .1); }
+html.dark .ak-flash--ok { background: rgba(16, 185, 129, .12); border-color: rgba(16, 185, 129, .35); color: #6ee7b7; }
+html.dark .ak-flash--err { background: rgba(225, 29, 72, .12); border-color: rgba(225, 29, 72, .35); color: #fda4af; }
+html.dark .ak-empty { border-color: rgba(58, 58, 92, .9); }
+html.dark .ak-empty-icon { background: rgba(255, 255, 255, .04); border-color: rgba(58, 58, 92, .9); color: #52527a; }
+html.dark .ak-empty h3 { color: #e2e8f0; }
+html.dark .ak-empty p { color: #7c7ca3; }
+html.dark .ak-notes li { color: #a5a5c6; }
+html.dark .ak-notes code.ak-mono-pill { background: rgba(255, 255, 255, .05); border-color: rgba(255, 255, 255, .1); color: #c5c5de; }
+html.dark .ak-notes a { color: #e2e8f0; }
+html.dark .ak-tip { background: var(--th-surface, #26264a); border-color: rgba(58, 58, 92, .85); box-shadow: none; }
+html.dark .ak-tip h4 { color: #e2e8f0; }
+html.dark .ak-tip p { color: #a5a5c6; }
+html.dark .ak-tip-icon.t-amber { background: rgba(245, 158, 11, .12); color: #fbbf24; border-color: rgba(245, 158, 11, .25); }
+html.dark .ak-tip-icon.t-rose { background: rgba(225, 29, 72, .12); color: #fb7185; border-color: rgba(225, 29, 72, .25); }
+html.dark .ak-tip-icon.t-green { background: rgba(16, 185, 129, .12); color: #34d399; border-color: rgba(16, 185, 129, .25); }
+html.dark .ak-modal-glyph.g-info { background: rgba(245, 158, 11, .12); color: #fbbf24; border-color: rgba(245, 158, 11, .3); }
+html.dark .ak-modal-glyph.g-success { background: rgba(16, 185, 129, .12); color: #34d399; border-color: rgba(16, 185, 129, .3); }
+html.dark .ak-warn { background: rgba(245, 158, 11, .08); border-color: rgba(245, 158, 11, .25); color: #fcd34d; }
+
+/* ============================================================
+   موبایل
+   ============================================================ */
+@media (max-width: 640px) {
+    .ak-hero { padding: 1.15rem 1.05rem 1.1rem; }
+    .ak-hero-icon { width: 2.9rem; height: 2.9rem; border-radius: 1rem; }
+    .ak-hero-icon svg { width: 1.45rem; height: 1.45rem; }
+    .ak-hero-text h1 { font-size: 1.05rem; }
+    .ak-hero-text p { font-size: .73rem; }
+    .ak-hero-actions { width: 100%; margin-inline-start: 0; }
+    .ak-hero-actions .ak-btn-docs, .ak-hero-actions .ak-btn-new { flex: 1; }
+    .ak-stats { gap: .45rem; margin-top: 1rem; }
+    .ak-stat { padding: .5rem .55rem; gap: .45rem; border-radius: .85rem; }
+    .ak-stat-icon { width: 1.85rem; height: 1.85rem; border-radius: .65rem; }
+    .ak-stat-value { font-size: .82rem; }
+    .ak-card { padding: 1rem .95rem; }
+    .ak-key { padding: .9rem .85rem; }
+    .ak-key-titlerow h3 { white-space: normal; }
+    .ak-window-head { flex-wrap: wrap; }
+    .ak-window-copy { margin-inline-start: 0; }
+}
