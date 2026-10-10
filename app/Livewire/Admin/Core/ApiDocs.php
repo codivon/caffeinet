@@ -288,6 +288,29 @@ class ApiDocs extends Component
                 ],
             ],
             [
+                'id' => 'webhooks',
+                'title' => 'وب‌هوک‌ها (خروجی)',
+                'icon' => 'bell',
+                'desc' => 'فاز ۵۱ — رویدادهای سیستم به آدرس شما POST می‌شود؛ مدیریت از «کلیدهای وب‌سرویس». سوییچ: تنظیمات ← قابلیت‌ها ← وب‌هوک‌ها.',
+                'items' => [
+                    [
+                        'method' => 'POST', 'path' => '(آدرس وب‌هوک ثبت‌شدهٔ شما)', 'auth' => false, 'rate' => 'به‌ازای هر رویداد',
+                        'desc' => 'به‌ازای هر رویداد، POST با بدنهٔ JSON + هدر امضا ارسال می‌شود. صحت مبدأ را با HMAC-SHA256 بدنه و «رمز امضا»ی وب‌هوک چک کنید.',
+                        'headers' => [
+                            'X-Webhook-Event' => 'order.delivered',
+                            'X-Webhook-Signature' => 'hash_hmac("sha256", $body, $secret)',
+                        ],
+                        'body' => [
+                            'event' => 'order.delivered',
+                            'sent_at' => '2026-01-01T10:00:00+00:00',
+                            'data' => ['id' => 17, 'order_number' => 'CN050617-1023', 'status' => 'delivered', 'price' => 95000.0],
+                        ],
+                        'response' => ['نتیجهٔ ارسال در صفحهٔ «کلیدهای وب‌سرویس» با کد وضعیت لاگ می‌شود (هر پاسخ ۲xx موفق).'],
+                        'notes' => 'رویدادهای فعال: order.created (ثبت سفارش) / order.delivered (تحویل) / order.completed (تکمیل). دکمهٔ «تست» در فهرست وب‌هوک‌ها یک رویداد آزمایشی می‌فرستد.',
+                    ],
+                ],
+            ],
+            [
                 'id' => 'misc',
                 'title' => 'عمومی',
                 'icon' => 'grid',

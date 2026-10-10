@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::prefix('v1')->name('api.')->middleware('api.key')->group(function () {
+Route::prefix('v1')->name('api.')->middleware(['api.key', 'api.usage'])->group(function () {
 
     Route::get('health', fn () => response()->json([
         'ok' => true,

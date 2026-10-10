@@ -42,6 +42,8 @@ class VerifyApiKey
         /* ثبت استفاده — هیچ‌وقت نباید درخواست را بشکند */
         try {
             $apiKey->markUsed();
+            // فاز ۵۱ — برای میدل‌ویر api.usage (لاگ مصرف با کاربر/دستگاه)
+            $request->attributes->set('api_key', $apiKey);
         } catch (\Throwable $e) {
             report($e);
         }

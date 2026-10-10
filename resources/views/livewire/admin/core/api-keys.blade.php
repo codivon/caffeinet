@@ -103,6 +103,82 @@
         </span>
     </div>
 
+    {{-- ================== اینسایت مصرف: چه کسانی/چه دستگاه‌هایی؟ (فاز ۵۱) ================== --}}
+    @if ($usageLogOn && $usage)
+        <section class="ak-card ak-in" style="--d:.06s" aria-label="مصرف API">
+            <div class="ak-section-head">
+                <h2>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    چه کسانی از API استفاده می‌کنند؟
+                </h2>
+                <span class="ak-section-hint">۳۰ روز اخیر — ثبت خودکار هر درخواست</span>
+            </div>
+
+            {{-- نوار آمار مصرف --}}
+            <div class="ak-usage-grid">
+                <div class="ak-usage-tile">
+                    <span class="ak-usage-num">{{ fa_number($usage['requests_24h']) }}</span>
+                    <span class="ak-usage-lbl">درخواست ۲۴ ساعت اخیر</span>
+                </div>
+                <div class="ak-usage-tile">
+                    <span class="ak-usage-num">{{ fa_number($usage['unique_users']) }}</span>
+                    <span class="ak-usage-lbl">کاربر یکتا (۳۰ روز)</span>
+                </div>
+                <div class="ak-usage-tile">
+                    <span class="ak-usage-num">{{ fa_number($usage['unique_ips']) }}</span>
+                    <span class="ak-usage-lbl">IP یکتا (۳۰ روز)</span>
+                </div>
+                <div class="ak-usage-tile {{ $usage['errors_24h'] > 0 ? 'is-warn' : '' }}">
+                    <span class="ak-usage-num">{{ fa_number($usage['errors_24h']) }}</span>
+                    <span class="ak-usage-lbl">خطای ۴۰۰+ (۲۴ ساعت)</span>
+                </div>
+            </div>
+
+            {{-- دستگاه‌ها --}}
+            @if ($usage['devices']->isNotEmpty())
+                <div class="ak-devices">
+                    <span class="ak-devices-lbl">دستگاه‌ها:</span>
+                    @foreach ($usage['devices'] as $device => $count)
+                        <span class="ak-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+                            {{ $device }} · {{ fa_number($count) }}
+                        </span>
+                    @endforeach
+                </div>
+            @endif
+
+            {{-- جدول کاربران --}}
+            @if ($apiUsers->isNotEmpty())
+                <div class="ak-users-table" role="table" aria-label="کاربران مصرف‌کننده API">
+                    <div class="ak-users-head" role="row">
+                        <span>کاربر</span><span>درخواست</span><span>IP</span><span>آخرین</span>
+                    </div>
+                    @foreach ($apiUsers as $u)
+                        <div class="ak-users-row" role="row" wire:key="au-{{ $u->id }}">
+                            <span class="ak-users-user">
+                                <span class="ak-users-avatar" aria-hidden="true">{{ mb_substr($u->name, 0, 1) }}</span>
+                                <span class="min-w-0">
+                                    <b class="block truncate">{{ $u->name }}</b>
+                                    @if ($u->mobile) <i dir="ltr" class="not-italic text-[10px] text-stone-400"><bdi>{{ $u->mobile }}</bdi></i> @endif
+                                </span>
+                            </span>
+                            <span class="ak-users-num">{{ fa_number($u->hits) }}</span>
+                            <span class="ak-users-num">{{ fa_number($u->ips) }}</span>
+                            <span class="ak-users-num"><bdi dir="ltr">{{ fa_date($u->last_at) }}</bdi></span>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="ak-usage-empty">هنوز درخواست احرازشده‌ای ثبت نشده — به‌محض اولین تماس کاربران، اینجا دیده می‌شود.</p>
+            @endif
+        </section>
+    @else
+        <div class="ak-notice ak-in" style="--d:.06s">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            <span>ثبت مصرف API خاموش است (تنظیمات ← قابلیت‌ها ← «ثبت مصرف API») — با روشن‌کردنش اینجا می‌بینید چه کاربری با چه دستگاهی وصل شده است.</span>
+        </div>
+    @endif
+
     {{-- ================== فهرست کلیدها ================== --}}
     <section class="ak-card ak-in" style="--d:.08s" aria-label="کلیدها">
         <div class="ak-section-head">
@@ -201,6 +277,101 @@
                     </button>
                 </div>
             @endforelse
+        </div>
+    </section>
+
+    {{-- ================== وب‌هوک‌ها (فاز ۵۱) ================== --}}
+    <section class="ak-card ak-in" style="--d:.10s" aria-label="وب‌هوک‌ها">
+        <div class="ak-section-head">
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                وب‌هوک‌ها
+            </h2>
+            <span class="ak-section-hint">رویدادهای سیستم به آدرس شما POST می‌شود — امضا با HMAC-SHA256</span>
+        </div>
+
+        @unless ($webhooks->isNotEmpty())
+            <p class="ak-usage-empty">
+                @if ((bool) app(App\Services\Settings\SettingsService::class)->get('features.webhooks', false))
+                    هنوز وب‌هوکی ثبت نشده — «وب‌هوک جدید» را بزنید تا رویدادها به سیستم شما ارسال شود.
+                @else
+                    سیستم وب‌هوک خاموش است — اول در «تنظیمات ← قابلیت‌ها» فعالش کنید، بعد آدرس مقصد را ثبت کنید.
+                @endif
+            </p>
+        @endunless
+
+        <div class="flex flex-col gap-3">
+            @foreach ($webhooks as $wh)
+                <article class="ak-key" wire:key="wh-{{ $wh->id }}">
+                    <div class="ak-key-top">
+                        <span class="ak-key-avatar {{ $wh->is_active ? '' : 'is-off' }}" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        </span>
+                        <div class="ak-key-id">
+                            <div class="ak-key-titlerow">
+                                <h3 dir="ltr" class="!text-start max-w-full truncate" title="{{ $wh->url }}">{{ $wh->url }}</h3>
+                                <span class="ak-key-badge {{ $wh->is_active ? '' : 'ak-key-badge--off' }}">{{ $wh->is_active ? 'فعال' : 'خاموش' }}</span>
+                            </div>
+                            <p class="ak-key-meta">
+                                آخرین وضعیت:
+                                @if ($wh->last_status_code)
+                                    <span class="{{ $wh->last_status_code < 400 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }} font-extrabold" dir="ltr"><bdi>{{ $wh->last_status_code }}</bdi></span>
+                                    · <bdi dir="ltr">{{ fa_date($wh->last_called_at) }}</bdi>
+                                @else
+                                    هنوز ارسالی نداشته
+                                @endif
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button type="button" wire:click="testWebhook({{ $wh->id }})" wire:loading.attr="disabled" wire:target="testWebhook({{ $wh->id }})"
+                                    class="ak-btn-del !text-sky-600 hover:!bg-sky-50 dark:!text-sky-400 dark:hover:!bg-sky-900/20" title="رویداد آزمایشی بفرست">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14h6l2 5 3-14 2 7h3"/></svg>
+                                تست
+                            </button>
+                            <button type="button" wire:click="toggleWebhook({{ $wh->id }})"
+                                    class="ak-btn-del !text-stone-500 hover:!bg-stone-100 dark:!text-stone-400 dark:hover:!bg-stone-800" title="{{ $wh->is_active ? 'غیرفعال کن' : 'فعال کن' }}">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v6"/><path d="m16.76 7.74 4.24 4.26"/><circle cx="12" cy="12" r="10" opacity="0"/><path d="m3.34 19 10.54-10.54"/><path d="M20.66 5 10.12 15.54"/></svg>
+                                {{ $wh->is_active ? 'خاموش' : 'روشن' }}
+                            </button>
+                            <button type="button"
+                                    @click="window.PanelUI ? PanelUI.confirm({ title: 'حذف وب‌هوک؟', desc: 'این آدرس از لیست مشترکان رویدادها حذف می‌شود.', okText: 'بله، حذف شود', cancelText: 'انصراف', danger: true, icon: 'warn' }, () => $wire.deleteWebhook({{ $wh->id }})) : $wire.deleteWebhook({{ $wh->id }})"
+                                    class="ak-btn-del" title="حذف">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                حذف
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="ak-chips">
+                        @foreach ($wh->events ?? [] as $ev)
+                            <span class="ak-chip">{{ $whEventsList[$ev] ?? $ev }} <code dir="ltr" class="text-[10px] opacity-70">{{ $ev }}</code></span>
+                        @endforeach
+                    </div>
+
+                    {{-- رمز امضا (ماسک/کپی) --}}
+                    <div class="ak-keybox" x-data="{ show: false, copied: false }">
+                        <code>
+                            <span x-show="show" style="display:none">{{ $wh->secret }}</span><span x-show="!show" class="ak-masked">{{ str($wh->secret)->limit(15).'…' }}</span>
+                        </code>
+                        <button type="button" class="ak-keybox-btn" @click="show = !show" :title="show ? 'پنهان‌کردن' : 'نمایش رمز امضا'" aria-label="نمایش/پنهان‌کردن رمز امضا">
+                            <svg x-show="!show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg x-show="show" x-cloak viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.744 10.744 0 0 1-1.744 2.8"/><path d="M6.21 6.21a10.744 10.744 0 0 0-3.948 6.036 1 1 0 0 0 0 .696 10.75 10.75 0 0 0 15.246 4.67"/><path d="m2 2 20 20"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+                        </button>
+                        <button type="button" class="ak-keybox-btn" :class="copied && 'is-copied'" :title="copied ? 'کپی شد!' : 'کپی رمز امضا'" aria-label="کپی رمز امضا"
+                                @click="navigator.clipboard && navigator.clipboard.writeText('{{ $wh->secret }}').then(() => { copied = true; setTimeout(() => copied = false, 1600) })">
+                            <svg x-show="!copied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                            <svg x-show="copied" x-cloak viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                        </button>
+                    </div>
+                </article>
+            @endforeach
+        </div>
+
+        <div class="mt-4">
+            <button type="button" wire:click="openWh" class="ak-btn-new">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                وب‌هوک جدید
+            </button>
         </div>
     </section>
 
@@ -381,6 +552,93 @@ $res = Http::<span class="ak-c-cmd">withToken</span>(<span class="ak-c-str">'1|c
                     <span wire:loading wire:target="addKey" class="inline-flex items-center gap-2">
                         <svg class="size-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v3a5 5 0 0 0-5 5H4z"/></svg>
                         در حال ساخت…
+                    </span>
+                </button>
+            @endif
+        </div>
+    </form>
+</div>
+
+{{-- ================== مودال «وب‌هوک جدید» (فاز ۵۱) ================== --}}
+<div class="ui-modal-backdrop" x-show="$wire.whOpen" x-cloak x-transition.opacity.duration.200ms
+     @keydown.escape.window="$wire.closeWh()" role="dialog" aria-modal="true" aria-labelledby="wh-modal-title">
+    <div class="absolute inset-0" wire:click="closeWh" aria-hidden="true"></div>
+
+    <form wire:submit="addWebhook" x-transition.scale.95.duration.200ms
+          class="ui-modal adm-modal-sm adm-modal-text-start"
+          data-tone="{{ $createdWh ? 'success' : 'info' }}" novalidate>
+
+        <div class="adm-modal-head">
+            <h3 class="text-sm font-extrabold text-stone-800" id="wh-modal-title">
+                {{ $createdWh ? 'وب‌هوک ثبت شد' : 'وب‌هوک جدید' }}
+            </h3>
+            <button type="button" class="adm-modal-x" wire:click="closeWh" aria-label="بستن">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+
+        <div class="adm-modal-body">
+            @if ($createdWh)
+                <span class="ak-modal-glyph g-success" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </span>
+                <p class="mt-2 text-center text-sm font-extrabold text-stone-800 dark:text-stone-100">وب‌هوک ثبت شد</p>
+
+                <div class="ak-key-reveal" x-data="{ copied: false }">
+                    <code>{{ $createdWh['secret'] }}</code>
+                    <button type="button" class="ak-copy-big" @click="navigator.clipboard && navigator.clipboard.writeText('{{ $createdWh['secret'] }}').then(() => { copied = true; setTimeout(() => copied = false, 1600) })">
+                        <svg x-show="!copied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                        <svg x-show="copied" x-cloak viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                        <span x-text="copied ? 'کپی شد!' : 'کپی رمز امضا'"></span>
+                    </button>
+                </div>
+
+                <div class="ak-warn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+                    <span>این «رمز امضا» را در سیستم مقصد نگه دارید — هر رویداد با هدر <span dir="ltr" class="font-mono">X-Webhook-Signature</span> (HMAC-SHA256) می‌آید تا اصالتش را چک کنید. بعداً هم در فهرست وب‌هوک‌ها قابل مشاهده است.</span>
+                </div>
+            @else
+                <span class="ak-modal-glyph g-info" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </span>
+
+                <label class="lbl mt-2 block" for="wh-url">آدرس مقصد (URL) <span class="text-rose-500" aria-hidden="true">*</span></label>
+                <input id="wh-url" type="url" wire:model="whUrl" class="field" dir="ltr"
+                       placeholder="https://example.com/hooks/caffeinet" aria-required="true">
+                @error('whUrl')
+                    <p class="mt-1.5 text-[11px] font-bold text-rose-600 dark:text-rose-400" role="alert">{{ $message }}</p>
+                @enderror
+
+                <p class="lbl mt-3 mb-1.5">رویدادها <span class="text-rose-500" aria-hidden="true">*</span></p>
+                <div class="flex flex-col gap-1.5">
+                    @foreach ($whEventsList as $evKey => $evLabel)
+                        <label class="flex items-center gap-2.5 rounded-xl border border-stone-200 dark:border-stone-700 px-3 py-2.5 cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800/60 transition-colors">
+                            <input type="checkbox" wire:model="whEvents" value="{{ $evKey }}" class="brand-check">
+                            <span class="text-xs font-bold text-stone-700 dark:text-stone-200">{{ $evLabel }}</span>
+                            <code dir="ltr" class="ms-auto text-[10px] font-mono text-stone-400">{{ $evKey }}</code>
+                        </label>
+                    @endforeach
+                </div>
+                @error('whEvents')
+                    <p class="mt-1.5 text-[11px] font-bold text-rose-600 dark:text-rose-400" role="alert">{{ $message }}</p>
+                @enderror
+
+                <p class="mt-2.5 text-[11px] leading-5 text-stone-400">
+                    هر رویداد با POST و بدنهٔ JSON ارسال می‌شود؛ هدر امضا برای اطمینان از مبدأ. «تست» را در فهرست وب‌هوک‌ها بزنید تا اتصال را بررسی کنید.
+                </p>
+            @endif
+        </div>
+
+        <div class="adm-modal-foot">
+            @if ($createdWh)
+                <button type="button" wire:click="closeWh" class="btn-primary btn-shine">تمام شد</button>
+            @else
+                <button type="button" wire:click="closeWh" class="btn-ghost">انصراف</button>
+                <button type="submit" class="btn-primary btn-shine" wire:loading.attr="disabled" wire:target="addWebhook">
+                    <span wire:loading.remove wire:target="addWebhook">ثبت وب‌هوک</span>
+                    <span wire:loading wire:target="addWebhook" class="inline-flex items-center gap-2">
+                        <svg class="size-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v3a5 5 0 0 0-5 5H4z"/></svg>
+                        در حال ثبت…
                     </span>
                 </button>
             @endif

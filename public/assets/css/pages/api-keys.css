@@ -752,6 +752,102 @@
 .ak-warn svg { width: .95rem; height: .95rem; flex-shrink: 0; margin-top: .25rem; color: #d97706; }
 
 /* ============================================================
+   اینسایت مصرف API (فاز ۵۱)
+   ============================================================ */
+.ak-usage-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .6rem;
+}
+@media (min-width: 640px) {
+    .ak-usage-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.ak-usage-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .15rem;
+    padding: .7rem .6rem;
+    border-radius: 1rem;
+    background: #fafaf9;
+    border: 1px solid #e7e5e4;
+    text-align: center;
+}
+.ak-usage-tile.is-warn { background: #fff7ed; border-color: #fdba74; }
+.ak-usage-num {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #292524;
+    font-variant-numeric: tabular-nums;
+}
+.ak-usage-tile.is-warn .ak-usage-num { color: #c2410c; }
+.ak-usage-lbl { font-size: .62rem; font-weight: 700; color: #a8a29e; }
+
+.ak-devices {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    flex-wrap: wrap;
+    margin-top: .75rem;
+}
+.ak-devices-lbl { font-size: .68rem; font-weight: 800; color: #78716c; }
+
+.ak-users-table {
+    margin-top: .85rem;
+    border: 1px solid #e7e5e4;
+    border-radius: 1rem;
+    overflow: hidden;
+}
+.ak-users-head, .ak-users-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: .75rem;
+    align-items: center;
+    padding: .55rem .85rem;
+    font-size: .72rem;
+}
+.ak-users-head {
+    background: #fafaf9;
+    font-weight: 800;
+    color: #a8a29e;
+    font-size: .66rem;
+    border-bottom: 1px solid #e7e5e4;
+}
+.ak-users-row { border-bottom: 1px solid #f5f5f4; color: #57534e; font-weight: 600; }
+.ak-users-row:last-child { border-bottom: none; }
+.ak-users-user { display: flex; align-items: center; gap: .55rem; min-width: 0; }
+.ak-users-avatar {
+    display: grid;
+    place-items: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: .6rem;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #57534e, #292524);
+    color: #fbbf24;
+    font-weight: 800;
+    font-size: .72rem;
+}
+.ak-users-user b { font-size: .74rem; color: #292524; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 12rem; }
+.ak-users-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.ak-usage-empty {
+    margin: .35rem 0 0;
+    padding: .85rem 1rem;
+    border-radius: .95rem;
+    border: 1px dashed #e7e5e4;
+    background: #fafaf9;
+    font-size: .74rem;
+    font-weight: 600;
+    line-height: 1.9;
+    color: #78716c;
+}
+
+/* حالت خاموش وب‌هوک/آواتار */
+.ak-key-avatar.is-off { background: linear-gradient(135deg, #d6d3d1, #a8a29e); color: #fff; }
+.ak-key-badge--off { background: linear-gradient(135deg, #d6d3d1, #a8a29e); color: #fff; box-shadow: none; }
+
+/* ============================================================
    دارک‌مود
    ============================================================ */
 html.dark .ak-card {
@@ -803,6 +899,16 @@ html.dark .ak-tip-icon.t-green { background: rgba(16, 185, 129, .12); color: #34
 html.dark .ak-modal-glyph.g-info { background: rgba(245, 158, 11, .12); color: #fbbf24; border-color: rgba(245, 158, 11, .3); }
 html.dark .ak-modal-glyph.g-success { background: rgba(16, 185, 129, .12); color: #34d399; border-color: rgba(16, 185, 129, .3); }
 html.dark .ak-warn { background: rgba(245, 158, 11, .08); border-color: rgba(245, 158, 11, .25); color: #fcd34d; }
+html.dark .ak-usage-tile { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .08); }
+html.dark .ak-usage-num { color: #e2e8f0; }
+html.dark .ak-usage-tile.is-warn { background: rgba(249, 115, 22, .1); border-color: rgba(249, 115, 22, .35); }
+html.dark .ak-usage-tile.is-warn .ak-usage-num { color: #fdba74; }
+html.dark .ak-devices-lbl { color: #a5a5c6; }
+html.dark .ak-users-table { border-color: rgba(58, 58, 92, .9); }
+html.dark .ak-users-head { background: rgba(255, 255, 255, .03); color: #7c7ca3; border-color: rgba(58, 58, 92, .9); }
+html.dark .ak-users-row { border-color: rgba(58, 58, 92, .5); color: #a5a5c6; }
+html.dark .ak-users-user b { color: #e2e8f0; }
+html.dark .ak-usage-empty { background: rgba(255, 255, 255, .03); border-color: rgba(58, 58, 92, .9); color: #a5a5c6; }
 
 /* ============================================================
    موبایل
@@ -824,4 +930,8 @@ html.dark .ak-warn { background: rgba(245, 158, 11, .08); border-color: rgba(245
     .ak-key-titlerow h3 { white-space: normal; }
     .ak-window-head { flex-wrap: wrap; }
     .ak-window-copy { margin-inline-start: 0; }
+    .ak-users-head { display: none; }
+    .ak-users-row { grid-template-columns: 1fr auto auto; }
+    .ak-users-row > :last-child { display: none; }
+    .ak-usage-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
