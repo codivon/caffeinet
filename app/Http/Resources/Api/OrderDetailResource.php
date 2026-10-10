@@ -36,6 +36,10 @@ class OrderDetailResource extends JsonResource
             'broadcast_attempts' => (int) $this->broadcast_attempts,
             'queued_at_fa' => $this->queued_at ? fa_date($this->queued_at, 'Y/m/d H:i') : null,
 
+            // فاز ۵۲ — تعهد زمان تحویل (SLA): مهلت + ثانیهٔ باقی‌مانده (تایمر زندهٔ مشتری)
+            'sla_deadline' => $this->sla_deadline_at?->toIso8601String(),
+            'sla_seconds_left' => $this->slaSecondsLeft(),
+
             // v39 — صفحهٔ انتظار مشتری: ثانیه‌شمار و متن‌ها از تنظیمات مدیر
             'broadcast_timer_enabled' => $this->when(
                 $this->status?->value === 'broadcasting' || $this->status?->value === 'queued',

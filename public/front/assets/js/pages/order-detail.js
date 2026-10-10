@@ -142,6 +142,7 @@
 
     /* شمارش معکوس محلی هر ثانیه */
     function tickBroadcast() {
+        tickSla();
         var card = document.getElementById('broadcastCard');
         if (card && card.classList.contains('hidden')) { return; }
 
@@ -203,6 +204,9 @@
 
         /* ---------- فاز ۶ — کارت‌های تخصیص ---------- */
         renderAssignment(o);
+
+        /* ---------- فاز ۵۲ — تایمر تعهد زمان تحویل (SLA) ---------- */
+        renderSla(o);
 
         /* ---------- نظرسنجی پس از اتمام ---------- */
         renderSurvey(o);
@@ -777,6 +781,53 @@
                 }
             });
         });
+    }
+
+    /* ---------- فاز ۵۲ — تایمر تعهد زمان تحویل (SLA) ----------
+       کارت «تعهد ما: تحویل تا …» فقط وقتی نشان داده می‌شود که:
+       • مدیر سوییچ SLA را روشن کرده (sla_deadline ارسال می‌شود)
+       • سفارش پرداخت شده و هنوز تحویل نشده است                      */
+    function renderSla(o) {
+        var card = document.getElementById('slaCard');
+        if (!card) { return; }
+
+        if (!o.sla_deadline || !o.is_paid ||
+            ['delivered', 'completed', 'cancelled', 'refunded'].indexOf(o.status) !== -1) {
+            card.classList.add('hidden');
+            return;
+        }
+
+        card.classList.remove('hidden');
+
+        var dFaEl = document.getElementById('slaDeadlineFa');
+        if (dFaEl && !dFaEl.dataset.set) {
+            dFaEl.textContent = CN.toFaDigits(new Date(o.sla_deadline).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })) || '';
+            dFaEl.dataset.set = '1';
+        }
+
+        tickSla();
+    }
+
+    /* تیک هر ثانیه — باقی‌مانده را از deadline محلی حساب می‌کند */
+    function tickSla() {
+        var card = document.getElementById('slaCard');
+        if (!card || card.classList.contains('hidden') || !order || !order.sla_deadline) { return; }
+
+        var left = Math.floor((new Date(order.sla_deadline).getTime() - Date.now()) / 1000);
+        var remainEl = document.getElementById('slaRemaining');
+        var statusEl = document.getElementById('slaStatusText');
+        if (!remainEl) { return; }
+
+        if (left > 0) {
+            var h = Math.floor(left / 3600), m = Math.floor((left % 3600) / 60), s2 = left % 60;
+            remainEl.textContent = CN.toFaDigits((h > 0 ? h + ':' : '') + String(m).padStart(2, '0') + ':' + String(s2).padStart(2, '0'));
+            if (statusEl) { statusEl.textContent = 'اگر دیرتر از این زمان تحویل شود، مسئولیت با ماست.'; }
+        } else {
+            remainEl.textContent = CN.toFaDigits(Math.floor(-left / 60)) + ' دقیقه دیرکرد';
+            remainEl.style.background = 'color-mix(in srgb, var(--err,#e11d48) 15%, transparent)';
+            remainEl.style.color = 'var(--err,#e11d48)';
+            if (statusEl) { statusEl.textContent = 'از زمان تعهد ما گذشته است — با پشتیبانی تماس بگیرید.'; }
+        }
     }
 
     function renderAssignment(o) {

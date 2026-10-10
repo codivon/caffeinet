@@ -148,6 +148,7 @@
                 <td>
                     <span class="badge ${STATUS_COLORS[row.status.color] || STATUS_COLORS.amber} whitespace-nowrap">${escapeHtml(row.status.label)}</span>
                     ${countdown}
+                    ${row.sla_late ? `<span class="badge bg-rose-100 text-rose-700 whitespace-nowrap mt-1" title="از مهلت تعهدی تحویل (SLA) گذشته است">⏱ دیرکرد</span>` : ''}
                 </td>
                 ${ratingCell(row)}
                 <td class="text-[11px] text-stone-400 whitespace-nowrap">${escapeHtml(row.created_fa || '—')}</td>

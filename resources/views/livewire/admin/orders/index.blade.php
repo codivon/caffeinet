@@ -146,6 +146,10 @@
                                         <span class="row-countdown" data-seconds="{{ $row->broadcastSecondsLeft() }}">{{ fa_digits((string) $row->broadcastSecondsLeft()) }}s</span>
                                     </span>
                                 @endif
+                                {{-- فاز ۵۲ — بج دیرکرد SLA --}}
+                                @if (\App\Http\Controllers\Back\Admin\OrdersController::isSlaLate($row))
+                                    <span class="badge bg-rose-100 text-rose-700 whitespace-nowrap mt-1" title="از مهلت تعهدی تحویل (SLA) گذشته است">⏱ دیرکرد</span>
+                                @endif
                             </td>
                             <td>
                                 @if ($row->rating?->rating !== null)

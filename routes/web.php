@@ -24,6 +24,9 @@ use Illuminate\Support\Facades\Route;
 /* [Task 8] صفحه فرود → کامپوننت Livewire (منطق عین LandingController::index) */
 Route::get('/', \App\Livewire\Front\Landing::class)->name('front.landing');
 
+/* فاز ۵۲ — وضعیت زندهٔ کافی‌نت‌ها (صفحهٔ عمومی؛ سوییچ features.status_page) */
+Route::get('/status', \App\Livewire\Front\StatusBoard::class)->name('front.status');
+
 /* ---------- v37 — بیکن حضور: «برنامه بسته شد» (pagehide) ----------
 | push-client.js روی همهٔ لایه‌ها با sendBeacon این مسیر را صدا می‌زند تا
 | بستن برنامه همان لحظه «آفلاین» ثبت شود (اپ مشتری با توکن Sanctum در

@@ -151,6 +151,15 @@ class OrderAssignmentService
             $this->lastRoutingNote = $routingNote;
         }
 
+        // فاز ۵۲ — مرتب‌سازی امتیازی با آمار پذیرش (سوییچ features.smart_dispatch)
+        if ($this->settings->get('features.smart_dispatch', true) && $targets->count() > 1) {
+            [$targets, $scoreNote] = \App\Services\Orders\DispatchStatsService::ordered($targets);
+
+            if ($scoreNote !== null) {
+                $this->lastRoutingNote = trim(($this->lastRoutingNote ? $this->lastRoutingNote.' · ' : '').$scoreNote);
+            }
+        }
+
         if ($targets->isEmpty()) {
             throw ValidationException::withMessages([
                 'broadcast' => ['بر اساس تنظیم پخش هوشمند، هیچ کافی‌نتِ واجد شرایطی برای این سفارش نیست؛ سفارش به صف تعیین‌تکلیف منتقل می‌شود.'],
@@ -238,6 +247,21 @@ class OrderAssignmentService
                 'accepted_at' => now(),
                 'broadcast_expires_at' => null,
             ])->save();
+
+            // فاز ۵۲ — آمار پذیرش برای پخش هوشمند (ثانیه تا پذیرش از رکورد پخش)
+            try {
+                $broadcastRow = OrderBroadcast::query()
+                    ->where('order_id', $locked->id)
+                    ->where('coffeenet_id', $coffeenet->id)
+                    ->first(['sent_at']);
+
+                \App\Services\Orders\DispatchStatsService::bumpAccepted(
+                    $coffeenet->id,
+                    $broadcastRow?->sent_at ? max(1, (int) $broadcastRow->sent_at->diffInSeconds(now())) : null,
+                );
+            } catch (\Throwable) {
+                // آمار نباید پذیرش را بشکند
+            }
 
             $operatorName = $operator ? trim(($operator->name ?? '').' '.($operator->family ?? '')) : null;
 
@@ -367,6 +391,9 @@ class OrderAssignmentService
                     'queued_at' => now(),
                     'broadcast_expires_at' => null,
                 ])->save();
+
+                // فاز ۵۲ — آمار «رد شدن» برای همهٔ گیرنده‌ها (فقط خروج قطعی از پخش)
+                \App\Services\Orders\DispatchStatsService::bumpRejectedForOrder($locked->id);
 
                 $this->history($locked, OrderStatus::Broadcasting, OrderStatus::Queued, null,
                     'پایان مهلت پخش بدون پذیرش — انتقال به صف تعیین‌تکلیف دستی');

@@ -48,6 +48,18 @@
                     </div>
                 </div>
 
+                {{-- فاز ۵۲ — تعهد زمان تحویل (SLA): تایمر زنده «تحویل تا …» --}}
+                <div class="card fade-up d1 hidden" id="slaCard" role="timer" aria-label="مهلت تعهدی تحویل" style="border:1.5px dashed var(--ok,#10b981);background:color-mix(in srgb, var(--ok,#10b981) 6%, transparent)">
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <span aria-hidden="true" style="display:grid;place-items:center;width:40px;height:40px;border-radius:13px;background:color-mix(in srgb, var(--ok,#10b981) 14%, transparent);font-size:19px">⏱️</span>
+                        <div class="grow">
+                            <strong class="tiny" style="font-size:12.5px">تعهد ما: تحویل تا <span id="slaDeadlineFa" dir="ltr">—</span></strong>
+                            <div class="text-faint tiny" id="slaStatusText">اگر دیرتر از این زمان تحویل شود، مسئولیت با ماست.</div>
+                        </div>
+                        <span class="badge" id="slaRemaining" style="background:color-mix(in srgb, var(--ok,#10b981) 15%, transparent);color:var(--ok,#10b981);font-weight:800;font-variant-numeric:tabular-nums">—</span>
+                    </div>
+                </div>
+
                 {{-- فاز ۱۱ — کارت ارسال درخواست به اپراتورها (۶۰ ثانیه) --}}
                 <div class="card fade-up d1 assign-card broadcasting hidden" id="broadcastCard">
                     <span class="assign-glow" aria-hidden="true"></span>

@@ -136,6 +136,8 @@
                     <a href="#how"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>مراحل سفارش</a>
                     <a href="#features"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>مزایا</a>
                     <a href="#faq"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>سوالات متداول</a>
+                    {{-- فاز ۵۲ — وضعیت زندهٔ کافی‌نت‌ها (سوییچ features.status_page) --}}
+                    <a href="{{ route('front.status') }}" wire:navigate><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>وضعیت زندهٔ شعب</a>
                     <a href="{{ route('app.auth') }}" wire:navigate><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>ورود / ثبت‌نام</a>
                 </nav>
             </div>

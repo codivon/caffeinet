@@ -458,6 +458,12 @@ class PaymentGatewayService
         ], true);
     }
 
+    /** فاز ۵۲ — آیا تعهد زمان تحویل (SLA) فعال است؟ */
+    protected function slaEnabled(): bool
+    {
+        return (bool) $this->settings->get('features.sla_enabled', false);
+    }
+
     /** سفارش → paid + تاریخچه + لاگ (idempotent) — دو مسیر فاز ۱۱/legacy */
     protected function markOrderPaid(Order $order, ?User $user, string $note, string $driver): void
     {
@@ -472,6 +478,10 @@ class PaymentGatewayService
         $order->forceFill([
             'status' => OrderStatus::Paid,
             'paid_at' => now(),
+            // فاز ۵۲ — مهلت تعهدی تحویل (SLA) برای تایمر مشتری و بج دیرکرد
+            'sla_deadline_at' => $this->slaEnabled()
+                ? now()->addMinutes(max(5, (int) $this->settings->get('features.sla_minutes', 60)))
+                : null,
         ])->save();
 
         $order->statusHistory()->create([
