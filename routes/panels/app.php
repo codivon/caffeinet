@@ -15,6 +15,7 @@ use App\Livewire\App\Auth\Login;
 use App\Livewire\App\Catalog\ServiceDetail;
 use App\Livewire\App\Catalog\Services;
 use App\Livewire\App\Core\Home;
+use App\Livewire\App\Family\Index as FamilyIndex;
 use App\Livewire\App\Orders\Index as OrdersIndex;
 use App\Livewire\App\Orders\Show as OrdersShow;
 use App\Livewire\App\Profile\Edit;
@@ -44,6 +45,8 @@ Route::prefix('app')->name('app.')->group(function () {
     Route::get('wallet', WalletIndex::class)->name('wallet');
     Route::get('profile', ProfileShow::class)->name('profile');
     Route::get('profile/edit', Edit::class)->name('profile.edit');
+    /* فاز ۵۳ — حساب خانواده/تیمی */
+    Route::get('family', FamilyIndex::class)->name('family');
 
     /* پشتیبانی و تیکت‌ها (فاز ۱۰) */
     Route::get('support', SupportIndex::class)->name('support');

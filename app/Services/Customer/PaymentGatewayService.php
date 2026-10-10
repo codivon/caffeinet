@@ -299,7 +299,8 @@ class PaymentGatewayService
 
         try {
             return DB::transaction(function () use ($order, $user, $total) {
-                $transaction = $this->wallets->debit(
+                // فاز ۵۳ — زیرحساب خانواده: برداشت از کیف پول حساب اصلی (با سقف‌ها)
+                $transaction = app(\App\Services\Finance\FamilyWalletService::class)->debitFor(
                     $user,
                     $total,
                     'order',

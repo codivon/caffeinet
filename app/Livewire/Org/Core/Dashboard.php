@@ -68,6 +68,8 @@ class Dashboard extends Component
             'stats' => $stats,
             'recentCoffeenets' => $recentCoffeenets,
             'chartData' => $chartData,
+            // فاز ۵۳ — فروشندگی
+            'reseller' => $this->resellerInfo($org),
         ])->layoutData([
             'organization' => $org,
             'user' => auth()->user(),
@@ -75,6 +77,31 @@ class Dashboard extends Component
             'breadcrumb' => 'پنل سازمان ← داشبورد',
             'htmlTitle' => 'داشبورد',
         ]);
+    }
+
+    /**
+     * فاز ۵۳ — اطلاعات فروشندگی این سازمان (برای کارت داشبورد).
+     *
+     * @return array{on: bool, is_reseller: bool, link: string, referrals: int, earned: float, percent: ?float}
+     */
+    protected function resellerInfo($org): array
+    {
+        $on = (bool) app(\App\Services\Settings\SettingsService::class)->get('features.reseller', false);
+
+        if (! $on || ! $org->is_reseller) {
+            return ['on' => $on, 'is_reseller' => false, 'link' => '', 'referrals' => 0, 'earned' => 0.0, 'percent' => null];
+        }
+
+        $walletId = $org->wallet?->id;
+
+        return [
+            'on' => true,
+            'is_reseller' => true,
+            'link' => rtrim(url('/'), '/').'/?ref='.$org->ref_code,
+            'referrals' => \App\Models\User::where('referred_org_id', $org->id)->count(),
+            'earned' => $walletId ? (float) \App\Models\CommissionPayout::where('wallet_id', $walletId)->where('role', 'reseller')->sum('amount') : 0.0,
+            'percent' => $org->reseller_percent !== null ? (float) $org->reseller_percent : null,
+        ];
     }
 
     /** رندر خنثی — فقط وقتی زمینهٔ سازمان نامعتبر شد (بدون هیچ کوئری اضافه) */

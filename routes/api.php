@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\ChatController;
 use App\Http\Controllers\Api\V1\GeoController;
+use App\Http\Controllers\Api\V1\FamilyController;
 use App\Http\Controllers\Api\V1\NotificationsController;
 use App\Http\Controllers\Api\V1\OrdersController;
 use App\Http\Controllers\Api\V1\ProfileController;
@@ -112,6 +113,15 @@ Route::prefix('v1')->name('api.')->middleware(['api.key', 'api.usage'])->group(f
         Route::get('wallet', [WalletController::class, 'index'])->name('wallet.index');
         Route::post('wallet/charge', [WalletController::class, 'charge'])
             ->middleware('throttle:10,1')->name('wallet.charge');
+
+        /* فاز ۵۳ — حساب خانواده/تیمی (زیرحساب با کیف مشترک + سقف خرج) */
+        Route::get('family', [FamilyController::class, 'index'])->name('family.index');
+        Route::post('family', [FamilyController::class, 'store'])
+            ->middleware('throttle:6,1')->name('family.store');
+        Route::patch('family/{member}', [FamilyController::class, 'update'])
+            ->whereNumber('member')->name('family.update');
+        Route::delete('family/{member}', [FamilyController::class, 'destroy'])
+            ->whereNumber('member')->name('family.destroy');
 
         /* تیکت‌های پشتیبانی (فاز ۱۰) */
         Route::get('tickets', [TicketsController::class, 'index'])->name('tickets.index');

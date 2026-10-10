@@ -16,6 +16,8 @@ class Organization extends Model
     protected $fillable = [
         'owner_id', 'name', 'type', 'national_id', 'phone',
         'province_id', 'city_id', 'address', 'status', 'verified_at', 'note',
+        // فاز ۵۳ — حالت فروشنده
+        'is_reseller', 'ref_code', 'reseller_percent',
     ];
 
     protected function casts(): array
@@ -23,6 +25,7 @@ class Organization extends Model
         return [
             'status' => OrganizationStatus::class,
             'verified_at' => 'datetime',
+            'is_reseller' => 'boolean', // فاز ۵۳
         ];
     }
 

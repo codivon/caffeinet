@@ -69,7 +69,7 @@
             </span>
             <span class="brand-text">
                 <strong>{{ config('app.name', 'کافی‌نت آنلاین') }}</strong>
-                <span>سفارش آنلاین خدمات</span>
+                <span>{{ ($resellerBrand ?? null) ? 'به همت «'.($resellerBrand['name'] ?? '').'»' : 'سفارش آنلاین خدمات' }}</span>
             </span>
         </a>
 

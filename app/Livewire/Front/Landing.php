@@ -23,6 +23,29 @@ use Livewire\Component;
 #[Layout('front.layouts.landing')]
 class Landing extends Component
 {
+    public function mount(): void
+    {
+        /* فاز ۵۳ — کد معرف فروشنده: ?ref=CODE → کوکی ۹۰ روزه (برای ثبت معرف هنگام ثبت‌نام)
+           فقط وقتی سوییچ features.reseller روشن است و کد به سازمان فروشندهٔ تأییدشده می‌رسد */
+        try {
+            $code = trim((string) request()->query('ref', ''));
+
+            if ($code !== '' && app(\App\Services\Settings\SettingsService::class)->get('features.reseller', false)) {
+                $org = \App\Models\Organization::query()
+                    ->where('ref_code', $code)
+                    ->where('is_reseller', true)
+                    ->first(['id', 'name']);
+
+                if ($org) {
+                    cookie()->queue('cn_ref', $code, 60 * 24 * 90); // ۹۰ روز
+                    session(['reseller_brand' => ['id' => $org->id, 'name' => $org->name, 'code' => $code]]);
+                }
+            }
+        } catch (\Throwable) {
+            // معرف هرگز نباید لندینگ را بشکند
+        }
+    }
+
     public function render(WorkingHoursService $workHours): \Illuminate\View\View
     {
         /* ---------- خدمات و دسته‌بندی‌ها (داده واقعی) — عین کنترلر ---------- */
@@ -103,6 +126,8 @@ class Landing extends Component
             'workStatus'        => $workStatus,
             'landingCategories' => $landingCategories,
             'footerCategories'  => $footerCategories,
+            // فاز ۵۳ — برند فروشنده در هدر لندینگ (وقتی با ?ref= آمده)
+            'resellerBrand'     => session('reseller_brand'),
         ]);
     }
 }

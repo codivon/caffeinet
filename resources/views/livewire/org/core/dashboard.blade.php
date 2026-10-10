@@ -45,6 +45,49 @@
         @endforeach
     </div>
 
+    {{-- فاز ۵۳ — کارت فروشندگی (فقط وقتی سوییچ فعال و سازمان فروشنده است) --}}
+    @if (!empty($reseller) && $reseller['on'])
+        <section class="card ui-lift p-5 mt-5 animate-fade-up" aria-label="فروشندگی">
+            <div class="flex items-center gap-3 flex-wrap">
+                <span class="grid place-items-center size-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg shadow-amber-500/20 shrink-0" aria-hidden="true">
+                    <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l.4 2M7 13h10l4-8H5.2M7 13 5.2 5"/><circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/></svg>
+                </span>
+                <div class="flex-1 min-w-0">
+                    <h2 class="text-sm font-extrabold text-stone-800">فروشندگی و برند مشترک</h2>
+                    <p class="text-[11px] text-stone-400 mt-0.5">با لینک اختصاصی خودتان مشتری بیاورید و از خرید او کمیسیون بگیرید.</p>
+                </div>
+                <span class="badge bg-emerald-100 text-emerald-700" title="وضعیت">فعال</span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
+                <div class="rounded-xl border border-stone-100 bg-stone-50 p-3 text-center">
+                    <p class="text-base font-extrabold text-stone-800 tabular-nums">{{ fa_digits((string) $reseller['referrals']) }}</p>
+                    <p class="text-[10px] font-bold text-stone-400 mt-0.5">مشتری معرفی‌شده</p>
+                </div>
+                <div class="rounded-xl border border-stone-100 bg-stone-50 p-3 text-center">
+                    <p class="text-base font-extrabold text-emerald-700 tabular-nums">{{ fa_money($reseller['earned']) }}</p>
+                    <p class="text-[10px] font-bold text-stone-400 mt-0.5">کمیسیون کسب‌شده</p>
+                </div>
+                <div class="rounded-xl border border-stone-100 bg-stone-50 p-3 text-center">
+                    <p class="text-base font-extrabold text-amber-700 tabular-nums">{{ $reseller['percent'] !== null ? fa_digits(number_format($reseller['percent'], 1)).'٪' : 'سراسری' }}</p>
+                    <p class="text-[10px] font-bold text-stone-400 mt-0.5">درصد کمیسیون شما</p>
+                </div>
+            </div>
+
+            @if ($reseller['link'])
+                <div class="mt-4 flex items-center gap-2" x-data="{ copied: false }">
+                    <code dir="ltr" class="flex-1 min-w-0 text-[11px] font-mono bg-stone-900 text-emerald-200 rounded-xl px-3 py-2.5 overflow-x-auto whitespace-nowrap">{{ $reseller['link'] }}</code>
+                    <button type="button" class="btn-primary !py-2 !px-3 !text-[11px] shrink-0"
+                            @click="navigator.clipboard && navigator.clipboard.writeText('{{ $reseller['link'] }}').then(() => { copied = true; setTimeout(() => copied = false, 1600) })">
+                        <span x-show="!copied">کپی لینک</span>
+                        <span x-show="copied" x-cloak>کپی شد ✓</span>
+                    </button>
+                </div>
+                <p class="text-[10px] text-stone-400 mt-1.5">این لینک را برای مخاطبانتان بفرستید؛ هرکس با آن ثبت‌نام کند، برای همیشه مشتری شما حساب می‌شود.</p>
+            @endif
+        </section>
+    @endif
+
     {{-- نمای تحلیلی ۳۰ روز اخیر (فاز ۹) --}}
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mt-5">
 

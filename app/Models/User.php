@@ -23,6 +23,8 @@ use Spatie\Permission\Traits\HasRoles;
     'province_id', 'city_id', 'birthdate', 'profile_completed',
     'is_active', 'last_login_at', 'last_seen_at',
     'national_id', 'national_id_verified_at',
+    // فاز ۵۳ — حساب خانواده + فروشنده
+    'parent_id', 'wallet_daily_limit', 'wallet_monthly_limit', 'family_blocked', 'referred_org_id',
 ])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
@@ -43,7 +45,55 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'gender' => Gender::class,
             'national_id_verified_at' => 'datetime', // v40 — تأیید فینوتک
+            'family_blocked' => 'boolean', // فاز ۵۳ — توقف خرج زیرحساب
         ];
+    }
+
+    /* ---------- فاز ۵۳ — حساب خانواده ---------- */
+
+    /** والد زیرحساب (null = خودش حساب اصلی است) */
+    public function parent()
+    {
+        return $this->belongsTo(User::class, 'parent_id');
+    }
+
+    /** زیرحساب‌های این حساب اصلی */
+    public function familyMembers()
+    {
+        return $this->hasMany(User::class, 'parent_id');
+    }
+
+    /** سازمان فروشندهٔ معرفی‌کننده (فاز ۵۳) */
+    public function referredOrg()
+    {
+        return $this->belongsTo(Organization::class, 'referred_org_id');
+    }
+
+    /** آیا این حساب، حساب اصلیِ یک خانواده است؟ */
+    public function isFamilyParent(): bool
+    {
+        return $this->parent_id === null && $this->familyMembers()->exists();
+    }
+
+    /** خرج امروز زیرحساب (جمع برداشت‌های امروز از کیف والد) */
+    public function familySpendToday(): float
+    {
+        return (float) \App\Models\Transaction::query()
+            ->where('type', 'debit')
+            ->whereDate('created_at', today())
+            ->where('meta->family_user_id', $this->id)
+            ->sum('amount');
+    }
+
+    /** خرج این ماه زیرحساب */
+    public function familySpendThisMonth(): float
+    {
+        return (float) \App\Models\Transaction::query()
+            ->where('type', 'debit')
+            ->whereYear('created_at', now()->year)
+            ->whereMonth('created_at', now()->month)
+            ->where('meta->family_user_id', $this->id)
+            ->sum('amount');
     }
 
     /** v42 — URL آواتار پروفایل (75×75 WebP)؛ نال = آواتار ندارد */
