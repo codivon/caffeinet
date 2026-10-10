@@ -114,6 +114,10 @@ Route::prefix('v1')->name('api.')->middleware(['api.key', 'api.usage'])->group(f
         Route::post('wallet/charge', [WalletController::class, 'charge'])
             ->middleware('throttle:10,1')->name('wallet.charge');
 
+        /* فاز ۵۴ — داشبورد مصرف مشتری (آمار من) */
+        Route::get('me/stats', [\App\Http\Controllers\Api\V1\StatsController::class, 'stats'])
+            ->name('me.stats');
+
         /* فاز ۵۳ — حساب خانواده/تیمی (زیرحساب با کیف مشترک + سقف خرج) */
         Route::get('family', [FamilyController::class, 'index'])->name('family.index');
         Route::post('family', [FamilyController::class, 'store'])

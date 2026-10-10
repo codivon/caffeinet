@@ -62,6 +62,14 @@ Route::middleware(['admin.access'])->group(function () {
         /* فاز ۵۰ — نشست‌های فعال (دستگاه‌های واردشده) — از تنظیمات */
         Route::get('sessions', \App\Livewire\Admin\Core\PanelSessions::class)
             ->name('sessions.index');
+
+        /* فاز ۵۴ — سلامت سیستم — از تنظیمات */
+        Route::get('health', \App\Livewire\Admin\Core\Health::class)
+            ->name('health');
+
+        /* فاز ۵۴ — جستجوی سراسری Ctrl+K */
+        Route::get('search', [App\Http\Controllers\Back\Admin\GlobalSearchController::class, 'search'])
+            ->name('search');
         Route::get('settings/logs/data', [App\Http\Controllers\Back\Admin\SystemLogsController::class, 'data'])
             ->name('settings.logs.data');
         Route::post('settings/logs/clear', [App\Http\Controllers\Back\Admin\SystemLogsController::class, 'clear'])

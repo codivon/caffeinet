@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // اعتماد به پروکسی گیت‌وی برای تشخیص صحیح scheme/host
         $middleware->trustProxies(at: '*');
 
+        // فاز ۵۴ — کوکی زبان JS-ست (چندزبانه) از رمزگشایی مستثنا
+        $middleware->encryptCookies(except: ['cn_locale']);
+
         // گارد پیش‌فرض درخواست‌های API → sanctum (برای auth() در سرویس‌های مشترک)
         $middleware->append(\App\Http\Middleware\ApiDefaultGuard::class);
 
@@ -23,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\UpdateLastSeen::class,
             \App\Http\Middleware\FixPreviewAssetQuery::class, // v31 — اصلاح ?XTransformPort=8000?v=NN در گیت‌وی پیش‌نمایش
+            \App\Http\Middleware\SetPanelLocale::class, // فاز ۵۴ — چندزبانه (سوییچ features.i18n)
         ]);
         $middleware->api(append: [\App\Http\Middleware\UpdateLastSeen::class]);
 

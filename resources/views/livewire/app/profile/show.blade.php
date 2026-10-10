@@ -118,6 +118,19 @@
         <svg class="pf-link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
     </a>
     @endif
+    {{-- فاز ۵۴ — آمار من (داشبورد مصرف) --}}
+    @if ((bool) app(\App\Services\Settings\SettingsService::class)->get('features.customer_stats', true))
+    <a href="{{ route('app.stats') }}">
+        <span class="pf-link-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 16l4-6 4 3 5-8"/></svg>
+        </span>
+        <span class="pf-link-body">
+            <b>آمار من</b>
+            <small>نمودار هزینه و تحلیل سفارش‌هایتان</small>
+        </span>
+        <svg class="pf-link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+    </a>
+    @endif
     <a href="{{ route('app.support') }}">
         <span class="pf-link-ico" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Z"/><path d="M18 11h3v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2Z"/><path d="M21 11a9 9 0 0 0-18 0"/></svg>

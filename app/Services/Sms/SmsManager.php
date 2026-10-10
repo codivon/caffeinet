@@ -107,7 +107,7 @@ class SmsManager
 
             return ['ok' => true, 'status' => 'sent', 'mode' => 'plain'];
         } catch (Throwable $e) {
-            SmsLog::create([
+            $log = SmsLog::create([
                 'mobile' => $mobile,
                 'template_key' => $templateKey,
                 'message' => $message,
@@ -117,9 +117,43 @@ class SmsManager
                 'created_at' => now(),
             ]);
 
+            // فاز ۵۴ — پیامک ناموفق وارد صف ریتری می‌شود (سوییچ features.sms_retry)
+            $this->queueRetry($log);
+
             return ['ok' => false, 'status' => 'failed', 'error' => $e->getMessage(), 'mode' => 'plain'];
         }
     }
+
+    /**
+     * فاز ۵۴ — قرار دادن پیامک ناموفق در صف تلاش دوباره.
+     * (فرمان sms:flush-retries در schedule هر ۵ دقیقه اجرا می‌کند)
+     */
+    public function queueRetry(SmsLog $log): void
+    {
+        try {
+            if (! $this->settings->get('features.sms_retry', true)) {
+                return;
+            }
+
+            // provider «log» (توسعه) ریتتری نمی‌خواهد
+            if (trim((string) $log->provider) === 'log') {
+                return;
+            }
+
+            $log->forceFill([
+                'attempts' => 1,
+                'next_retry_at' => now()->addMinutes(self::RETRY_DELAY_MINUTES),
+            ])->save();
+        } catch (\Throwable) {
+            // صف هرگز مسیر اصلی را نمی‌شکند
+        }
+    }
+
+    /** فاصلهٔ بین تلاش‌ها (دقیقه) */
+    public const RETRY_DELAY_MINUTES = 5;
+
+    /** سقف کل تلاش‌ها (اولین + ۲ ریتری) */
+    public const MAX_ATTEMPTS = 3;
 
     /**
      * ارسال قالبی — «پیش‌فرض پترن» (v10).

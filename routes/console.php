@@ -3,6 +3,7 @@
 use App\Console\Commands\CleanupSystem;
 use App\Console\Commands\ExpireBroadcasts;
 use App\Console\Commands\FlushPendingPushes;
+use App\Console\Commands\FlushSmsRetries;
 use App\Console\Commands\NotifyUnacceptedOrders;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -35,6 +36,17 @@ Schedule::command(ExpireBroadcasts::class)->everyMinute()->withoutOverlapping();
 */
 
 Schedule::command(NotifyUnacceptedOrders::class)->everyFiveMinutes()->withoutOverlapping()->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| فاز ۵۴ — صف ارسال دوبارهٔ پیامک‌های ناموفق
+|--------------------------------------------------------------------------
+| هر ۵ دقیقه: پیامک‌های failed که سوییچ «ارسال دوبارهٔ خودکار پیامک»
+| روشن است، تا ۳ تلاش (با ۵ دقیقه فاصله) دوباره فرستاده می‌شوند.
+|
+*/
+
+Schedule::command(FlushSmsRetries::class)->everyFiveMinutes()->withoutOverlapping()->onOneServer();
 
 /*
 |--------------------------------------------------------------------------

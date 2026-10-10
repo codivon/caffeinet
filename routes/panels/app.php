@@ -16,6 +16,7 @@ use App\Livewire\App\Catalog\ServiceDetail;
 use App\Livewire\App\Catalog\Services;
 use App\Livewire\App\Core\Home;
 use App\Livewire\App\Family\Index as FamilyIndex;
+use App\Livewire\App\Stats\Index as StatsIndex;
 use App\Livewire\App\Orders\Index as OrdersIndex;
 use App\Livewire\App\Orders\Show as OrdersShow;
 use App\Livewire\App\Profile\Edit;
@@ -47,6 +48,8 @@ Route::prefix('app')->name('app.')->group(function () {
     Route::get('profile/edit', Edit::class)->name('profile.edit');
     /* فاز ۵۳ — حساب خانواده/تیمی */
     Route::get('family', FamilyIndex::class)->name('family');
+    /* فاز ۵۴ — آمار من (داشبورد مصرف) */
+    Route::get('stats', StatsIndex::class)->name('stats');
 
     /* پشتیبانی و تیکت‌ها (فاز ۱۰) */
     Route::get('support', SupportIndex::class)->name('support');
