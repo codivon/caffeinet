@@ -558,10 +558,19 @@
         var svcDescEl = document.getElementById('svcDesc');
         if (svcDescEl) { svcDescEl.textContent = d.description || ''; }
 
-        /* فاز ۱۵ — تصویر خدمت */
+        /* فاز ۱۵ — تصویر خدمت (+ فاز ۵۸: خطای بارگذاری → حذف تصویر و برگشت به آیکون) */
         if (d.image_url) {
             var svcHeroEl = document.getElementById('svcHero');
-            if (svcHeroEl) { svcHeroEl.insertAdjacentHTML('afterbegin', '<img class="svc-hero-img" src="' + CN.esc(d.image_url) + '" alt="' + CN.esc(d.name) + '">'); }
+            if (svcHeroEl) {
+                svcHeroEl.insertAdjacentHTML('afterbegin', '<img class="svc-hero-img" src="' + CN.esc(d.image_url) + '" alt="' + CN.esc(d.name) + '">');
+                var heroImg = svcHeroEl.querySelector('.svc-hero-img');
+                if (heroImg) {
+                    heroImg.addEventListener('error', function () {
+                        heroImg.remove();
+                        if (svcIconEl) { svcIconEl.classList.remove('hidden'); }
+                    });
+                }
+            }
             if (svcIconEl) { svcIconEl.classList.add('hidden'); }
         }
 
@@ -935,6 +944,25 @@
                 }
 
                 var errors = (body && body.errors) || {};
+
+                /* فاز ۵۸ — سگ‌بان ناهماهنگی فرم/سرور:
+                   اگر سرور برای فیلدی خطا داد که در فرم رندرشده نیست (نسخهٔ خدمت
+                   بعد از لود صفحه عوض شده یا snapshot دیر رسیده)، به‌جای پیام
+                   گمراه‌کنندهٔ «فیلد X الزامی است» روی فرمِ خالی، جزئیات خدمت
+                   را دوباره می‌گیریم و فرم را با فیلدهای تازه رندر می‌کنیم. */
+                var known = {};
+                ((detail && detail.form_fields) || []).forEach(function (f) { known[f.name] = true; });
+                var unknownKeys = Object.keys(errors).filter(function (k) { return !known[k]; });
+
+                if (unknownKeys.length) {
+                    CN.toast('فرم این خدمت به‌روزرسانی شد؛ لطفاً پس از بارگذاری، دوباره ثبت کنید.', 'error', 4500);
+                    detail = null;
+                    setGate('loading');
+                    armGateWatchdog();
+                    loadDetail();
+                    return;
+                }
+
                 CN.applyErrors(errors);
                 CN.toast(message, 'error');
             }

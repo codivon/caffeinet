@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * سرو رسانهٔ عمومی (تصاویر خدمات/اطلاعیه‌ها و ویدیوهای اطلاعیه) — فاز ۲۲
@@ -47,7 +49,23 @@ class MediaController extends Controller
         'm4a' => 'audio/mp4',
     ];
 
-    public function show(string $path, \Illuminate\Http\Request $request): BinaryFileResponse
+    public function show(string $path, Request $request): BinaryFileResponse
+    {
+        /* فاز ۵۸ — هر خطای پیش‌بینی‌نشده (فایل مفقود روی سرور، محدودیت هاست،
+         * خطای خواندن و…) باید 404 تمیز بدهد نه 500 — گزارش مالک:
+         * /media/services/*.webp روی هاست اشتراکی 500 برمی‌گرداند. */
+        try {
+            return $this->serve($path, $request);
+        } catch (HttpException $e) {
+            throw $e; // 404 های خودمان دست‌نخورده
+        } catch (\Throwable $e) {
+            report($e);
+
+            abort(404);
+        }
+    }
+
+    private function serve(string $path, Request $request): BinaryFileResponse
     {
         $path = str_replace('\\', '/', rawurldecode($path));
 

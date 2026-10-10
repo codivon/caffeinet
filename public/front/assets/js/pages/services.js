@@ -310,5 +310,19 @@
     }
 
     /* ---------- شروع ---------- */
+    /* فاز ۵۸ — تصویر خراب/404 خدمت → فال‌بک آیکون (به‌جای تصویر شکسته).
+       error فاز نمی‌رود؛ گوش دهنده در فاز capture روی سند می‌گذاریم. */
+    document.addEventListener('error', function (e) {
+        var img = e.target;
+        if (!img || img.tagName !== 'IMG') { return; }
+        var thumb = img.closest('.svc-thumb');
+        if (!thumb) { return; }
+        var span = document.createElement('span');
+        span.className = 'svc-icon';
+        span.textContent = '📁';
+        span.setAttribute('aria-hidden', 'true');
+        thumb.replaceWith(span);
+    }, true);
+
     load();
 })();

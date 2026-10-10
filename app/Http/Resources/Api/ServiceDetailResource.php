@@ -2,13 +2,14 @@
 
 namespace App\Http\Resources\Api;
 
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * جزئیات خدمت — فرم داینامیک + ردیف هزینه از snapshot نسخه جاری.
  *
- * @mixin \App\Models\Service
+ * @mixin Service
  */
 class ServiceDetailResource extends JsonResource
 {
@@ -20,6 +21,26 @@ class ServiceDetailResource extends JsonResource
         $fields = array_values(
             is_array($snapshot['form_fields'] ?? null) ? $snapshot['form_fields'] : []
         );
+
+        /* فاز ۵۸ — فال‌بک نهایی: اگر هیچ نسخه‌ای ثبت نشده باشد، فیلدهای زندهٔ خدمت
+         * مبنا می‌شوند (OrderService هم در نبود نسخه، هنگام ثبت از همین فیلدهای
+         * زنده نسخه می‌سازد و اعتبارسنجی می‌کند) — بدون این، کلاینت «این خدمت
+         * فرم ندارد» می‌دید ولی سرور فیلدها را الزامی می‌شمرد (گزارش مالک). */
+        if ($fields === [] && ! $version) {
+            $fields = $this->formFields()
+                ->get()
+                ->map(fn ($f) => [
+                    'field_type' => $f->field_type,
+                    'label' => $f->label,
+                    'name' => $f->name,
+                    'placeholder' => $f->placeholder,
+                    'help_text' => $f->help_text,
+                    'is_required' => (bool) $f->is_required,
+                    'options' => $f->options,
+                    'validation' => $f->validation,
+                    'sort' => (int) $f->sort,
+                ])->all();
+        }
 
         $fileFieldCount = collect($fields)
             ->filter(fn ($f) => ($f['field_type'] ?? '') === 'file')
