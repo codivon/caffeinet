@@ -54,11 +54,16 @@
        کهنه می‌مانَد؛ اینجا با تطابق مسیر جاری، آیتم فعال را تازه می‌کنیم. */
     const NAV_ACTIVE_CLASSES = ['is-active', 'no-nav-link--on', 'op-nav-active'];
 
+    /* فاز ۴۸ — صفحاتی که منوی اختصاصی در سایدبار ندارند و به منوی دیگری تعلق دارند */
+    const NAV_ROUTE_ALIAS = {
+        '/admin/api-keys': '/admin/settings', // کلیدهای وب‌سرویس — جزو منوی تنظیمات
+    };
+
     function refreshActiveNav() {
         const nav = sidebar?.querySelector('nav');
         if (!nav) return;
 
-        const path = window.location.pathname.replace(/\/+$/, '') || '/';
+        const path = NAV_ROUTE_ALIAS[window.location.pathname.replace(/\/+$/, '')] || window.location.pathname.replace(/\/+$/, '') || '/';
         let best = null;
         let bestLen = -1;
 

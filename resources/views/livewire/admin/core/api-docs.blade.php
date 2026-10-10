@@ -1,7 +1,7 @@
 {{-- مستندات API v1 — کامپوننت Livewire [Task 3-b]
      محتوای ثابت مستندات + جستجو/کپی/چاپ با JS قبلی صفحه. --}}
 @push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/pages/api-docs.css') }}?v=14">
+<link rel="stylesheet" href="{{ asset('assets/css/pages/api-docs.css') }}?v=15">
 @endpush
 
 <div>
@@ -50,17 +50,32 @@
                 پاسخ‌ها همیشه JSON با کلید <code>message</code> برای متن فارسی خطا/موفقیت.
             </p>
 
-            {{-- فاز ۴۷ — الزام کلید وب‌سرویس --}}
+            {{-- فاز ۴۷/۴۸ — الزام کلید وب‌سرویس (راهنمای کامل) --}}
             <div class="ad-apikey-note" role="note">
-                <b>الزام کلید وب‌سرویس (فاز ۴۷):</b>
-                همهٔ اندپوینت‌ها بدون هدر
-                <code>X-Api-Key</code>
-                پاسخ <b>۴۰۱</b> می‌دهند — به‌جز <code>GET /api/v1/health</code> (مانیتورینگ).
-                کلیدها خودکار ساخته می‌شوند و از صفحهٔ
+                <b>الزام کلید وب‌سرویس — هدر X-Api-Key:</b>
+                همهٔ اندپوینت‌ها بدون هدر <code dir="ltr">X-Api-Key</code> معتبر پاسخ <b>۴۰۱</b> می‌دهند — به‌جز <code>GET /api/v1/health</code> (مانیتورینگ).
+                کلیدها خودکار ساخته می‌شوند (فرمت <code dir="ltr">cnk_…</code>) و از صفحهٔ
                 <a href="{{ route('admin.api-keys.index') }}">کلیدهای وب‌سرویس</a>
-                مدیریت می‌شوند. اپ وب و پنل‌ها کلید داخلی را خودکار می‌فرستند.
-                نمونه:
-                <code dir="ltr">curl -H "X-Api-Key: cnk_…" https://YOUR-DOMAIN/api/v1/geo/provinces</code>
+                (تنظیمات ← آخرین منو) با مودال «کلید جدید» ساخته و با مودال تأیید حذف می‌شوند.
+                اپ وب و پنل‌ها کلید داخلی را خودکار می‌فرستند.
+
+                <table class="ad-hdr-table" dir="rtl">
+                    <thead>
+                        <tr><th scope="col">هدر</th><th scope="col">الزام</th><th scope="col">توضیح</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code dir="ltr">X-Api-Key</code></td><td>همهٔ اندپوینت‌ها</td><td>کلید وب‌سرویس — از صفحهٔ «کلیدهای وب‌سرویس» بسازید. هدر <code dir="ltr">Api-Key</code> هم پذیرفته می‌شود.</td></tr>
+                        <tr><td><code dir="ltr">Accept: application/json</code></td><td>همهٔ اندپوینت‌ها</td><td>پاسخ همیشه JSON است.</td></tr>
+                        <tr><td><code dir="ltr">Authorization: Bearer &lt;token&gt;</code></td><td>اندپوینت‌های 🔒 توکن</td><td>توکن Sanctum از <code dir="ltr">otp/verify</code> صادر می‌شود.</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="ad-hdr-sample">
+                    <span>درخواست بدون کلید (۴۰۱):</span>
+                    <pre dir="ltr">{"message": "کلید وب‌سرویس ارسال نشده است؛ هدر \"X-Api-Key\" الزامی است.", "error": "invalid_api_key"}</pre>
+                    <span>نمونهٔ درست:</span>
+                    <pre dir="ltr">curl -H "X-Api-Key: cnk_…" -H "Accept: application/json" https://YOUR-DOMAIN/api/v1/geo/provinces</pre>
+                </div>
             </div>
         </section>
 

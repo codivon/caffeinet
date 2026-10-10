@@ -183,6 +183,14 @@
                 <span class="flex-1 text-start">نمایش لاگ سیستمی</span>
                 <svg class="size-3.5 text-stone-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
             </a>
+
+            {{-- فاز ۴۸ — کلیدهای وب‌سرویس (API Keys) — آخرین منوی تنظیمات --}}
+            <a href="{{ route('admin.api-keys.index') }}" class="st-nav-item st-nav-item--link" wire:navigate>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4"/><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/></svg>
+                <span class="flex-1 text-start">کلیدهای وب‌سرویس</span>
+                <span class="st-nav-hint">API</span>
+                <svg class="size-3.5 text-stone-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
         </nav>
     </aside>
 
