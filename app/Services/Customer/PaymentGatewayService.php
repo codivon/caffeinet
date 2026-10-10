@@ -337,6 +337,11 @@ class PaymentGatewayService
      */
     public function handleCallback(Request $request): Payment
     {
+        // فاز ۵۹ (F5 ممیزی) — درگاه تست local در محیط عملیاتی قفل است (callback قابل جعل است)
+        if (app()->environment('production') && $this->driverName() === 'local') {
+            abort(403, 'درگاه تست در محیط عملیاتی غیرفعال است — درگاه آنلاین را از تنظیمات انتخاب کنید.');
+        }
+
         $transactionId = (string) en_digits((string) $request->input('transactionId', ''));
 
         /** @var Payment|null $payment */

@@ -90,12 +90,16 @@ class ApiKeys extends Component
     {
         $this->validate();
 
+        // فاز ۵۹ (F6) — کلید بیرونی فقط هش‌شده ذخیره می‌شود؛ مقدار خام فقط همین‌جا یک‌بار نمایش داده می‌شود
+        $plain = ApiKey::generate();
+
         $key = ApiKey::create([
-            'name' => trim($this->newName),
-            'key'  => ApiKey::generate(),
+            'name'     => trim($this->newName),
+            'key_hash' => ApiKey::hashFor($plain),
+            'key_hint' => substr($plain, -4),
         ]);
 
-        $this->createdKey = ['name' => $key->name, 'key' => $key->key];
+        $this->createdKey = ['name' => $key->name, 'key' => $plain];
         $this->reset('newName');
     }
 
@@ -135,7 +139,23 @@ class ApiKeys extends Component
     public function addWebhook(): void
     {
         $this->validate([
-            'whUrl'    => ['required', 'url', 'max:500'],
+            'whUrl'    => ['required', 'url', 'max:500', function (string $attribute, mixed $value, \Closure $fail) {
+                // فاز ۵۹ (F12 ممیزی) — وب‌هوک به شبکهٔ داخلی/لوکال ممنوع (SSRF)
+                $host = strtolower(trim((string) (parse_url((string) $value, PHP_URL_HOST) ?: ''), '[] '));
+                $blocked = false;
+                if ($host !== '') {
+                    if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
+                        $blocked = ! filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+                    } else {
+                        $ip = gethostbyname($host);
+                        $blocked = $ip !== $host && filter_var($ip, FILTER_VALIDATE_IP) !== false
+                            && ! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+                    }
+                }
+                if ($blocked) {
+                    $fail('آدرس وب‌هوک نمی‌تواند به شبکهٔ داخلی یا لوکال اشاره کند.');
+                }
+            }],
             'whEvents' => ['required', 'array', 'min:1'],
         ], [
             'whUrl.required' => 'آدرس مقصد وب‌هوک الزامی است.',

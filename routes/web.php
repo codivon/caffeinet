@@ -82,8 +82,12 @@ Route::match(['get', 'post'], 'payment/callback', [\App\Http\Controllers\Front\A
 | مسیر وصل می‌شود و رویدادها (چت/اعلان/سفارش) همان لحظه می‌رسند.
 | احراز: نشست وبِ پنل‌ها یا توکن Sanctum در ‎?token=‎ (اپ مشتری).
 | بدون CSRF-مشکل (GET) و بدون کش (هدرهای no-cache در پاسخ).
+| فاز ۵۹-c: استریم کوتاه‌چرخه است (TTL پیش‌فرض ۲۵ ثانیه + event: close
+| + اتصال مجدد خودکار کلاینت) تا ورکر LSAPI مرتب آزاد شود. throttle ملایم
+| فقط ضد حلقهٔ معیوب کلاینت است (استفادهٔ معمول: ~۲-۴ اتصال در دقیقه).
 */
 Route::get('realtime/stream', [\App\Http\Controllers\RealtimeStreamController::class, 'stream'])
+    ->middleware('throttle:120,1')
     ->name('realtime.stream');
 
 /* ---------- PWA (فاز ۱۴ — بازطراحی تفکیک‌شده) — مانیفست مستقل هر پنل ----------

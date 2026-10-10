@@ -13,8 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // اعتماد به پروکسی گیت‌وی برای تشخیص صحیح scheme/host
-        $middleware->trustProxies(at: '*');
+        // فاز ۵۹ (F3 ممیزی) — اعتماد فقط به پروکسی‌های معرفی‌شده در TRUSTED_PROXIES (.env)؛
+        // روی هاست اشتراکی/بدون پروکسی خالی بماند تا جعل X-Forwarded-For قفل‌های نرخی را دور نزند
+        $trustedProxies = array_values(array_filter(array_map('trim', explode(',', (string) env('TRUSTED_PROXIES', '')))));
+        $middleware->trustProxies(at: $trustedProxies);
 
         // فاز ۵۴ — کوکی زبان JS-ست (چندزبانه) از رمزگشایی مستثنا
         $middleware->encryptCookies(except: ['cn_locale']);

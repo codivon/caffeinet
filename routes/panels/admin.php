@@ -17,8 +17,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     /* [Task 2-a] فرم ورود → کامپوننت Livewire؛ POST fallback و خروج همان‌جا می‌مانند. */
     Route::get('login', App\Livewire\Admin\Auth\Login::class)
         ->name('login');
-    Route::post('login', [App\Http\Controllers\Back\Admin\AuthController::class, 'login'])
-        ->name('login.attempt');
+    /* فاز ۵۹ (F1 ممیزی) — POST fallback ورود حذف شد: نه کپچا می‌خواست نه 2FA (دور زدن امنیت فاز ۵۰).
+       فرم لاگین Livewire تنها درگاه ورود است؛ درخواست POST به این مسیر 405 می‌گیرد. */
 
     Route::middleware(['admin.access'])->group(function () {
         Route::post('logout', [App\Http\Controllers\Back\Admin\AuthController::class, 'logout'])

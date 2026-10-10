@@ -31,6 +31,9 @@ class Show extends Component
 
     public function mount(Coffeenet $coffeenet, Ticket $ticket): void
     {
+        // فاز ۵۹ (F2 ممیزی) — گارد تنانت: کافی‌نتِ مسیر باید همان کافی‌نتِ جلسه باشد
+        abort_unless(request()->attributes->get('current_coffeenet')?->id === $coffeenet->id, 403);
+
         // عیناً authorizeScope کنترلر: تیکت باید سفارشِ همین کافی‌نت را داشته باشد
         if (! $ticket->order || (int) $ticket->order->coffeenet_id !== (int) $coffeenet->id) {
             abort(404, 'تیکت یافت نشد.');

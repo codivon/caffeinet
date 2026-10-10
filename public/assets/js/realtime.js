@@ -16,9 +16,17 @@
  *     (pusher.com یا سرور خودمیزبانِ Soketi/Reverb با host/port سفارشی).
  *   • method "sse"     → «اتصال دائمی داخلی» — EventSource همان دامنه؛
  *     مثل سوکت، بدون درخواست دوره‌ای، بدون سرویس بیرونی و بدون مشکل
- *     تحریم. سرور حداکثر ~۴ دقیقه استریم می‌کند و EventSource خودش
- *     دوباره وصل می‌شود (برای صفحات شفاف است).
+ *     تحریم. سرور «کوتاه‌چرخه» است (فاز ۵۹-c): بعد از TTL (~۲۵ ثانیه) با
+ *     event: close تمیز می‌بندد و ما بلافاصله با jitter دوباره وصل می‌شویم
+ *     (رویدادهای فاصلهٔ reconnect با last_id پخش دوباره می‌شوند — صفر ازدست‌رفته).
  *   • روش polling      → RT غیرفعال؛ صفحات با پولینگ معمولی کار می‌کنند.
+ *
+ * فاز ۵۹-c — ضدتندزنی SSE روی هاست اشتراکی (ورکرها محدودند):
+ *   خطای واقعی (بدون هیچ داده در ~۱۲ ثانیهٔ اول / close فوری / ۴۰۱) در
+ *   پنجرهٔ ۶۰ ثانیه شمرده می‌شود؛ ۳ خطا → تعلیق SSE (cooldown نمایی
+ *   ۶۰s→۸m) و برگشت خودکار صفحات به پولینگ اضطراری (RT.connected=false).
+ *   پایان تعلیق → تلاش مجدد؛ اتصال سالم → صفر شدن شمارنده‌ها (برگشت نرم
+ *   به SSE). چرخهٔ سالمِ کوتاه‌چرخه هرگز خطا حساب نمی‌شود.
  *
  * «پوشر کامل» (حالت رویدادمحور):
  *   وقتی RT.active() و RT.connected() است، صفحات «بدون پولینگ» کار
@@ -112,7 +120,7 @@
     }
 
     /* ================================================================ */
-    /* ترابورت ۲ — SSE (اتصال دائمی داخلی — فاز ۱۲)                      */
+    /* ترابورت ۲ — SSE (اتصال دائمی داخلی — فاز ۱۲ + سخت‌سازی ۵۹-c)      */
     /* ================================================================ */
 
     function sseActive() {
@@ -122,10 +130,85 @@
 
     var esTokenUsed = false; // آیا es فعلی با توکن باز شده؟
 
-    function connectSse() {
+    /* ---- حالت‌های سخت‌سازی ۵۹-c ---- */
+    var esOpenedAt = 0;       // زمان آخرین open موفق (ms)
+    var esGotData = false;    // در استریم جاری دادهٔ واقعی (rt/ping/close) رسید؟
+    var lastRtId = '';        // Last-Event-ID → پرش gap ها با ?last_id=
+    var failTimes = [];       // timestamp خطاهای واقعی (پنجرهٔ ۶۰ ثانیه)
+    var failStreak = 0;       // تعداد ساسپندهای پشت‌سرهم (بخاطر backoff نمایی)
+    var suspendedUntil = 0;   // تا این زمان EventSource باز نشود (ms epoch)
+    var lastAttemptAt = 0;    // ضدتندزنی: حداقل فاصلهٔ دو تلاش
+    var reconnectTimer = null;
+
+    function sseRetryMs() {
+        var r = Number(cfg.sse_retry) || 2000;
+        return (r < 500) ? 500 : (r > 30000 ? 30000 : r);
+    }
+
+    function jitter(ms) { return Math.round(ms * (0.75 + Math.random() * 0.75)); }
+
+    /** اتصال سالم شد → شمارنده‌ها صفر (برگشت نرم به SSE) */
+    function markHealthy() {
+        esGotData = true;
+        failTimes = [];
+        failStreak = 0;
+        suspendedUntil = 0;
+    }
+
+    function closeEs() {
+        if (es) {
+            try { es.close(); } catch (e) { /* noop */ }
+            es = null;
+        }
+    }
+
+    function scheduleReconnect(delay) {
+        if (reconnectTimer) { return; }
+        reconnectTimer = setTimeout(function () {
+            reconnectTimer = null;
+            if (!es) { connectSse(); }
+        }, jitter(delay || sseRetryMs()));
+    }
+
+    /** خطای «واقعی»؟ = استریمِ جاری هیچ داده‌ای نداد و زود مرد
+     *  (چرخهٔ سالم کوتاه‌چرخه/ضربان‌دار هرگز خطا حساب نمی‌شود) */
+    function isHardFailure() {
+        var age = esOpenedAt ? (Date.now() - esOpenedAt) : 0;
+        return !esGotData && age < 12000;
+    }
+
+    /** ثبت خطای واقعی — ۳ بار در ۶۰ ثانیه → تعلیق + پولینگ اضطراری صفحات */
+    function recordFailure() {
+        var now = Date.now();
+        failTimes.push(now);
+        while (failTimes.length && (now - failTimes[0]) > 60000) { failTimes.shift(); }
+
+        if (failTimes.length >= 3) {
+            failStreak = Math.min(failStreak + 1, 8);
+            failTimes = [];
+            // cooldown نمایی: 60s → 120s → … → سقف ۸ دقیقه (با jitter ضدگله)
+            suspendedUntil = now + jitter(Math.min(60000 * Math.pow(2, failStreak - 1), 480000));
+            fireState(false); // صفحات → پولینگ اضطراری
+            scheduleReconnect(suspendedUntil - now); // برگشت نرم به SSE
+        }
+    }
+
+    function suspendDelay() {
+        return Math.min(60000 * Math.pow(2, Math.max(failStreak - 1, 0)), 480000);
+    }
+
+    function connectSse(force) {
         if (es) { return es; }
         if (!sseActive()) { return null; }
+
+        var now = Date.now();
+
+        // تعلیق‌شده (خطاهای پشت‌سرهم) → جز در تلاش‌های اجباری باز نشو
+        if (!force && now < suspendedUntil) { return null; }
+        if (now - lastAttemptAt < 1000) { return null; } // ضدتندزنی
         if (document.hidden) { pausedHidden = true; return null; } // تب پنهان → اتصال ممنوع
+
+        lastAttemptAt = now;
 
         try {
             var url = String(cfg.sse_url);
@@ -143,10 +226,20 @@
             }
             esTokenUsed = !!cfg.sse_token;
 
+            // فاز ۵۹-c — replay: رویدادهای فاصلهٔ reconnect از دست نروند
+            if (lastRtId) {
+                url += (url.indexOf('?') > -1 ? '&' : '?') + 'last_id=' + encodeURIComponent(lastRtId);
+            }
+
             es = new EventSource(url);
+            esOpenedAt = Date.now();
+            esGotData = false;
 
             // رویداد اصلی: {channel, event, payload} → مسیریابی به صفحات
             es.addEventListener('rt', function (ev) {
+                markHealthy();
+                try { if (ev && ev.lastEventId) { lastRtId = String(ev.lastEventId); } } catch (e) { /* noop */ }
+
                 var msg = null;
                 try { msg = JSON.parse(ev.data || '{}'); } catch (e) { msg = null; }
                 if (!msg || !msg.event) { return; }
@@ -160,13 +253,41 @@
                 }
             });
 
-            es.addEventListener('ping', function () { /* ضربان — اتصال زنده است */ });
+            es.addEventListener('ping', function () { markHealthy(); /* ضربان — اتصال زنده است */ });
 
-            es.onopen = function () { fireState(true); };
+            // فاز ۵۹-c — پایان تمیز کوتاه‌چرخهٔ سرور (TTL) → reconnect کنترل‌شدهٔ خودمان
+            es.addEventListener('close', function (ev) {
+                markHealthy();
+
+                var retry = sseRetryMs();
+                try {
+                    var d = JSON.parse(ev.data || '{}');
+                    if (d && Number(d.retry) >= 500) { retry = Number(d.retry); }
+                } catch (e) { /* پیش‌فرض */ }
+
+                closeEs();
+                fireState(true); // gap چندثانیه‌ای کوتاه‌چرخه «قطعی» نیست — صفحات بیدار نشوند
+                scheduleReconnect(retry);
+            });
+
+            es.onopen = function () { esOpenedAt = Date.now(); fireState(true); };
             es.onerror = function () {
-                // EventSource خودش دوباره وصل می‌شود؛ اینجا فقط وضعیت را
-                // گزارش می‌کنیم تا صفحات به پولینگ اضطراری برگردند.
                 fireState(false);
+
+                var hard = isHardFailure();
+                var closed = es && es.readyState === 2; // CLOSED — مرورگر دیگر reconnect نمی‌شود (مثلاً 401)
+
+                if (closed) { closeEs(); }
+
+                if (hard) {
+                    recordFailure(); // ۳ بار در ۶۰ ثانیه → تعلیق + پولینگ اضطراری
+                }
+
+                if (!es) {
+                    // یا CLOSED شده، یا تعلیق فعال شده — خودمان با فاصلهٔ امن وصل شویم
+                    scheduleReconnect(hard ? suspendDelay() : sseRetryMs());
+                }
+                // در حالت CONNECTING مرورگر خودش طبق retry: سرور ادامه می‌دهد
             };
         } catch (e) {
             es = null;
@@ -180,25 +301,32 @@
     /* ================================================================ */
 
     /* فاز ۱۳ — بهینه‌سازی سرعت هاست اشتراکی:
-       هر استریم SSE یک پروسهٔ PHP را تا ~۴ دقیقه اشغال می‌کند. تب‌های
-       پس‌زمینه (غیرفعال) به رویدادِ لحظه‌ای نیاز ندارند — اتصال آن‌ها را
-       می‌بندیم تا پروسه‌ها آزاد بمانند (سقف Entry Processes هاست). با
-       بازگشت به تب، همان لحظه دوباره وصل می‌شود. در حالت پنهان، وضعیت
-       «وصل» برای صفحات دست‌نخورده می‌ماند تا پولینگ اضطراری روشن نشود. */
+       هر استریم SSE یک پروسهٔ PHP را تا ~TTL (فاز ۵۹-c: ~۲۵ ثانیه) اشغال
+       می‌کند. تب‌های پس‌زمینه (غیرفعال) به رویدادِ لحظه‌ای نیاز ندارند —
+       اتصال آن‌ها را می‌بندیم تا پروسه‌ها آزاد بمانند (سقف Entry Processes
+       هاست). با بازگشت به تب، همان لحظه دوباره وصل می‌شود. در حالت پنهان،
+       وضعیت «وصل» برای صفحات دست‌نخورده می‌ماند تا پولینگ اضطراری روشن نشود. */
     var pausedHidden = false;
 
     document.addEventListener('visibilitychange', function () {
         if (!sseActive()) { return; }
 
         if (document.hidden) {
+            if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
             if (es) {
                 try { es.close(); } catch (e) { /* noop */ }
                 es = null;
                 pausedHidden = true;
             }
-        } else if (pausedHidden) {
+        } else if (!es) {
             pausedHidden = false;
-            if (!es) { connectSse(); }
+            if (Date.now() < suspendedUntil) {
+                // تعلیق فعال است — اما کاربر همین حالا صفحه را می‌بیند:
+                // یک تلاش «گریس» اگر از آخرین تلاش ≥۱۰ ثانیه گذشته باشد
+                if (Date.now() - lastAttemptAt > 10000) { connectSse(true); }
+            } else {
+                connectSse();
+            }
         }
     });
 
@@ -321,10 +449,10 @@
             // باز شده و حالا توکن رسید → ببند و با توکن از نو باز کن
             if (sseActive()) {
                 if (cfg.sse_token && !esTokenUsed) {
-                    try { if (es) { es.close(); } } catch (e) { /* noop */ }
-                    es = null;
+                    closeEs();
+                    suspendedUntil = 0; // توکن تازه رسید → تعلیق قبلی بی‌معناست
                 }
-                if (!es) { connectSse(); }
+                if (!es) { connectSse(true); } // force — احراز تازه‌شده باید تلاش کند
             }
             return active();
         },

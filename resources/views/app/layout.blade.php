@@ -143,7 +143,7 @@
      re-init هدر/ناوبری با CN.onNavigate --}}
 {{-- Realtime پوشر (فاز ۱۳): پیکربندی عمومی CSP-safe؛ کانال شخصی کاربر از API /realtime/config --}}
 <script src="{{ asset('assets/js/vendor/pusher.min.js') }}?v=1" data-navigate-once></script>
-<script src="{{ asset('assets/js/realtime.js') }}?v=7" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(null))'></script>
+<script src="{{ asset('assets/js/realtime.js') }}?v=8" data-navigate-once data-rt-config='@json(app(\App\Services\Realtime\PusherService::class)->clientConfig(null))'></script>
 <script src="{{ asset('front/assets/js/core.js') }}?v=17" data-navigate-once defer></script>
 <script src="{{ asset('assets/js/lightbox.js') }}?v=1" data-navigate-once defer></script>
 <script src="{{ asset('assets/js/jalali-datepicker.js') }}?v=3" defer></script>

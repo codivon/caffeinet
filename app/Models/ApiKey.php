@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class ApiKey extends Model
 {
-    protected $fillable = ['name', 'key', 'is_internal'];
+    protected $fillable = ['name', 'key', 'key_hash', 'key_hint', 'is_internal'];
 
     protected $casts = [
         'is_internal'   => 'boolean',
@@ -32,6 +32,12 @@ class ApiKey extends Model
     ];
 
     /** تولید کلید خودکار — cnk_ + ۴۰ نویسهٔ هگز تصادفی (کریپتو-امن) */
+    /** فاز ۵۹ (F6) — هش SHA-256 کلید برای ذخیرهٔ امن (متن ساده نگهداری نمی‌شود) */
+    public static function hashFor(string $plain): string
+    {
+        return hash('sha256', $plain);
+    }
+
     public static function generate(): string
     {
         return 'cnk_' . bin2hex(random_bytes(20));

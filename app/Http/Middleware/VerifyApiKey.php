@@ -33,7 +33,9 @@ class VerifyApiKey
             return $this->deny('کلید وب‌سرویس ارسال نشده است؛ هدر «X-Api-Key» الزامی است.');
         }
 
-        $apiKey = ApiKey::query()->where('key', $provided)->first();
+        // فاز ۵۹ (F6) — جستجو با هش؛ فال‌بک به متن ساده برای کلید داخلی و کلیدهای قدیمی
+        $apiKey = ApiKey::query()->where('key_hash', hash('sha256', $provided))->first()
+            ?? ApiKey::query()->where('key', $provided)->first();
 
         if (! $apiKey) {
             return $this->deny('کلید وب‌سرویس نامعتبر است.');

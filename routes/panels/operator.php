@@ -12,8 +12,8 @@ Route::prefix('operator')->name('operator.')->group(function () {
        POST fallback و خروج همان کنترلر باقی مانده است) */
     Route::get('login', \App\Livewire\Operator\Auth\Login::class)
         ->name('login');
-    Route::post('login', [App\Http\Controllers\Back\Operator\AuthController::class, 'login'])
-        ->name('login.attempt');
+    /* فاز ۵۹ (F1 ممیزی) — POST fallback ورود حذف شد: نه کپچا می‌خواست نه 2FA (دور زدن امنیت فاز ۵۰).
+       فرم لاگین Livewire تنها درگاه ورود است؛ درخواست POST به این مسیر 405 می‌گیرد. */
 
     Route::middleware(['role:operator', 'operator.context'])->group(function () {
         Route::post('logout', [App\Http\Controllers\Back\Operator\AuthController::class, 'logout'])

@@ -41,6 +41,9 @@ class Index extends Component
 
     public function mount(Coffeenet $coffeenet): void
     {
+        // فاز ۵۹ (F2 ممیزی) — گارد تنانت: کافی‌نتِ مسیر باید همان کافی‌نتِ جلسه باشد
+        abort_unless(request()->attributes->get('current_coffeenet')?->id === $coffeenet->id, 403);
+
         $this->coffeenet = $coffeenet;
     }
 

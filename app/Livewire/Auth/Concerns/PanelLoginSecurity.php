@@ -166,7 +166,7 @@ trait PanelLoginSecurity
         $user = User::find($uid);
         $expect = $user ? Cache::get('panel-2fa:'.$user->id) : null;
 
-        if (! $user || ! is_string($expect) || trim($this->twoFaCode) !== $expect) {
+        if (! $user || ! is_string($expect) || ! hash_equals($expect, trim($this->twoFaCode))) { // فاز ۵۹ (F9): مقایسهٔ timing-safe
             RateLimiter::hit($key, 60);
             $this->addError('twoFaCode', 'کد واردشده درست نیست یا منقضی شده است.');
 

@@ -233,13 +233,18 @@
                     {{-- کی‌باکس ترمینالی: مقدار + نمایش + کپی --}}
                     <div class="ak-keybox" x-data="{ show: false, copied: false }">
                         <code>
-                            <span x-show="show" style="display:none">{{ $k->key }}</span><span x-show="!show" class="ak-masked">{{ mask_key($k->key) }}</span>
+                            @if ($k->key_hash)
+                                {{-- فاز ۵۹ (F6) — کلید هش‌شده: مقدار خام فقط در لحظهٔ ساخت یک‌بار نمایش داده شد --}}
+                                <span class="ak-masked" title="ذخیرهٔ امن (SHA-256) — مقدار خام قابل بازیابی نیست">cnk_••••••••{{ $k->key_hint }}</span>
+                            @else
+                                <span x-show="show" style="display:none">{{ $k->key }}</span><span x-show="!show" class="ak-masked">{{ mask_key($k->key) }}</span>
+                            @endif
                         </code>
-                        <button type="button" class="ak-keybox-btn" @click="show = !show" :aria-pressed="show" :title="show ? 'پنهان‌کردن' : 'نمایش کلید'" aria-label="نمایش/پنهان‌کردن کلید">
+                        <button type="button" class="ak-keybox-btn" @click="show = !show" :aria-pressed="show" :title="show ? 'پنهان‌کردن' : 'نمایش کلید'" aria-label="نمایش/پنهان‌کردن کلید" @if ($k->key_hash) style="display:none" @endif>
                             <svg x-show="!show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
                             <svg x-show="show" x-cloak viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.744 10.744 0 0 1-1.744 2.8"/><path d="M6.21 6.21a10.744 10.744 0 0 0-3.948 6.036 1 1 0 0 0 0 .696 10.75 10.75 0 0 0 15.246 4.67"/><path d="m2 2 20 20"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
                         </button>
-                        <button type="button" class="ak-keybox-btn" :class="copied && 'is-copied'" :title="copied ? 'کپی شد!' : 'کپی کلید'" aria-label="کپی کلید"
+                        <button type="button" class="ak-keybox-btn" :class="copied && 'is-copied'" :title="copied ? 'کپی شد!' : 'کپی کلید'" aria-label="کپی کلید" @if ($k->key_hash) style="display:none" @endif
                                 @click="navigator.clipboard && navigator.clipboard.writeText('{{ $k->key }}').then(() => { copied = true; setTimeout(() => copied = false, 1600) })">
                             <svg x-show="!copied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                             <svg x-show="copied" x-cloak viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>

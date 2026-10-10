@@ -33,6 +33,9 @@ class Conversation extends Component
 
     public function mount(Coffeenet $coffeenet, Order $order): void
     {
+        // فاز ۵۹ (F2 ممیزی) — گارد تنانت: کافی‌نتِ مسیر باید همان کافی‌نتِ جلسه باشد
+        abort_unless(request()->attributes->get('current_coffeenet')?->id === $coffeenet->id, 403);
+
         // عیناً assertOrderOfCoffeenet کنترلر
         abort_unless((int) $order->coffeenet_id === (int) $coffeenet->id, 404, 'سفارش یافت نشد.');
 

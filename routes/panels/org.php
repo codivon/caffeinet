@@ -11,8 +11,8 @@ Route::prefix('organization')->name('org.')->group(function () {
     /* [Task 6] ورود → کامپوننت Livewire (منطق showLogin/login AuthController منتقل شده؛ POST attempt همان کنترلر) */
     Route::get('login', \App\Livewire\Org\Auth\Login::class)
         ->name('login');
-    Route::post('login', [App\Http\Controllers\Back\Org\AuthController::class, 'login'])
-        ->name('login.attempt');
+    /* فاز ۵۹ (F1 ممیزی) — POST fallback ورود حذف شد: نه کپچا می‌خواست نه 2FA (دور زدن امنیت فاز ۵۰).
+       فرم لاگین Livewire تنها درگاه ورود است؛ درخواست POST به این مسیر 405 می‌گیرد. */
 
     Route::middleware(['role:org_manager', 'org.context'])->group(function () {
         Route::post('logout', [App\Http\Controllers\Back\Org\AuthController::class, 'logout'])
