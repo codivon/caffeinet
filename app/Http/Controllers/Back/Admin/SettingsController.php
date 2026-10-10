@@ -62,6 +62,8 @@ class SettingsController extends Controller
             'payment.sep.terminal_id', 'payment.sepehr.terminal_id',
         ],
         'staff' => ['staff.hiring.mode'],
+        // فاز ۶۰ — صفحهٔ عمومی «درباره/اعتماد» (/about): متن معرفی + سوالات متداول
+        'about' => ['about.intro', 'about.faq'],
         // v40 — سرویس استعلام فینوتک (شاهکار + کارت)
         'finnotech' => [
             'finnotech.enabled',
@@ -401,6 +403,52 @@ class SettingsController extends Controller
             // هاست/پورت سفارشی فقط وقتی معنا دارد که روش، پوشر باشد
             if ($pairs['realtime.method'] !== 'pusher') {
                 unset($pairs['realtime.pusher.host'], $pairs['realtime.pusher.port'], $pairs['realtime.pusher.scheme']);
+            }
+        }
+
+        /* فاز ۶۰ — گروه about: متن معرفی (سقف کاراکتر) + تبدیل FAQ از فرمت
+           سادهٔ textarea (هر خط «سوال | جواب») به آرایهٔ {q,a} — مقدار json
+           در settings ذخیره می‌شود و صفحهٔ /about مستقیم از همان می‌خواند.
+           ⚠ نکته: ConvertEmptyStringsToNull مقدار خالی را null می‌کند و فیلتر
+           پایین آن را می‌اندازد؛ اما برای این گروه «خالی کردن فیلد» معنا دارد
+           (بازگشت به پیش‌فرض کد) → دو کلید مستقیماً از ورودی خام خوانده می‌شود. */
+        if ($data['group'] === 'about') {
+            if (array_key_exists('about.intro', $data['values'])) {
+                $pairs['about.intro'] = trim((string) $data['values']['about.intro']);
+
+                if (mb_strlen($pairs['about.intro']) > 2000) {
+                    return response()->json(['message' => 'متن معرفی حداکثر ۲۰۰۰ کاراکتر است.'], 422);
+                }
+            }
+
+            if (array_key_exists('about.faq', $data['values'])) {
+                $faqItems = [];
+
+                foreach (preg_split('/\r\n|\r|\n/', (string) $data['values']['about.faq']) as $line) {
+                    $line = trim($line);
+                    if ($line === '') {
+                        continue;
+                    }
+
+                    $sep = mb_strpos($line, '|');
+                    $q = trim($sep === false ? $line : mb_substr($line, 0, $sep));
+                    $a = $sep === false ? '' : trim(mb_substr($line, $sep + 1));
+
+                    // خط بدون «|» یا بدون جواب ناقص است → رد می‌شود (نه خطا)
+                    if ($q === '' || $a === '') {
+                        continue;
+                    }
+
+                    $faqItems[] = ['q' => mb_substr($q, 0, 200), 'a' => mb_substr($a, 0, 1500)];
+                }
+
+                if (count($faqItems) > 30) {
+                    return response()->json(['message' => 'حداکثر ۳۰ سوال متداول مجاز است.'], 422);
+                }
+
+                // آرایهٔ تمیز: SettingsService::set برای cast=json خودش json_encode می‌کند؛
+                // خالی → [] ذخیره می‌شود و صفحهٔ about به پیش‌فرض کد برمی‌گردد.
+                $pairs['about.faq'] = $faqItems;
             }
         }
 

@@ -185,6 +185,33 @@ class PaymentGatewayService
     }
 
     /**
+     * فاز ۶۰ — لینک پرداخت سریع (همان URL امضاشدهٔ ۲۰ دقیقه‌ای).
+     * بازاستفاده از paymentUrl — منطق امضا فقط یک‌جا ساخته می‌شود؛
+     * برای نمایش/کپی/QR در پنل ستافی و اپ مشتری استفاده می‌شود.
+     */
+    public function paymentLink(Payment $payment): string
+    {
+        return $this->paymentUrl($payment);
+    }
+
+    /** فاز ۶۰ — سفارشِ قابل پرداخت؟ (عمومی برای پنل ستافی/اپ مشتری) */
+    public function isPayable(Order $order): bool
+    {
+        return $this->payable($order);
+    }
+
+    /**
+     * فاز ۶۰ — آخرین Payment معلقِ آنلاین سفارش (بدون اثر جانبی).
+     * برای نمایش «کپی لینک پرداخت» فقط پرداختِ از قبل معلق برگردانده می‌شود؛
+     * ساختنِ پرداخت جدید تنها با اکشن صریح (startOnline) انجام می‌شود.
+     */
+    public function pendingOnlinePayment(Order $order): ?Payment
+    {
+        return $order->payments
+            ->first(fn (Payment $p) => $p->status === PaymentStatus::Pending && ! $p->isForWallet());
+    }
+
+    /**
      * مسیر نسبیِ همان لینک امضاشده (بدون دامنه) — برای redirect درون‌برنامه‌ای؛
      * هم در لوکال، هم پشت گیت‌وی (با ?XTransformPort=) و هم روی دامنهٔ واقعی کار می‌کند.
      */

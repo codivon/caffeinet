@@ -162,36 +162,7 @@ class SmsLogs extends Component
 
     public function render()
     {
-        $query = SmsLog::query();
-
-        if ($q = trim($this->q)) {
-            $digits = en_digits($q);
-            $query->where(function ($w) use ($q, $digits) {
-                $w->where('mobile', 'like', "%{$digits}%")
-                    ->orWhere('template_key', 'like', "%{$q}%")
-                    ->orWhere('message', 'like', "%{$q}%");
-            });
-        }
-
-        if (in_array($this->status, ['sent', 'failed'], true)) {
-            $query->where('status', $this->status);
-        }
-
-        if ($provider = trim($this->provider)) {
-            $query->where('provider', $provider);
-        }
-
-        if ($from = trim($this->from)) {
-            if ($c = jalali_or_iso_to_carbon($from, '00:00')) {
-                $query->where('created_at', '>=', $c);
-            }
-        }
-
-        if ($to = trim($this->to)) {
-            if ($c = jalali_or_iso_to_carbon($to, '23:59')) {
-                $query->where('created_at', '<=', $c);
-            }
-        }
+        $query = self::filterQuery($this->q, $this->status, $this->provider, $this->from, $this->to);
 
         $logs = $query->latest('id')->paginate(25);
 
@@ -221,6 +192,46 @@ class SmsLogs extends Component
     }
 
     /* ---------------- داخلی ---------------- */
+
+    /**
+     * فاز ۶۰ — کوئری فیلترشدهٔ لاگ پیامک (مشترک بین render() و خروجی CSV):
+     * جستجو در موبایل/متن/کلید قالب + فیلتر وضعیت/پرووایدر/بازهٔ شمسی یا ISO.
+     */
+    public static function filterQuery(string $q, string $status, string $provider, string $from, string $to): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = SmsLog::query();
+
+        if ($q = trim($q)) {
+            $digits = en_digits($q);
+            $query->where(function ($w) use ($q, $digits) {
+                $w->where('mobile', 'like', "%{$digits}%")
+                    ->orWhere('template_key', 'like', "%{$q}%")
+                    ->orWhere('message', 'like', "%{$q}%");
+            });
+        }
+
+        if (in_array($status, ['sent', 'failed'], true)) {
+            $query->where('status', $status);
+        }
+
+        if ($provider = trim($provider)) {
+            $query->where('provider', $provider);
+        }
+
+        if ($from = trim($from)) {
+            if ($c = jalali_or_iso_to_carbon($from, '00:00')) {
+                $query->where('created_at', '>=', $c);
+            }
+        }
+
+        if ($to = trim($to)) {
+            if ($c = jalali_or_iso_to_carbon($to, '23:59')) {
+                $query->where('created_at', '<=', $c);
+            }
+        }
+
+        return $query;
+    }
 
     private function currentRetention(): int
     {

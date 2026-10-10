@@ -42,10 +42,30 @@ class PanelSessions extends Component
     /** فهرست نشست‌های کاربر فعلی با پارس دستگاه */
     public function render()
     {
+        $rows = self::activeSessions();
+
+        return view('livewire.admin.core.panel-sessions', [
+            'sessions' => $rows,
+        ])->layoutData([
+            'user' => auth()->user(),
+            'pageTitle' => 'نشست‌های فعال',
+            'breadcrumb' => 'پنل مدیریت کل ← تنظیمات ← نشست‌های فعال',
+            'htmlTitle' => 'نشست‌های فعال',
+        ]);
+    }
+
+    /* ---------------- داخلی ---------------- */
+
+    /**
+     * فاز ۶۰ — نشست‌های فعال کاربر جاری (بین render() و خروجی CSV مشترک):
+     * هر ردیف جدول sessions = یک دستگاه واردشده با همین حساب.
+     */
+    public static function activeSessions(): \Illuminate\Support\Collection
+    {
         $currentId = request()->session()->getId();
         $userId = auth()->id();
 
-        $rows = DB::table('sessions')
+        return DB::table('sessions')
             ->where('user_id', $userId)
             ->orderByDesc('last_activity')
             ->limit(50)
@@ -63,15 +83,6 @@ class PanelSessions extends Component
                     'last_ts' => (int) $row->last_activity,
                 ];
             });
-
-        return view('livewire.admin.core.panel-sessions', [
-            'sessions' => $rows,
-        ])->layoutData([
-            'user' => auth()->user(),
-            'pageTitle' => 'نشست‌های فعال',
-            'breadcrumb' => 'پنل مدیریت کل ← تنظیمات ← نشست‌های فعال',
-            'htmlTitle' => 'نشست‌های فعال',
-        ]);
     }
 
     /** «لپ‌تاپ ویندوزی» / «موبایل اندروید» / ... */

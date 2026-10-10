@@ -27,6 +27,12 @@ Route::get('/', \App\Livewire\Front\Landing::class)->name('front.landing');
 /* فاز ۵۲ — وضعیت زندهٔ کافی‌نت‌ها (صفحهٔ عمومی؛ سوییچ features.status_page) */
 Route::get('/status', \App\Livewire\Front\StatusBoard::class)->name('front.status');
 
+/* فاز ۶۰ — صفحهٔ عمومی «درباره/اعتماد» (محتوای intro/FAQ از تنظیمات؛ پیش‌فرض در کد).
+| لینک از فوتر لندینگ؛ throttle ملایم مثل بقیهٔ صفحات عمومیِ سبک. */
+Route::get('about', \App\Livewire\Front\About::class)
+    ->middleware('throttle:60,1')
+    ->name('front.about');
+
 /* ---------- v37 — بیکن حضور: «برنامه بسته شد» (pagehide) ----------
 | push-client.js روی همهٔ لایه‌ها با sendBeacon این مسیر را صدا می‌زند تا
 | بستن برنامه همان لحظه «آفلاین» ثبت شود (اپ مشتری با توکن Sanctum در

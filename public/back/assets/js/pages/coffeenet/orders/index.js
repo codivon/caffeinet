@@ -10,6 +10,13 @@
     const BASE = PAGE.base;
     const TIMEOUT = PAGE.timeout || 60;
 
+    /* فاز ۶۰ — برچسب‌های چندزبانهٔ دکمهٔ «کپی لینک پرداخت» (از data-attributeهای #page-data) */
+    const COPY_PAY = {
+        label: document.getElementById('page-data')?.getAttribute('data-copy-pay-label') || 'کپی لینک پرداخت',
+        toast: document.getElementById('page-data')?.getAttribute('data-copy-pay-toast') || 'لینک پرداخت کپی شد.',
+        title: document.getElementById('page-data')?.getAttribute('data-copy-pay-title') || 'لینک امضاشدهٔ ۲۰ دقیقه‌ای برای پرداخت مشتری',
+    };
+
     const POLL_MS = 4000;
     const RING_C = 2 * Math.PI * 26; // محیط دایرهٔ شمارش معکوس (r=26, viewBox 64)
 
@@ -338,6 +345,7 @@
                     <div class="flex items-center justify-center gap-1.5">
                         ${canRefer ? `<button type="button" class="act-refer btn-primary !py-1.5 !px-3 !text-[11px]" data-id="${row.id}" data-number="${escapeHtml(row.order_number)}" title="ارجاع به اپراتور">${row.operator_name ? 'تغییر اپراتور' : 'ارجاع به اپراتور'}</button>` : ''}
                         ${canChat ? `<a href="${PAGE.base}/${row.id}/chat" class="btn-ghost !py-1.5 !px-3 !text-[11px]" title="گفتگوی سفارش">گفتگو</a>` : ''}
+                        ${row.payment_url ? `<button type="button" class="act-copy-pay btn-ghost !py-1.5 !px-3 !text-[11px]" data-ak-copy="${escapeHtml(row.payment_url)}" data-toast="${escapeHtml(COPY_PAY.toast)}" title="${escapeHtml(COPY_PAY.title)}">${escapeHtml(COPY_PAY.label)}</button>` : ''}
                     </div>
                 </td>
             </tr>`;

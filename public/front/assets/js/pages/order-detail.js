@@ -199,6 +199,9 @@
         /* کارت پرداخت — فاز ۱۲: accepted = فاکتور داخل چت؛ legacy pending_payment = کارت جدا */
         renderPayment();
 
+        /* فاز ۶۰ — لینک پرداخت برای اشتراک‌گذاری + QR سفارش/پرداخت */
+        renderShareCard(o);
+
         /* کارت لغو — تا قبل از پرداخت (v31: بین «وضعیت‌های پیش از اتصال» و شیت اطلاعات جابه‌جا می‌شود) */
         placeCancel(o);
 
@@ -946,6 +949,149 @@
                 if (invNoteEl) { invNoteEl.textContent = 'برای شروع کار اپراتور، پرداخت را تکمیل کنید.'; }
             }
         }
+    }
+
+    /* ---------- فاز ۶۰ — لینک پرداخت برای اشتراک‌گذاری + QR سفارش/پرداخت ----------
+       قابل پرداخت (accepted/pending_payment بدون paid_at):
+         • Payment معلق آنلاین داریم (payment_url از API) → QR لینک امضاشده + کپی
+         • نداریم → دکمهٔ «ساخت لینک» (همان POST orders/{id}/pay، بدون ریدایرکت)
+       پرداخت‌شده → QR رسید (شماره سفارش + مبلغ + تاریخ) برای اسکن حضوری. */
+    function drawAkQr(el, text, size) {
+        if (!el) { return; }
+        if (!text) { el.innerHTML = ''; el.__akText = ''; return; }
+        /* فاز ۶۰ — گارد فقط با بچهٔ واقعی (img/canvas) — اگر DOM بین رندرها
+           از بیرون (مورف لایووایر/ری‌بیلد) تراشیده شده باشد، دوباره رسم کن */
+        if (el.__akText === text && el.querySelector('img, canvas')) { return; }
+
+        el.innerHTML = '';
+        el.__akText = text;
+
+        try {
+            if (!window.QRCode) { throw new Error('QRCode lib missing'); }
+            new QRCode(el, {
+                text: text,
+                width: size || 132,
+                height: size || 132,
+                colorDark: '#1c1917',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        } catch (e) {
+            el.innerHTML = '<span class="ak-qr-fallback">QR</span>';
+        }
+    }
+
+    function renderShareCard(o) {
+        var cardEl = document.getElementById('payShareCard');
+        if (!cardEl) { return; }
+
+        var payable = (o.status === 'accepted' || o.status === 'pending_payment') && !o.is_paid;
+        var paidDone = !!(o.is_paid || o.status === 'paid');
+
+        /* فقط وقتی قابل پرداخت یا پرداخت‌شده دیده می‌شود */
+        cardEl.classList.toggle('hidden', !payable && !paidDone);
+        if (!payable && !paidDone) { return; }
+
+        var titleEl = document.getElementById('shareCardTitle');
+        var linkBlock = document.getElementById('shareLinkBlock');
+        var emptyBlock = document.getElementById('shareEmptyBlock');
+        var receiptBlock = document.getElementById('shareReceiptBlock');
+        var qrEl = document.getElementById('shareQr');
+        var receiptQrEl = document.getElementById('receiptQr');
+        var copyBtn = document.getElementById('shareCopyBtn');
+
+        if (payable) {
+            if (titleEl) { titleEl.textContent = cardEl.getAttribute('data-share-title') || titleEl.textContent; }
+
+            var hasLink = !!o.payment_url;
+            if (linkBlock) { linkBlock.classList.toggle('hidden', !hasLink); }
+            if (emptyBlock) { emptyBlock.classList.toggle('hidden', hasLink); }
+            if (receiptBlock) { receiptBlock.classList.add('hidden'); }
+
+            if (hasLink) {
+                drawAkQr(qrEl, o.payment_url, 132);
+                if (copyBtn) { copyBtn.setAttribute('data-ak-copy', o.payment_url); }
+            }
+        } else if (paidDone) {
+            if (titleEl) { titleEl.textContent = cardEl.getAttribute('data-receipt-title') || titleEl.textContent; }
+
+            if (linkBlock) { linkBlock.classList.add('hidden'); }
+            if (emptyBlock) { emptyBlock.classList.add('hidden'); }
+            if (receiptBlock) { receiptBlock.classList.remove('hidden'); }
+
+            var amountEl = document.getElementById('receiptAmount');
+            if (amountEl) { amountEl.textContent = CN.faMoneyUnit(o.total_amount) + (o.paid_at_fa ? ' — ' + o.paid_at_fa : ''); }
+
+            /* متن رسید: از سرور (receipt_text) یا ساخت محلی با همان الگو */
+            var receipt = o.receipt_text || ('ORDER:' + String(o.order_number || '').replace(/[^A-Za-z0-9\-]/g, '')
+                + '|AMOUNT:' + String(Math.round(Number(o.total_amount) || 0))
+                + '|PAID:' + String(o.paid_at || '').slice(0, 10).replace(/-/g, ''));
+            drawAkQr(receiptQrEl, receipt, 116);
+        }
+    }
+
+    /* ساخت لینک وقتی Payment معلق نیست — همان endpoint «پرداخت آنلاین» بدون ریدایرکت */
+    function createShareLink(btn) {
+        CN.btnLoading(btn, true, 'در حال ساخت لینک…');
+
+        CN.api('/orders/' + orderId + '/pay', {
+            method: 'POST',
+            data: { method: 'online' },
+            success: function (resp) {
+                CN.btnLoading(btn, false);
+                if (resp.payment_url) {
+                    if (order) { order.payment_url = resp.payment_url; }
+                    var cardEl0 = document.getElementById('payShareCard');
+                    CN.toast((cardEl0 && cardEl0.getAttribute('data-toast-created')) || 'لینک پرداخت ساخته شد؛ اعتبار ۲۰ دقیقه.', 'success');
+                    renderShareCard(order || {});
+                }
+            },
+            error: function (xhr, message) {
+                CN.btnLoading(btn, false);
+                CN.toast(message || 'ساخت لینک پرداخت ناموفق بود.', 'error');
+            }
+        });
+    }
+
+    var shareCreateBtnEl = document.getElementById('shareCreateBtn');
+    if (shareCreateBtnEl) {
+        shareCreateBtnEl.addEventListener('click', function () { createShareLink(shareCreateBtnEl); });
+    }
+
+    /* کپی لینک پرداخت (فال‌بک دستی برای مرورگرهای بدون clipboard API یا ردِ دسترسی) */
+    var shareCopyBtnEl = document.getElementById('shareCopyBtn');
+    if (shareCopyBtnEl) {
+        shareCopyBtnEl.addEventListener('click', function () {
+            var text = shareCopyBtnEl.getAttribute('data-ak-copy') || '';
+            if (!text) { return; }
+
+            var done = function () {
+                var card = document.getElementById('payShareCard');
+                CN.toast((card && card.getAttribute('data-toast-copied')) || 'لینک پرداخت کپی شد.', 'success');
+            };
+
+            var copyLegacy = function () {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.setAttribute('readonly', '');
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                var ok = false;
+                try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+                document.body.removeChild(ta);
+                return ok;
+            };
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(function () {
+                    if (copyLegacy()) { done(); }
+                });
+            } else if (copyLegacy()) {
+                done();
+            }
+        });
     }
 
     /* ---------- v31 — جایگذاری کارت لغو ----------

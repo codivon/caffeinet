@@ -139,28 +139,7 @@ class AuditLogs extends Component
 
     public function render()
     {
-        $query = \App\Models\AuditLog::with('user');
-
-        if ($q = trim($this->q)) {
-            $query->where(function ($w) use ($q) {
-                $w->where('action', 'like', "%{$q}%")
-                    ->orWhere('description', 'like', "%{$q}%")
-                    ->orWhereHas('user', fn ($u) => $u->where('email', 'like', "%{$q}%")
-                        ->orWhere('name', 'like', "%{$q}%"));
-            });
-        }
-
-        if ($from = trim($this->from)) {
-            if ($c = jalali_or_iso_to_carbon($from, '00:00')) {
-                $query->whereDate('created_at', '>=', $c->toDateString());
-            }
-        }
-
-        if ($to = trim($this->to)) {
-            if ($c = jalali_or_iso_to_carbon($to, '23:59')) {
-                $query->whereDate('created_at', '<=', $c->toDateString());
-            }
-        }
+        $query = self::filterQuery($this->q, $this->from, $this->to);
 
         $logs = $query->latest('id')->paginate(25);
 
@@ -177,6 +156,38 @@ class AuditLogs extends Component
     }
 
     /* ---------------- داخلی ---------------- */
+
+    /**
+     * فاز ۶۰ — کوئری فیلترشدهٔ لاگ فعالیت (مشترک بین render() و خروجی CSV):
+     * جستجو در action/description/کاربر + فیلتر بازهٔ شمسی یا ISO.
+     */
+    public static function filterQuery(string $q, string $from, string $to): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = \App\Models\AuditLog::with('user');
+
+        if ($q = trim($q)) {
+            $query->where(function ($w) use ($q) {
+                $w->where('action', 'like', "%{$q}%")
+                    ->orWhere('description', 'like', "%{$q}%")
+                    ->orWhereHas('user', fn ($u) => $u->where('email', 'like', "%{$q}%")
+                        ->orWhere('name', 'like', "%{$q}%"));
+            });
+        }
+
+        if ($from = trim($from)) {
+            if ($c = jalali_or_iso_to_carbon($from, '00:00')) {
+                $query->whereDate('created_at', '>=', $c->toDateString());
+            }
+        }
+
+        if ($to = trim($to)) {
+            if ($c = jalali_or_iso_to_carbon($to, '23:59')) {
+                $query->whereDate('created_at', '<=', $c->toDateString());
+            }
+        }
+
+        return $query;
+    }
 
     private function currentRetention(): int
     {

@@ -28,5 +28,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         require __DIR__.'/admin/orders.php';
         require __DIR__.'/admin/entities.php';
         require __DIR__.'/admin/finance.php';
+        /* فاز ۶۰ — خروجی CSV صفحات عملیاتی (فایل جدا تا با ویرایش‌های موازی تداخل نکند) */
+        require __DIR__.'/admin/exports.php';
     });
 });

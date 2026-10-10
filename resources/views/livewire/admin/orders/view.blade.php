@@ -127,6 +127,69 @@
             </div>
         </div>
 
+        {{-- فاز ۶۰ — پرداخت سریع: لینک امضاشدهٔ ۲۰ دقیقه‌ای + QR (اسکن پشت میز مشتری) --}}
+        @if ($paymentShare['payable'] || $paymentShare['paid'])
+            <div class="rounded-2xl border border-stone-100 bg-white p-4 animate-fade-up ak-qr-card" wire:key="quick-pay-card">
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <p class="text-[11px] font-extrabold text-stone-500 flex items-center gap-1.5">
+                        <svg class="size-3.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3z"/><path d="M21 14v3"/><path d="M14 21h3"/><path d="M21 21h.01"/></svg>
+                        {{ $paymentShare['payable'] ? __('chrome.f60.pay_share_title') : __('chrome.f60.receipt_qr_title') }}
+                    </p>
+                    @if ($paymentShare['payable'])
+                        <span class="text-[10px] text-stone-400">{{ __('chrome.f60.pay_share_hint') }}</span>
+                    @endif
+                </div>
+
+                @if ($paymentShare['payable'])
+                    {{-- وضعیت لینک فعال: URL امضاشده + کپی + QR --}}
+                    <div class="{{ $paymentShare['has_pending'] ? '' : 'hidden' }}" data-ak-paylink-block>
+                        <div class="flex flex-col sm:flex-row items-center gap-4">
+                            <div class="ak-qr shrink-0" data-ak-qr="{{ $paymentShare['payment_url'] }}" data-ak-qr-size="116" role="img" aria-label="{{ __('chrome.f60.pay_share_qr_aria') }}"></div>
+                            <div class="min-w-0 flex-1 w-full">
+                                <p class="text-[10px] text-stone-400 mb-1.5">{{ __('chrome.f60.pay_share_qr_hint') }}</p>
+                                <div class="flex items-center gap-2">
+                                    <code class="ak-qr-url font-mono text-[10px] text-stone-500" dir="ltr">{{ \Illuminate\Support\Str::limit((string) $paymentShare['payment_url'], 64) }}</code>
+                                    <button type="button" class="btn-ghost ui-press !py-1.5 !px-3 !text-[11px] shrink-0" data-ak-copy="{{ $paymentShare['payment_url'] }}" data-toast="{{ __('chrome.f60.pay_share_copied') }}">
+                                        <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                                        {{ __('chrome.f60.pay_share_copy') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- وضعیت بدون Payment معلق: ساخت لینک با همان مسیر «پرداخت آنلاین» مشتری --}}
+                    <div class="{{ $paymentShare['has_pending'] ? 'hidden' : '' }}" data-ak-paylink-empty>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                            {{-- فاز ۶۰ — تأیید با PanelUI.confirm (ساخت پرداخت معلق، پرداخت‌های معلق قبلی را باطل می‌کند) --}}
+                            <button type="button" x-data
+                                @click="window.PanelUI ? PanelUI.confirm({
+                                    title: '{{ __('chrome.f60.pay_share_confirm_title') }}',
+                                    desc: '{{ __('chrome.f60.pay_share_confirm_desc') }}',
+                                    okText: '{{ __('chrome.f60.pay_share_confirm_ok') }}',
+                                    cancelText: '{{ __('chrome.f60.pay_share_confirm_cancel') }}'
+                                }, () => $wire.createPaymentLink()) : $wire.createPaymentLink()"
+                                class="btn-primary btn-shine !py-2 !px-4 !text-xs shrink-0"
+                                wire:loading.attr="disabled" wire:target="createPaymentLink">
+                                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                {{ __('chrome.f60.pay_share_create') }}
+                            </button>
+                            <p class="text-[10px] leading-5 text-stone-400">{{ __('chrome.f60.pay_share_inactive_note') }}</p>
+                        </div>
+                    </div>
+                @else
+                    {{-- سفارش پرداخت‌شده: QR رسید (شماره سفارش + مبلغ + تاریخ) --}}
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                        <div class="ak-qr shrink-0" data-ak-qr="{{ $paymentShare['receipt_text'] }}" data-ak-qr-size="100" role="img" aria-label="{{ __('chrome.f60.receipt_qr_aria') }}"></div>
+                        <div class="min-w-0 text-[11px] leading-6 text-stone-500">
+                            <p class="font-bold text-stone-600">{{ __('chrome.f60.receipt_qr_line1') }}</p>
+                            <p>{{ __('chrome.f60.receipt_qr_line2') }} <strong class="text-amber-700 tabular-nums">{{ fa_money($paymentShare['amount']) }}</strong></p>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        @endif
+
         {{-- زمان‌ها --}}
         <div class="card animate-fade-up p-4">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -475,4 +538,12 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/pages/ratings.css') }}?v=1">
+{{-- فاز ۶۰ — استایل باکس QR پرداخت/رسید (namespace .ak-qr + دارک‌مود) --}}
+<link rel="stylesheet" href="{{ asset('assets/css/pages/order-qr.css') }}?v=2">
+@endpush
+
+@push('scripts')
+{{-- فاز ۶۰ — کتابخانهٔ QR (qrcodejs 1.0.0 — بدون Node) + رندر سمت کلاینت --}}
+<script src="{{ asset('assets/js/vendor/qrcode.min.js') }}?v=60" defer></script>
+<script src="{{ asset('back/assets/js/pages/order-qr.js') }}?v=3" defer></script>
 @endpush

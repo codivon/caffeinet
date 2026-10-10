@@ -118,6 +118,10 @@ Route::prefix('v1')->name('api.')->middleware(['api.key', 'api.usage'])->group(f
         Route::get('me/stats', [\App\Http\Controllers\Api\V1\StatsController::class, 'stats'])
             ->name('me.stats');
 
+        /* فاز ۶۰ — کارت «سفارش مجدد» داشبورد مشتری (تا ۴ خدمت پرتکرار خودش) */
+        Route::get('me/reorder', [\App\Http\Controllers\Api\V1\CatalogController::class, 'reorder'])
+            ->middleware('throttle:30,1')->name('me.reorder');
+
         /* فاز ۵۳ — حساب خانواده/تیمی (زیرحساب با کیف مشترک + سقف خرج) */
         Route::get('family', [FamilyController::class, 'index'])->name('family.index');
         Route::post('family', [FamilyController::class, 'store'])

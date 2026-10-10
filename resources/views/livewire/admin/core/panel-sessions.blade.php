@@ -59,12 +59,21 @@
     {{-- ================== فهرست دستگاه‌ها ================== --}}
     <section class="ps-section animate-fade-up" style="animation-delay:.06s" aria-label="دستگاه‌های واردشده">
         <div class="ps-section-head">
-            <h2 class="ps-section-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="8" x="5" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 18h.01"/><path d="M10 18h.01"/></svg>
-                دستگاه‌ها
-                <span class="ps-count-badge">{{ fa_number($sessions->count()) }}</span>
-            </h2>
-            <span class="ps-section-hint">نشست‌های بیش از ۲۴ ساعت بی‌فعالیت در این فهرست نمی‌آیند</span>
+            <div class="ps-section-meta">
+                <h2 class="ps-section-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="8" x="5" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 18h.01"/><path d="M10 18h.01"/></svg>
+                    دستگاه‌ها
+                    <span class="ps-count-badge">{{ fa_number($sessions->count()) }}</span>
+                </h2>
+                <span class="ps-section-hint">نشست‌های بیش از ۲۴ ساعت بی‌فعالیت در این فهرست نمی‌آیند</span>
+            </div>
+
+            {{-- فاز ۶۰ — خروجی CSV نشست‌های فعال جاری --}}
+            <a href="{{ route('admin.exports.panel-sessions') }}"
+               class="btn-ghost !py-2.5 !px-4 !text-xs ui-press" title="دانلود فهرست نشست‌های فعال به‌صورت CSV">
+                <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                {{ __('chrome.common.export_csv') }}
+            </a>
         </div>
 
         <div class="ps-devices">
@@ -112,5 +121,5 @@
 </div>
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('assets/css/pages/panel-sessions.css') }}?v=1">
+    <link rel="stylesheet" href="{{ asset('assets/css/pages/panel-sessions.css') }}?v=2">
 @endpush

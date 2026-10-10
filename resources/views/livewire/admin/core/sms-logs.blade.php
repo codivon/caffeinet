@@ -132,6 +132,13 @@
             <button type="button" wire:click="resetFilters" class="btn-ghost !py-2.5 !px-3 !text-xs" title="پاک کردن فیلترها" aria-label="پاک کردن فیلترها">
                 <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
             </button>
+
+            {{-- فاز ۶۰ — خروجی CSV با همان فیلتر فعال صفحه (سقف ۵۰۰۰ ردیف) --}}
+            <a href="{{ route('admin.exports.sms-logs', array_filter(['q' => $q, 'status' => $status, 'provider' => $provider, 'from' => $from, 'to' => $to], fn ($v) => $v !== '' && $v !== null)) }}"
+               class="btn-ghost !py-2.5 !px-4 !text-xs ui-press ms-auto" title="خروجی CSV با فیلترهای فعال — سقف ۵۰۰۰ ردیف">
+                <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                {{ __('chrome.common.export_csv') }}
+            </a>
         </div>
 
         {{-- جدول --}}

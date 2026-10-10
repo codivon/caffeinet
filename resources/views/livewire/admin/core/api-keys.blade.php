@@ -4,9 +4,12 @@
      • حذف با مودال تأیید (PanelUI.confirm — danger)
      • همهٔ درخواست‌های /api/v1 باید هدر «X-Api-Key» را بفرستند (میدل‌ویر api.key)
      • کلید داخلی وب‌اپ حذف‌شدنی نیست.
+     فاز ۶۰ — بخش «تحویل‌های وب‌هوک» (تاریخچهٔ ۲۰ ارسال آخر با بج رنگی کد پاسخ،
+     فیلتر وب‌هوک/وضعیت، بازارسال دستی با PanelUI.confirm و توست نتیجه) + دکمهٔ
+     «خروجی CSV» اینسایت مصرف (روت admin.exports.api-usage).
      استایل: assets/css/pages/api-keys.css (خودکفا + دارک‌مود) --}}
 @push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/pages/api-keys.css') }}?v=1">
+<link rel="stylesheet" href="{{ asset('assets/css/pages/api-keys.css') }}?v=2">
 @endpush
 <div x-data>
 <style>[x-cloak]{display:none!important}</style>
@@ -111,7 +114,14 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                     چه کسانی از API استفاده می‌کنند؟
                 </h2>
-                <span class="ak-section-hint">۳۰ روز اخیر — ثبت خودکار هر درخواست</span>
+                <span class="ak-section-side">
+                    <span class="ak-section-hint">۳۰ روز اخیر — ثبت خودکار هر درخواست</span>
+                    {{-- فاز ۶۰ — خروجی CSV اینسایت مصرف (به‌ازای کاربر) --}}
+                    <a href="{{ route('admin.exports.api-usage') }}" class="ak-csv-btn" title="دانلود مصرف ۳۰ روز اخیر به‌ازای هر کاربر (CSV)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                        {{ __('chrome.common.export_csv') }}
+                    </a>
+                </span>
             </div>
 
             {{-- نوار آمار مصرف --}}
@@ -378,6 +388,116 @@
                 وب‌هوک جدید
             </button>
         </div>
+    </section>
+
+    {{-- ================== تحویل‌های وب‌هوک (فاز ۶۰ — تاریخچهٔ ارسال + بازارسال دستی) ================== --}}
+    <section class="ak-card ak-in" style="--d:.11s" aria-label="تحویل‌های وب‌هوک">
+        <div class="ak-section-head">
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38"/><path d="m9 17 3-3 3 3"/><path d="M12 14V2"/></svg>
+                {{ __('chrome.ak.deliveries.title') }}
+            </h2>
+            <span class="ak-section-hint">{{ __('chrome.ak.deliveries.hint') }}</span>
+        </div>
+
+        {{-- فیلتر ساده: وب‌هوک + وضعیت — محدودکنندهٔ همین ۲۰ رکورد صفحه --}}
+        <div class="ak-dl-filters">
+            <label class="sr-only" for="ak-dl-hook">{{ __('chrome.ak.deliveries.col_webhook') }}</label>
+            <select id="ak-dl-hook" class="field !py-2.5 !w-auto max-w-56 !text-xs cursor-pointer truncate" wire:model.live="dlHook">
+                <option value="">{{ __('chrome.ak.deliveries.all_hooks') }}</option>
+                @foreach ($webhooks as $wh)
+                    <option value="{{ $wh->id }}" @selected((string) $dlHook === (string) $wh->id)>{{ \Illuminate\Support\Str::limit($wh->url, 48, '…') }}</option>
+                @endforeach
+            </select>
+
+            <label class="sr-only" for="ak-dl-status">{{ __('chrome.ak.deliveries.col_code') }}</label>
+            <select id="ak-dl-status" class="field !py-2.5 !w-auto !text-xs cursor-pointer" wire:model.live="dlStatus">
+                <option value="">{{ __('chrome.ak.deliveries.all_status') }}</option>
+                <option value="ok" @selected($dlStatus === 'ok')>{{ __('chrome.ak.deliveries.ok') }}</option>
+                <option value="fail" @selected($dlStatus === 'fail')>{{ __('chrome.ak.deliveries.fail') }}</option>
+            </select>
+
+            <span class="ak-dl-count">{{ __('chrome.ak.deliveries.page_rows', ['n' => fa_number($deliveries->count())]) }}</span>
+        </div>
+
+        @if ($deliveries->isNotEmpty())
+            <div class="ak-dl-scroll">
+                <div class="ak-dl-table" role="table" aria-label="{{ __('chrome.ak.deliveries.title') }}">
+                    <div class="ak-dl-head" role="row">
+                        <span>{{ __('chrome.ak.deliveries.col_webhook') }}</span>
+                        <span>{{ __('chrome.ak.deliveries.col_event') }}</span>
+                        <span>{{ __('chrome.ak.deliveries.col_code') }}</span>
+                        <span>{{ __('chrome.ak.deliveries.col_attempt') }}</span>
+                        <span>{{ __('chrome.ak.deliveries.col_time') }}</span>
+                        <span></span>
+                    </div>
+
+                    @foreach ($deliveries as $d)
+                        @php
+                            $whUrl = $d->webhook->url ?? null;
+                            $attempt = $d->attemptNumber();
+                            $snippet = $d->snippetText();
+                            // بج رنگی کد پاسخ: 2xx سبز / 3xx و 4xx زرد / 5xx و بدون‌پاسخ (timeout) قرمز
+                            $codeTone = $d->status_code === null ? 'err' : ($d->status_code < 300 ? 'ok' : ($d->status_code < 500 ? 'warn' : 'err'));
+                            $codeLabel = $d->status_code === null ? __('chrome.ak.deliveries.no_response') : (string) $d->status_code;
+                        @endphp
+                        <div class="ak-dl-row" role="row" wire:key="dl-{{ $d->id }}">
+                            <span class="ak-dl-url" title="{{ $whUrl }}" dir="ltr">
+                                {{ $whUrl ? \Illuminate\Support\Str::limit($whUrl, 46, '…') : 'وب‌هوک حذف‌شده' }}
+                            </span>
+
+                            <span class="ak-dl-ev">
+                                {{ $whEventsList[$d->event] ?? $d->event }}
+                                <code dir="ltr">{{ $d->event }}</code>
+                            </span>
+
+                            <span class="ak-dl-code is-{{ $codeTone }}" title="{{ $snippet !== '' ? mb_substr($snippet, 0, 220) : '' }}" dir="ltr">{{ $codeLabel }}</span>
+
+                            <span class="ak-dl-attempt {{ $attempt > 1 ? 'is-retry' : '' }}" title="{{ $attempt > 1 ? 'این ردیف '.$attempt.' بار ارسال شده' : 'اولین ارسال' }}">{{ fa_number($attempt) }}</span>
+
+                            <span class="ak-dl-time"><bdi dir="ltr">{{ fa_date($d->created_at) }}</bdi></span>
+
+                            <span class="ak-dl-actions">
+                                <button type="button"
+                                        class="ak-dl-retry"
+                                        title="{{ __('chrome.ak.deliveries.retry') }}"
+                                        aria-label="{{ __('chrome.ak.deliveries.retry') }} {{ $d->event }}"
+                                        x-data
+                                        @click="window.PanelUI ? PanelUI.confirm({
+                                            title: '{{ __('chrome.ak.deliveries.confirm_title') }}',
+                                            desc: '{{ __('chrome.ak.deliveries.confirm_desc') }}',
+                                            okText: '{{ __('chrome.ak.deliveries.confirm_ok') }}',
+                                            cancelText: '{{ __('chrome.common.cancel') }}', danger: false, icon: 'question',
+                                        }, () => $wire.retryDelivery({{ $d->id }})) : $wire.retryDelivery({{ $d->id }})"
+                                        wire:loading.attr="disabled" wire:target="retryDelivery({{ $d->id }})">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38"/></svg>
+                                    {{ __('chrome.ak.deliveries.retry') }}
+                                </button>
+                            </span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @else
+            <p class="ak-usage-empty">{{ __('chrome.ak.deliveries.empty') }}</p>
+        @endif
+
+        {{-- ناوبری سبک (simplePaginate — بدون pagination سنگین) --}}
+        @if (! $deliveries->onFirstPage() || $deliveries->hasMorePages())
+            <div class="ak-dl-foot">
+                <span>{{ __('chrome.ak.deliveries.page_n', ['n' => fa_number($deliveries->currentPage())]) }}</span>
+                <div class="ak-dl-nav">
+                    <button type="button" @if ($deliveries->onFirstPage()) disabled @endif wire:click="previousPage">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                        {{ __('chrome.ak.deliveries.prev') }}
+                    </button>
+                    <button type="button" @if (! $deliveries->hasMorePages()) disabled @endif wire:click="nextPage">
+                        {{ __('chrome.ak.deliveries.next') }}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                    </button>
+                </div>
+            </div>
+        @endif
     </section>
 
     {{-- ================== نمونهٔ استفاده (پنجرهٔ کد تب‌دار) ================== --}}

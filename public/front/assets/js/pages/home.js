@@ -225,7 +225,44 @@
         });
     }
 
+    /* ---------- فاز ۶۰ — سفارش مجدد (تا ۴ خدمت پرتکرار خودِ مشتری) ----------
+       اپ توکن‌محور است؛ داده از GET /api/v1/me/reorder می‌آید (قیمت زندهٔ
+       کاتالوگ + آیکون دسته سمت سرور). مهمان/بدون سابقه → ۴۰۱ یا خالی →
+       بخش مخفی می‌ماند (بدون فضای خالی). */
+    function loadReorder() {
+        var section = document.getElementById('reorderSection');
+        var strip = document.getElementById('reorderStrip');
+        if (!section || !strip) { return; }
+
+        CN.api('/me/reorder', {
+            success: function (resp) {
+                var items = (resp && resp.data && resp.data.items) || [];
+                if (!items.length) { return; }
+
+                var html = '';
+                items.forEach(function (s) {
+                    html += '<a class="ak-ro-card" href="' + CN.withPort('/app/service/' + s.id) + '" aria-label="سفارش مجدد ' + CN.esc(s.name) + '">' +
+                        '<span class="ak-ro-ic" aria-hidden="true">' + CN.esc(s.icon || '📄') + '</span>' +
+                        '<span class="ak-ro-body">' +
+                        '<span class="ak-ro-name">' + CN.esc(s.name) + '</span>' +
+                        '<span class="ak-ro-meta">' + CN.toFaDigits(s.count || 0) + ' سفارش قبلی</span>' +
+                        '<span class="ak-ro-price"><b>' + CN.faMoney(s.total_amount) + '</b><i>تومان</i></span>' +
+                        '</span>' +
+                        '<span class="ak-ro-go" aria-hidden="true">' +
+                        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>' +
+                        '</span>' +
+                        '</a>';
+                });
+
+                strip.innerHTML = html;
+                section.classList.remove('hidden');
+            },
+            error: function () { /* مهمان/خطا → مخفی می‌ماند */ }
+        });
+    }
+
     /* ---------- شروع ---------- */
     loadCategories();
     loadServices();
+    loadReorder();
 })();

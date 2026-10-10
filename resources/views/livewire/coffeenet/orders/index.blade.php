@@ -6,10 +6,14 @@
 <div>
 
     {{-- داده‌های سرور برای JS (بدون کد درون‌خطی) — عیناً همان کلیدهای نسخهٔ Blade --}}
+    {{-- فاز ۶۰ — برچسب‌های چندزبانهٔ دکمهٔ «کپی لینک پرداخت» (خوانده‌شده در index.js) --}}
     <div id="page-data" hidden data-payload="{{ json_encode([
         'base' => "/coffeenet/{$coffeenet->id}/orders",
         'timeout' => (int) $broadcastTimeout,
-    ], JSON_UNESCAPED_UNICODE) }}"></div>
+    ], JSON_UNESCAPED_UNICODE) }}"
+         data-copy-pay-label="@lang('chrome.f60.pay_share_copy')"
+         data-copy-pay-toast="@lang('chrome.f60.pay_share_copied')"
+         data-copy-pay-title="@lang('chrome.f60.pay_share_row_title')"></div>
 
     {{-- سربرگ + تب‌ها --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 animate-fade-up">
@@ -138,5 +142,7 @@
 </div>
 
 @push('scripts')
-<script src="{{ asset('back/assets/js/pages/coffeenet/orders/index.js') }}?v=3"></script>
+<script src="{{ asset('back/assets/js/pages/coffeenet/orders/index.js') }}?v=4"></script>
+{{-- فاز ۶۰ — کپی لینک پرداخت (delegation مشترک order-qr.js) --}}
+<script src="{{ asset('back/assets/js/pages/order-qr.js') }}?v=1" defer></script>
 @endpush

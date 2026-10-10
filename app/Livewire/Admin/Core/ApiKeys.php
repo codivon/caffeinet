@@ -5,9 +5,11 @@ namespace App\Livewire\Admin\Core;
 use App\Models\ApiKey;
 use App\Models\ApiUsageLog;
 use App\Models\Webhook;
+use App\Models\WebhookDelivery;
 use App\Services\Settings\SettingsService;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 /**
  * فاز ۴۸ — کلیدهای وب‌سرویس (API Keys) — بازطراحی کامل.
@@ -28,11 +30,18 @@ use Livewire\Component;
  * وب‌هوک‌ها (فاز ۵۱): مدیریت اشتراک رویداد — URL + رمز امضا + رویدادها؛
  * ارسال با WebhookDispatcher (امضای HMAC) + لاگ آخرین وضعیت.
  *
+ * فاز ۶۰ — «تحویل‌های وب‌هوک»: ۲۰ ارسال آخر با بج رنگی کد پاسخ + فیلتر
+ * وب‌هوک/وضعیت + بازارسال دستی هر ردیف (PanelUI.confirm → dispatcher retry)
+ * با توست نتیجه. دسترسی: کل صفحه زیر میدل‌ویر admin.access است؛ ریدایرکت
+ * ردیف‌ها هم با همان الگوی اکشن‌های موجود (حذف کلید/وب‌هوک) انجام می‌شود.
+ *
  * GET admin/api-keys (این کامپوننت).
  */
 #[Layout('back.layouts.panel')]
 class ApiKeys extends Component
 {
+    use WithPagination;
+
     /** مودال «کلید جدید» باز است؟ */
     public bool $addOpen = false;
 
@@ -55,6 +64,14 @@ class ApiKeys extends Component
 
     /** وب‌هوکی که رمزش تازه ساخته شده (نمایش یک‌باره) */
     public ?array $createdWh = null;
+
+    /* ---------- فاز ۶۰ — تحویل‌های وب‌هوک ---------- */
+
+    /** فیلتر تحویل‌ها: وب‌هوک ('' = همه) */
+    public string $dlHook = '';
+
+    /** فیلتر تحویل‌ها: وضعیت ('' = همه | ok | fail) */
+    public string $dlStatus = '';
 
     protected function rules(): array
     {
@@ -197,6 +214,39 @@ class ApiKeys extends Component
         session()->flash('ak-ok', 'وب‌هوک حذف شد؛ دیگر رویدادی به آن ارسال نمی‌شود.');
     }
 
+    /* ==================== فاز ۶۰ — تحویل‌های وب‌هوک ==================== */
+
+    /** تغییر فیلتر وب‌هوک/وضعیت → برگشت به صفحهٔ ۱ فهرست تحویل‌ها */
+    public function updatedDlHook(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDlStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    /** بازارسال دستی یک تحویل — پس از تأیید PanelUI.confirm صدا زده می‌شود */
+    public function retryDelivery(int $id): void
+    {
+        $delivery = WebhookDelivery::query()->find($id);
+
+        if (! $delivery) {
+            session()->flash('ak-err', 'این ردیف تحویل دیگر موجود نیست.');
+
+            return;
+        }
+
+        $result = \App\Services\Webhooks\WebhookDispatcher::retry($delivery);
+
+        // توست نتیجه + فلش داخلی صفحه (همان الگوی حذف کلید/وب‌هوک)
+        $tone = $result['ok'] ? 'success' : 'error';
+        $this->js("window.PanelUI && PanelUI.toast(".json_encode($result['message']).", '".$tone."')");
+
+        session()->flash($result['ok'] ? 'ak-ok' : 'ak-err', $result['message']);
+    }
+
     /** تست وب‌هوک — رویداد آزمایشی ping می‌فرستد و نتیجه را فلش می‌کند */
     public function testWebhook(int $id): void
     {
@@ -248,29 +298,18 @@ class ApiKeys extends Component
             ];
 
             /* چه کسانی از API استفاده می‌کنند؟ — برترین کاربران ۳۰ روز */
-            $apiUsers = ApiUsageLog::query()
-                ->where('created_at', '>=', $since)
-                ->whereNotNull('user_id')
-                ->selectRaw('user_id, COUNT(*) as hits, MAX(created_at) as last_at, COUNT(DISTINCT ip) as ips')
-                ->groupBy('user_id')
-                ->orderByDesc('hits')
-                ->limit(10)
-                ->get()
-                ->map(function ($row) {
-                    $u = \App\Models\User::find($row->user_id);
-
-                    return (object) [
-                        'id'      => $row->user_id,
-                        'name'    => $u ? trim(($u->name ?? '').' '.($u->family ?? '')) ?: 'کاربر #'.$u->id : 'کاربر حذف‌شده',
-                        'mobile'  => $u?->mobile,
-                        'hits'    => (int) $row->hits,
-                        'ips'     => (int) $row->ips,
-                        'last_at' => $row->last_at,
-                    ];
-                });
+            $apiUsers = self::apiUsersInsight();
         }
 
         $webhooks = Webhook::query()->orderBy('id')->get();
+
+        /* فاز ۶۰ — تحویل‌های وب‌هوک: ۲۰ ارسال آخر با فیلتر وب‌هوک/وضعیت (simplePaginate — بدون pagination سنگین) */
+        $deliveries = WebhookDelivery::query()
+            ->when($this->dlHook !== '', fn ($q) => $q->where('webhook_id', (int) $this->dlHook))
+            ->when($this->dlStatus === 'ok', fn ($q) => $q->where('ok', true))
+            ->when($this->dlStatus === 'fail', fn ($q) => $q->where('ok', false))
+            ->orderByDesc('id')
+            ->simplePaginate(20);
 
         return view('livewire.admin.core.api-keys', [
             'keys'         => $keys,
@@ -281,6 +320,7 @@ class ApiKeys extends Component
             'usage'        => $usage,
             'apiUsers'     => $apiUsers,
             'webhooks'     => $webhooks,
+            'deliveries'   => $deliveries,
             'whEventsList' => \App\Services\Webhooks\WebhookDispatcher::EVENTS,
         ])->layoutData([
             'user'       => auth()->user(),
@@ -288,6 +328,35 @@ class ApiKeys extends Component
             'breadcrumb' => 'پنل مدیریت کل ← تنظیمات ← کلیدهای وب‌سرویس',
             'htmlTitle'  => 'کلیدهای وب‌سرویس',
         ]);
+    }
+
+    /**
+     * فاز ۶۰ — برترین مصرف‌کنندگان API در ۳۰ روز اخیر (به‌ازای کاربر).
+     * بین render() کامپوننت و خروجی CSV (CsvExportsController) مشترک است —
+     * ستون‌ها عیناً همان جدول «کاربران مصرف‌کننده» در صفحهٔ کلیدهای وب‌سرویس.
+     */
+    public static function apiUsersInsight(): \Illuminate\Support\Collection
+    {
+        return ApiUsageLog::query()
+            ->where('created_at', '>=', now()->subDays(30))
+            ->whereNotNull('user_id')
+            ->selectRaw('user_id, COUNT(*) as hits, MAX(created_at) as last_at, COUNT(DISTINCT ip) as ips')
+            ->groupBy('user_id')
+            ->orderByDesc('hits')
+            ->limit(10)
+            ->get()
+            ->map(function ($row) {
+                $u = \App\Models\User::find($row->user_id);
+
+                return (object) [
+                    'id'      => $row->user_id,
+                    'name'    => $u ? trim(($u->name ?? '').' '.($u->family ?? '')) ?: 'کاربر #'.$u->id : 'کاربر حذف‌شده',
+                    'mobile'  => $u?->mobile,
+                    'hits'    => (int) $row->hits,
+                    'ips'     => (int) $row->ips,
+                    'last_at' => $row->last_at,
+                ];
+            });
     }
 
     /** برچسب دستگاه از User-Agent (فشرده) */

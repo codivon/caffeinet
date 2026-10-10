@@ -84,6 +84,13 @@
                 <span class="st-nav-hint">۲</span>
             </button>
 
+            {{-- فاز ۶۰ — محتوای صفحهٔ عمومی «درباره/اعتماد» (/about) --}}
+            <button type="button" role="tab" class="st-nav-item" data-section="about">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                <span class="flex-1 text-start">صفحهٔ درباره ما</span>
+                <span class="st-nav-hint">/about</span>
+            </button>
+
             <button type="button" role="tab" class="st-nav-item" data-section="sms">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
                 <span class="flex-1 text-start">پیامک و پرووایدر</span>
@@ -342,6 +349,48 @@
 
             <div class="st-section-foot">
                 <button type="submit" class="btn-primary btn-shine ui-press !py-2.5 px-7">ذخیرهٔ تنظیمات عمومی</button>
+            </div>
+        </form>
+
+        {{-- ---------- فاز ۶۰ — صفحهٔ درباره/اعتماد (/about) ---------- --}}
+        @php
+            // FAQ ذخیره‌شده آرایهٔ {q,a} است؛ برای ویرایش ساده به خطوط «سوال | جواب» برمی‌گردیم
+            $aboutIntro = (string) $settings->get('about.intro', '');
+            $aboutFaqLines = collect($settings->get('about.faq') ?? [])
+                ->map(fn ($row) => trim((string) ($row['q'] ?? '')).' | '.trim((string) ($row['a'] ?? '')))
+                ->implode("\n");
+        @endphp
+        <form data-group="about" class="st-section card ui-lift animate-fade-up hidden" id="sec-about">
+            <div class="st-section-head">
+                <span class="st-section-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                </span>
+                <div class="flex-1">
+                    <h2 class="st-section-title">صفحهٔ «درباره ما / اعتماد»</h2>
+                    <p class="st-section-desc">محتوای صفحهٔ عمومی <span class="font-mono" dir="ltr">/about</span> — لینک آن در فوتر لندینگ است. اگر فیلدی را خالی ذخیره کنید، صفحه به متن پیش‌فرض سیستم برمی‌گردد.</p>
+                </div>
+                <a href="{{ route('front.about') }}" target="_blank" rel="noopener" class="btn-primary btn-shine ui-press !py-2 !px-4 !text-xs whitespace-nowrap" style="text-decoration:none;">
+                    <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/></svg>
+                    مشاهدهٔ صفحه
+                </a>
+            </div>
+
+            <div class="st-field-row">
+                <label class="lbl" for="ab-intro">متن معرفی (زیر تیتر هیرو)</label>
+                <textarea id="ab-intro" data-key="about.intro" class="field min-h-24" rows="4" maxlength="2000"
+                          placeholder="معرفی کوتاه و اعتمادساز پلتفرم — ۲ تا ۴ جمله.">{{ $aboutIntro }}</textarea>
+                <p class="st-hint">حداکثر ۲۰۰۰ کاراکتر؛ خالی = متن پیش‌فرض سیستم.</p>
+            </div>
+
+            <div class="st-field-row">
+                <label class="lbl" for="ab-faq">سوالات متداول</label>
+                <textarea id="ab-faq" data-key="about.faq" class="field min-h-48" rows="10" dir="auto"
+                          placeholder="پرداخت امن است؟ | بله؛ پرداخت از درگاه بانکی رسمی انجام می‌شود…">{{ $aboutFaqLines }}</textarea>
+                <p class="st-hint">هر خط یک سوال با فرمت «سوال | جواب» (کاراکتر ستون جداکننده است). خطوط بدون «|» یا بدون جواب نادیده گرفته می‌شوند؛ خالی کردن کل کادر = بازگشت به ۸ سوال پیش‌فرض.</p>
+            </div>
+
+            <div class="st-section-foot">
+                <button type="submit" class="btn-primary btn-shine ui-press !py-2.5 px-7">ذخیرهٔ محتوای صفحهٔ درباره</button>
             </div>
         </form>
 

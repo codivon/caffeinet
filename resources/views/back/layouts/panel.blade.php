@@ -2,6 +2,7 @@
 <html lang="{{ $panelLang ?? 'fa' }}" dir="{{ $panelDir ?? 'rtl' }}">
 <head>
     <meta charset="utf-8">
+    <script>/* TEMP60B-DIAG */ window.addEventListener('error', function(e){ try{ (window.__e60b=window.__e60b||[]).push({m:String(e.message), s:(e.filename||'')+':'+e.lineno, st:(e.error&&e.error.stack||'').slice(0,600)}); }catch(_){} }, true);</script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 

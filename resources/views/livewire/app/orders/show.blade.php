@@ -397,6 +397,55 @@
             </div>
         </div>
 
+        {{-- فاز ۶۰ — لینک پرداخت برای اشتراک‌گذاری + QR سفارش/پرداخت
+             (فقط وقتی قابل پرداخت یا پرداخت‌شده دیده می‌شود — مدیریت با order-detail.js) --}}
+        <div class="card fade-up d3 hidden" id="payShareCard"
+             data-toast-copied="@lang('chrome.f60.pay_share_copied')"
+             data-toast-created="@lang('chrome.f60.pay_share_created')"
+             data-share-title="@lang('chrome.f60.share_for_pay')"
+             data-receipt-title="@lang('chrome.f60.receipt_qr_title')">
+            <h2 class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3z"/><path d="M21 14v3"/><path d="M14 21h3"/><path d="M21 21h.01"/></svg>
+                <span id="shareCardTitle">@lang('chrome.f60.share_for_pay')</span>
+            </h2>
+
+            {{-- لینک فعال: QR + کپی --}}
+            <div class="hidden" id="shareLinkBlock">
+                <div class="ak-share-row">
+                    <div class="ak-qr ak-qr--app" id="shareQr" data-ak-qr-size="132" role="img" aria-label="@lang('chrome.f60.pay_share_qr_aria')"></div>
+                    <div class="ak-share-side">
+                        <p class="tiny text-soft">@lang('chrome.f60.pay_share_qr_hint')</p>
+                        <button class="btn btn-ghost btn-sm" id="shareCopyBtn" type="button">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                            @lang('chrome.f60.pay_share_copy')
+                        </button>
+                        <span class="ak-qr-hint tiny text-faint">@lang('chrome.f60.pay_share_hint')</span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- بدون Payment معلق: ساخت لینک (همان مسیر پرداخت آنلاین — بدون ریدایرکت) --}}
+            <div class="hidden" id="shareEmptyBlock">
+                <p class="tiny text-soft">@lang('chrome.f60.share_empty_note')</p>
+                <button class="btn btn-primary btn-sm btn-block" id="shareCreateBtn" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    @lang('chrome.f60.pay_share_create')
+                </button>
+            </div>
+
+            {{-- سفارش پرداخت‌شده: QR رسید (شماره سفارش + مبلغ + تاریخ) --}}
+            <div class="hidden" id="shareReceiptBlock">
+                <div class="ak-share-row">
+                    <div class="ak-qr ak-qr--app" id="receiptQr" data-ak-qr-size="116" role="img" aria-label="@lang('chrome.f60.receipt_qr_aria')"></div>
+                    <div class="ak-share-side">
+                        <p class="tiny text-soft">@lang('chrome.f60.receipt_qr_line1')</p>
+                        <p class="tiny"><strong class="text-strong" id="receiptAmount"></strong></p>
+                        <span class="ak-qr-hint tiny text-faint">@lang('chrome.f60.receipt_qr_note')</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- مدارک --}}
         <div class="card fade-up d3 hidden" id="filesCard">
             <h2 class="card-title">
@@ -478,9 +527,13 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('assets/css/chat.css') }}?v=21">
+    {{-- فاز ۶۰ — استایل باکس QR پرداخت/رسید (namespace .ak-qr + دارک‌مود) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/pages/order-qr.css') }}?v=2">
 @endpush
 
 @push('page')
-    <script src="{{ asset('front/assets/js/pages/order-detail.js') }}?v=8" defer></script>
+    {{-- فاز ۶۰ — کتابخانهٔ QR (qrcodejs 1.0.0 — بدون Node؛ cache-bust ?v=60) --}}
+    <script src="{{ asset('assets/js/vendor/qrcode.min.js') }}?v=60" defer></script>
+    <script src="{{ asset('front/assets/js/pages/order-detail.js') }}?v=10" defer></script>
     <script src="{{ asset('front/assets/js/pages/order-chat.js') }}?v=25" defer></script>
 @endpush

@@ -9,6 +9,7 @@ use App\Livewire\Admin\Support\Ui;
 use App\Models\Order;
 use App\Models\OrderFile;
 use App\Services\Chat\ChatService;
+use App\Services\Customer\PaymentGatewayService;
 use App\Services\Orders\OrderAssignmentService;
 use Illuminate\Support\Facades\URL;
 use Livewire\Attributes\Layout;
@@ -42,9 +43,71 @@ class View extends Component
         $this->order = $order;
     }
 
+    /**
+     * فاز ۶۰ — کارت «پرداخت سریع»: وضعیت اشتراک لینک پرداخت سفارش.
+     *
+     *  • payable  → سفارش قابل پرداخت است (accepted یا legacy pending_payment)
+     *  • payment_url → لینک امضاشدهٔ ۲۰ دقیقه‌ای اگر Payment معلق وجود دارد
+     *    (بدون اثر جانبی — ساختن پرداخت فقط با اکشن صریح)
+     *  • paid → رسید QR ساده برای سفارش پرداخت‌شده
+     */
+    protected function paymentShare(PaymentGatewayService $payments): array
+    {
+        $order = $this->order;
+        $payable = $payments->isPayable($order);
+        $pending = $payable ? $payments->pendingOnlinePayment($order->load('payments')) : null;
+        $paid = (bool) $order->paid_at || $order->status === OrderStatus::Paid;
+
+        // فاز ۶۰ — متن رسید QR سفارش پرداخت‌شده (نمایشی برای اسکن حضوری؛
+        // لاتین ساده تا هر اسکنری بخواند) — تاریخ نمایشی همان جلالیِ کارت است
+        $receiptText = $paid
+            ? 'ORDER:'.preg_replace('/[^A-Za-z0-9\-]/', '', (string) $order->order_number)
+                .'|AMOUNT:'.number_format((float) $payments->orderTotal($order), 0, '.', '')
+                .'|PAID:'.($order->paid_at ?? $order->created_at)?->format('Ymd')
+            : null;
+
+        return [
+            'payable' => $payable,
+            'paid' => $paid,
+            'amount' => $payments->orderTotal($order),
+            'has_pending' => (bool) $pending,
+            'payment_url' => $pending ? $payments->paymentLink($pending) : null,
+            'receipt_text' => $receiptText,
+        ];
+    }
+
+    /**
+     * فاز ۶۰ — ساخت Payment معلق برای سفارشِ قابل‌پرداختِ بدون پرداخت معلق
+     * (همان مسیر دکمهٔ «پرداخت آنلاین» مشتری — startOnline) و تحویل لینک
+     * به مرورگر برای کپی/QR بدون خروج از صفحه.
+     */
+    public function createPaymentLink(PaymentGatewayService $payments): void
+    {
+        $order = $this->order;
+
+        if (! $payments->isPayable($order) || ! $order->customer) {
+            $this->toast(__('chrome.f60.pay_share_unavailable'), 'error');
+
+            return;
+        }
+
+        try {
+            $payment = $payments->startOnline($order, $order->customer);
+
+            $this->dispatch('payment-link-ready', url: $payments->paymentLink($payment));
+            $this->toast(__('chrome.f60.pay_share_created'), 'success');
+        } catch (\Throwable $e) {
+            $this->toast($e instanceof \Illuminate\Validation\ValidationException
+                ? collect($e->errors())->flatten()->first() ?? __('chrome.f60.pay_share_unavailable')
+                : __('chrome.f60.pay_share_unavailable'), 'error');
+        }
+    }
+
     public function render(): \Illuminate\View\View
     {
         app(OrderAssignmentService::class)->expireStale();
+
+        $payments = app(PaymentGatewayService::class);
 
         $order = $this->order->load([
             'service:id,name,description,estimated_time',
@@ -148,6 +211,7 @@ class View extends Component
             'canAssign' => $canAssign,
             'canRebroadcast' => $canRebroadcast,
             'canCancel' => $canCancel,
+            'paymentShare' => $this->paymentShare($payments),
             'statusActions' => $this->statusActions($order),
             'operators' => $operators,
             'assignCoffeenets' => $assignCoffeenets,
